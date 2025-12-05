@@ -81,7 +81,6 @@
                   "en/guides/supported-chains-and-tokens",
                   "en/guides/status-and-events",
                   "en/guides/roles-and-permissions",
-                  "en/guides/api-reference",
                   "en/guides/error-codes"
                 ]
               }
@@ -329,10 +328,7 @@
                   "cn/guides/supported-chains-and-tokens",
                   "cn/guides/status-and-events",
                   "cn/guides/roles-and-permissions",
-                  "cn/guides/error-codes",
-                  "cn/guides/batch-payouts",
-                  "cn/guides/api-reference",
-                  "cn/guides/troubleshooting"
+                  "cn/guides/error-codes"
                 ]
               }
             ]
