@@ -1,0 +1,650 @@
+---
+title: "Changelog"
+lang: "en"
+description: "Detailed changelog of all additions and changes to the WaaS 2.0 API."
+---
+
+This changelog details all additions and changes to the WaaS 2.0 API. You can download the WaaS 2.0 API specification from [GitHub](https://github.com/CoboGlobal/developer-site/blob/master/v2/cobo_waas2_openapi_spec/dev_openapi.yaml).
+
+For changes specific to payment-related operations, please refer to the [Release history](/v2/payments/changelog) of the payment solution.
+
+## v1.27.0
+
+This version was released on November 26, 2025.
+
+### Improvements
+
+- Added support for TRON smart contracts. Now you can use the [Call smart contract](/v2/api-references/transactions/call-smart-contract), [List all transactions](/v2/api-references/transactions/list-all-transactions), and [Get transaction information](/v2/api-references/transactions/get-transaction-information) operations to call and retrieve transactions involving TRON smart contracts.
+
+## v1.26.0
+
+This version was released on November 12, 2025.
+
+### New Features
+
+- Added new operations for managing permissions for a tokenization contract:
+  - [List token permissions](/v2/api-references/tokenization/list-token-permissions)
+  - [Update token permissions](/v2/api-references/tokenization/update-token-permissions)
+
+- Added support for [issuing](/v2/api-references/tokenization/issue-token) wrapped tokens using the CoboERC20Wrapper and SOLWrapper standards.
+
+### Improvements
+
+- Added the `archived` and `token_standard` properties to the `TokenizationTokenInfo` schema.
+
+- Added the `token_standard` query parameter to the [List supported chains for tokenization](/v2/api-references/tokenization/list-supported-chains-for-tokenization) operation to allow filtering by token standard.
+
+- Deprecated the Resend transaction operation. To retry a failed transaction, please initiate a new transaction instead.
+
+- Deprecated the Estimate transaction fee operation for Fee Station. Please use the [Check Fee Station Usage](/v2/api-references/feestation/check-fee-station-usage) operation instead.
+
+- Enhanced [Check Fee Station Usage](/v2/api-references/feestation/check-fee-station-usage) operation
+  - The `amount` and `token_id` request parameters are no longer required.
+  - Added a new `fee_token_id` request parameter to specify the gas fee token.
+  - Added a `sponsored_token_id` response field to indicate the token used to sponsor the transaction.
+
+- Added a new `DisableAutoFuel` option for the `auto_fuel` configuration in the [Transfer token](/v2/api-references/transactions/transfer-token) and [Call smart contract](/v2/api-references/transactions/call-smart-contract) operations.
+
+- Extended `cobo_category` enums with new enums for Fee Station, tokenization, and signature-related scenarios:
+    - `GasFeeSponsor`
+    - `GasFeeSponsorRefund`
+    - `Tokenization`
+    - `TokenizationGasSponsor`
+    - `TokenSwap`
+    - `NonceAccountSign`
+    - `FeePayerSign`
+
+## v1.25.0
+
+This version was released on October 29, 2025.
+
+### New Features
+
+- Added new operations for compliance management:
+  - [Submit KYT screening decision](/v2/api-references/compliance/submit-kyt-screening-decision)
+  - [Submit KYT manual review result](/v2/api-references/compliance/submit-kyt-manual-review-result)
+  - [Get KYT screening status](/v2/api-references/compliance/get-kyt-screening-status)
+
+### Improvements
+
+- Introduced a new [webhook event type](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) for KYT screening status changes: `compliance.kyt.screenings.status.updated`.
+
+## v1.24.0
+
+This version was released on October 15, 2025.
+
+### New Features
+
+- You can now check whether Fee Station is applicable for a transaction by using the [Check Fee Station usage](/v2/api-references/feestation/check-fee-station-usage) operation.
+
+### Improvements
+
+- Removed the `BTC_EIP_191_Signature` and `Raw_Message_Signature` schemas from the [Sign Message](/v2/api-references/transactions/sign-message) operation.
+
+- Added the `STELLAR_Contract` schema in the [Call smart contract](/v2/api-references/transactions/call-smart-contract) operation to support trustline management on the Stellar network.
+
+- Added a new schema `SolContractCallAddressLookupTableAccount` to support using Solana Address Lookup Tables.
+
+- Added the `main_transaction_id` property to indicate the main transaction in the `FuelingInfo` schema.
+
+## v1.23.0
+
+This version was released on September 17, 2025.
+
+### Breaking Changes
+
+- Updated the response schema of [List approval details](/v2/api-references/transactions/list-approval-details). Several properties were added or modified.
+- Updated the behavior of the [List Address Book Entries](/v2/api-references/addressbooks/list-address-book-entries) operation:
+  - When both `address` and `label` are provided, results are now returned only if both match (previously matched if either condition was true).
+  - The `chain_id` parameter has been changed from required to optional.
+
+### New Features
+
+- You can now manage transaction dispositions for compliance purposes with the WaaS 2.0 API. Available operations are as follows:
+  - [Isolate funds](/v2/api-references/compliance/isolate-funds)
+  - [Refund funds](/v2/api-references/compliance/isolate-funds)
+  - [Unfreeze funds](/v2/api-references/compliance/unfreeze-frozen-funds)
+  - [Get disposition status](/v2/api-references/compliance/get-disposition-status)
+
+- You can now get, create, update, and delete Address Book entries with the following operations:
+  - [Get Address Book entry](/v2/api-references/addressbooks/get-address-book-entry)
+  - [Create Address Book entries](/v2/api-references/addressbooks/create-address-book-entries)
+  - [Update Address Book entry](/v2/api-references/addressbooks/update-address-book-entry)
+  - [Delete Address Book entry](/v2/api-references/addressbooks/delete-address-book-entry)
+<Note>The Create Address Book entries, Update Address Book entry, and Delete Address Book entry operations are available upon request. Please contact our [customer support](mailto:help@cobo.com) to enable them.</Note>
+
+### Improvements
+
+- Added a property `chain_identifier` to the `chain` schema which groups chains by their execution logic. For example, `ETH` for all EVM-compatible chains (Ethereum, BNB Smart Chain, Polygon).
+- Added a property `biz_org_id` to the response schema of [Get organization information](/v2/api-references/organizations/get-organization-information) which can be provided to Cobo's customer support to help quickly locate the organization.
+- Introduced a new [webhook event type](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) for compliance disposition status changes: `compliance.disposition.status.updated`.
+
+## v1.22.0
+
+This version was released on August 27, 2025.
+
+### New Features
+
+- You can now issue and manage your custom tokens with the WaaS 2.0 API. Available operations are as follows:
+  - Issue tokens
+    - [List supported chains for tokenization](/v2/api-references/tokenization/list-supported-chains-for-tokenization)
+    - [Issue token](/v2/api-references/tokenization/issue-token)
+    - [List issued tokens](/v2/api-references/tokenization/list-issued-tokens)
+    - [Get token details](/v2/api-references/tokenization/get-token-details)
+    - [Get token holdings information](/v2/api-references/tokenization/get-token-holdings-information)
+  - Perform core lifecycle operations
+    - [Mint tokens](/v2/api-references/tokenization/mint-tokens)
+    - [Burn tokens](/v2/api-references/tokenization/burn-tokens)
+    - [Call token contract](/v2/api-references/tokenization/call-token-contract)
+    - [Pause token contract](/v2/api-references/tokenization/pause-token-contract)
+    - [Unpause token contract](/v2/api-references/tokenization/unpause-token-contract)
+    - [Estimate tokenization operation fee](/v2/api-references/tokenization/estimate-tokenization-operation-fee)
+  - Manage token access controls
+    - [Activate or deactivate allowlist](/v2/api-references/tokenization/activate-or-deactivate-allowlist)
+    - [Get allowlist activation status](/v2/api-references/tokenization/get-allowlist-activation-status)
+    - [List addresses on allowlist](/v2/api-references/tokenization/list-addresses-on-allowlist)
+    - [Update addresses on allowlist](/v2/api-references/tokenization/update-addresses-on-allowlist)
+    - [List addresses on blocklist](/v2/api-references/tokenization/list-addresses-on-blocklist)
+    - [Update addresses on blocklist](/v2/api-references/tokenization/update-addresses-on-blocklist)
+  - Monitor activities
+    - [List tokenization activities](/v2/api-references/tokenization/list-tokenization-activities)
+    - [Get tokenization activity details](/v2/api-references/tokenization/get-tokenization-activity-details)
+
+- Added the following operations for creating and managing auto-sweep tasks and configuring sweep-to addresses:
+  - [Create auto-sweep task](/v2/api-references/autosweep/create-auto-sweep-task)
+  - [List auto-sweep tasks](/v2/api-references/autosweep/list-auto-sweep-tasks)
+  - [Get auto-sweep task details](/v2/api-references/autosweep/get-auto-sweep-task-details)
+  - [Create sweep-to address](/v2/api-references/autosweep/create-sweep-to-address)
+  - [List sweep-to addresses](/v2/api-references/autosweep/list-sweep-to-addresses)
+
+- Added the following operations for tracking transaction approvals and retrieving approval templates:
+  - [List approval details](/v2/api-references/transactions/list-approval-details)
+  - [List transaction templates](/v2/api-references/transactions/list-transaction-templates)
+
+### Improvements
+- You can enable auto token sweeping for MPC Wallets and Web3 Wallets by setting the `enable_auto_sweep` parameter to `true` when using the [Creating wallet](/v2/api-references/wallets/create-wallet) operation.
+
+
+## v1.21.0
+
+This version was released on August 13, 2025.
+
+### New Features
+
+- Added the [Estimate maximum transferable value](/v2/api-references/wallets/estimate-maximum-transferable-value) operation to estimate the maximum transferable value based on specified fee settings. We recommend using this new operation instead of [Get maximum transferable value](/v2/api-references/wallets/get-maximum-transferable-value), which will be deprecated in the future.
+
+### Improvements
+
+- Added compliance-related enums to the `TransactionCoboCategory` schema:
+  - `ScreenAppRefund`
+  - `ScreenAppIsolate`
+  - `ComplianceRefund`
+  - `ComplianceIsolate`
+
+## v1.20.0
+
+This version was released on July 30, 2025.
+
+### Improvements
+
+- Added `UsePortalPreference` as a new option to the `AutoFuelType` enum for [Fee Station](https://manuals.cobo.com/en/portal/fee-station/introduction) transactions. This option allows you to use payment preferences set on Cobo Portal instead of specifying the mode of transaction fee payment in each API call.
+- The `destination` property in the [Estimate transaction fee](/v2/api-references/transactions/estimate-transaction-fee#contractcall) request for contract calls is now optional.
+- Added a maximum length limit of 65,000 characters for the `calldata` field in the [Call smart contract](/v2/api-references/transactions/call-smart-contract#body-destination-calldata) operation (EVM contract calls).
+
+## v1.19.1
+
+This version was released on July 17, 2025.
+
+### Improvements
+
+- Added support for the Solana and Filecoin fee models when creating transactions and retrieving transaction information. For more details, refer to the [Fee models](/v2/guides/transactions/estimate-fees#fee-models) guide.
+
+- Introduced new [webhook event types](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) for token or chain status changes
+  - `wallet.token.disabled`
+  - `wallet.chain.disabled`
+  - `token.suspended.deposit`
+  - `token.suspended.withdraw`
+
+- Added a new [transaction sub-status](/v2/guides/transactions/status#status-reference-table), `RejectedByCobo`, to indicate transactions rejected due to unmet compliance requirements.
+
+## v1.18.0
+
+This version was released on July 2, 2025.
+
+### New Features
+- Added the following operations for payer and top-up address management:
+  - [Get top-up address](/v2/api-references/payment/get-top-up-address)
+  - [List payers](/v2/api-references/payment/list-payers)
+- Added the [Get organization information](/v2/api-references/organizations/get-organization-information) operation to retrieve detailed information about the organization associated with the current API key.
+
+### Improvements
+- Enhanced the [List enabled tokens](/v2/api-references/wallets/list-enabled-tokens) operation to support filtering by specific token IDs.
+- Introduced new [webhook event types](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) for more granular and real-time balance update notifications:
+  - `wallets.mpc.balance.updated`
+  - `wallets.web3.balance.updated`
+
+
+## v1.17.0
+
+This version was released on June 18, 2025.
+
+### New Features
+- Enhanced [Create settlement request](/v2/api-references/payment/create-settlement-request) to support crypto withdrawals, enabling direct settlement to crypto addresses. Also, added [List crypto addresses](/v2/api-references/payment/list-crypto-addresses) operation to view all registered withdrawal addresses
+- Added developer fee support to [Create refund order](/v2/api-references/payment/create-refund-order).
+- Added new OAuth operations to enable secure authentication for the Checkout SDK:
+  - [Get Access Token](/v2/api-references/oauth/get-access-token): Obtain the initial Access Token and Refresh Token
+  - [Refresh Access Token](/v2/api-references/oauth/refresh-access-token): Renew the Access Token
+
+
+### Improvements
+The [Transfer token](/v2/api-references/transactions/transfer-token) operation now supports Custodial Wallet (Asset Wallet) transfers using a wallet ID. This feature requires whitelist access. You can contact [help@cobo.com](mailto:help@cobo.com) to request enrollment. Please note that implementing this feature may require updates to your existing transaction history data handling. 
+
+## v1.16.0
+
+This version was released on May 28, 2025.
+
+### New Features
+- Added the following new operations for managing app workflows:
+  - [List app workflows](/v2/api-references/appworkflows/list-app-workflows)
+  - [Request workflow approval](/v2/api-references/appworkflows/request-workflow-approval)
+  - [Get approval request details](/v2/api-references/appworkflows/get-approval-request-details)
+  - [Revoke approval request](/v2/api-references/appworkflows/revoke-approval-request)
+  - [List approval requests](/v2/api-references/appworkflows/list-approval-requests)
+- Added a new operation [Batch check UTXOs](/v2/api-references/wallets/batch-check-utxos) which allows you to verify the existence and details of specified unspent transaction outputs (UTXOs) for a given wallet and token. This operation is supported for both MPC Wallets and Custodial Wallets (Web3 Wallets).
+
+### Improvements
+- Enhanced the [Estimate transaction fee](/v2/api-references/transactions/estimate-transaction-fee) operation by adding a property `replaced_transaction_id` to the request body, allowing fee estimation for replacement transactions.
+- Added new values to the `TransactionCoboCategory` schema to support more use cases.
+- Added a property `coinbase_maturity` to the `ChainInfo` schema to indicate the required confirmations for coinbase maturity.
+- Added two [transaction sub-statuses](/v2/guides/transactions/status#status-reference-table) `PendingCoboKYTCheck` and `RejectedByCoboKYT`.
+- Added the `is_frozen` property to the response of the [List UTXOs](/v2/api-references/wallets/list-utxos) operation. This property indicates whether each UTXO is currently frozen and unavailable for spending.
+
+## v1.15.0
+
+This version was released on May 14, 2025.
+
+### Improvements
+
+- Added the following new [transaction sub-statuses](/v2/guides/transactions/status#status-reference-table) to support more granular tracking in transaction screening scenarios:
+  - `PendingCoboCheck`
+  - `RejectedTransactionPolicy`
+  - `RejectedByScreeningApp`
+  - `PendingScreeningAppCheck`
+- Added the `estimated_fee_used` property to the schemas `TransactionEvmEip1559Fee`, `TransactionEvmLegacyFee`, `TransactionUtxoFee`, and `TransactionFixedFee` for MPC Wallets and Custodial Wallets (Web3 Wallets) transactions, to indicate the estimated transaction fee when retrieving transaction information.
+- Added the query parameters `wallet_type` and `wallet_subtype` to the [List all transactions](/v2/api-references/transactions/list-all-transactions) operation, allowing you to filter transactions by wallet classification.
+- Added the properties `wallet_subtype` and `encoding` to the response of the [List address book entries](/v2/api-references/addressbooks/list-address-book-entries) operation, providing more context for address usage.
+- Added data structures for TSS request events and callback payloads.
+
+## v1.14.0
+
+This version was released on April 23, 2025.
+
+### New Features
+
+- Added a batch of operations for payment scenarios, including pay-in orders, refund, settlements, merchants, bank accounts, and exchange rates, to support comprehensive payment workflows.
+- Added the [Estimate fee for Fee Station transaction](/v2/api-references/feestation/estimate-fee-for-fee-station-transaction) operation to estimate the gas fee for top-up transactions sent by [Fee Station](https://manuals.cobo.com/en/portal/fee-station/introduction).
+- Added the following operations to support token listing via self-service submission:
+  - [Create token listing request](/v2/api-references/wallets/create-token-listing-request)
+  - [List token listing requests](/v2/api-references/wallets/list-token-listing-requests)
+  - [Get token listing request](/v2/api-references/wallets/get-token-listing-request)
+
+### Improvements
+
+- Added new [webhook event types](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) to support more real-time updates:
+  - `wallets.token_listing.failed`
+  - `wallets.token_listing.succeeded`
+  - `payment.transaction.created`
+  - `payment.transaction.late`
+  - `payment.transaction.held`
+  - `payment.status.updated`
+  - `payment.refund.status.updated`
+  - `payment.settlement.status.updated`
+
+- Added new fields `wallet_type` and `wallet_sub_type` to the `wallet.token.enabled` and `wallet.chain.enabled` webhook events to indicate supported wallet types and sub-types.
+
+- Enhanced the [List Fee Station token balances](/v2/api-references/feestation/list-fee-station-token-balances) operation by adding the `chain_id` field to the response.
+
+- Enhanced the [List all transactions](/v2/api-references/transactions/list-all-transactions) operation. By default, it now returns transactions from the past 90 days if `min_created_timestamp` and `max_created_timestamp` are not specified.
+
+## v1.13.0
+
+This version was released on April 9, 2025.
+
+### Breaking Changes
+
+- The `name` property is now required in the [Update wallet](/v2/api-references/wallets/update-wallet) operation.
+- The `AddressEncoding` field now returns `ENCODING_DEFAULT` instead of an empty string ("") as the default value.
+
+### Improvements
+
+- Added a new schema `CustodialWeb3TransferSource` to support Replace-By-Fee (RBF) transactions from Custodial Wallets (Web3 Wallets). You can now initiate RBF transactions from Custodial Wallets (Web3 Wallets) using the [Drop transaction](/v2/api-references/transactions/drop-transaction) and [Speed up transaction](/v2/api-references/transactions/speed-up-transaction) operations.
+
+- Added the following new transaction [sub-statuses](/v2/guides/transactions/status) to provide more granular tracking of transaction progress:
+  - `PendingSignerApproval`
+  - `PendingSignerProcessing`
+  - `RejectedBySigner`
+  - `FailedSignerTimeout`
+  - `InsufficientBalance`
+  - `InsufficientBalanceFundLocked`
+  - `PendingSystemProcessing`
+  - `SystemProcessingOngoing`
+  - `ReOrged`
+
+- Added new schemas `TransactionBIP137Destination`, `TransactionBIP322Destination`, `TransactionCosmosAdr36Destination`, and `TransactionMessageSignBTCEIP191Destination`. You can now [sign messages](/v2/api-references/transactions/sign-message) and [view transactions](/v2/api-references/transactions/list-all-transactions) using these destination types.
+
+- Extended the `AddressEncoding` schema with new enum values `ENCODING_ADA_BYRON`, `ENCODING_ADA_SHELLEY`, and `ENCODING_DEFAULT` to support a wider range of address encoding formats.
+
+- Introduced a new `extra` property in the `Transaction` schema to carry structured, extensible, and business-specific information. This field is returned as a JSON-encoded string. 
+
+- Removed the properties `param_version`, `withdraw_from_type`, `slash_from_type`, and `stake_amount` from the `BabylonStakingActivityDetailExtra` schema.
+
+## v1.12.0
+
+This version was released on March 27, 2025.
+
+### New Features
+Now you can query Fee Station information with the following operations:
+  - [Get Fee Station transaction information](/v2/api-references/feestation/get-fee-station-transaction-information)
+  - [List all Fee Station transactions](/v2/api-references/feestation/list-all-fee-station-transactions)
+  - [List Fee Station addresses](/v2/api-references/feestation/list-fee-station-addresses)
+  - [List Fee Station token balances](/v2/api-references/feestation/list-fee-station-token-balances)
+
+Additionally, we've introduced a new operation to update wallet balances:
+  - [Refresh address balances by token](/v2/api-references/wallets/refresh-address-balances-by-token)
+
+### Improvements
+
+- Added support for Custodial Wallets (Web3 Wallets) across key transaction operations. 
+  - You can set `Web3` as the transaction source in the following operations:
+    - [Estimate transaction fee](/v2/api-references/transactions/estimate-transaction-fee)
+    - [Transfer token](/v2/api-references/transactions/transfer-token)
+    - [Call smart contract](/v2/api-references/transactions/call-smart-contract)
+    - [Sign message](/v2/api-references/transactions/sign-message)
+
+  - You can also query transactions originating from the `Web3` transaction source in the following query operations:
+    - [List all transactions](/v2/api-references/transactions/list-all-transactions)
+    - [Get transaction information](/v2/api-references/transactions/get-transaction-information)
+
+- Added new webhook event types `wallet.token.enabled` and `wallet.chain.enabled`, along with new data types `Tokens` and `Chains`. For more details, refer to [Webhook event types and data types](/v2/guides/webhooks-callbacks/webhook-event-type).
+
+- Extended schema properties:
+  - `TransactionMessageSignEIP712Destination`: Added `safe_tx_extra_data` and `raw_structured_data` for enhanced Safe transaction context
+  - `BabylonStakingActivityDetailExtra`: Added `withdraw_from_type` and `slash_from_type` for improved Babylon staking activity information
+  - `Transaction`: Added `cobo_category` for Cobo-defined transaction categorization
+  - `TransactionSelectedUtxo`: Added `redeem_script` and `revealed_script` for detailed UTXO transaction information
+
+- Optimized `TransactionUtxoFee` schema by making `fee_rate` an optional field
+
+- The [List all transactions](/v2/api-references/transactions/list-all-transactions) operation now supports sorting by direction.
+
+
+## v1.11.0
+
+This version was released on March 12, 2025.
+
+### Improvements
+- Added support for Solana (SOL) contracts in the [Call smart contract](/v2/api-references/transactions/call-smart-contract) operation.
+- Added the `reserved_fee` property to the response of the [Estimate transaction fee](/v2/api-references/transactions/estimate-transaction-fee) operation for both EIP-1559 and legacy fee models, which represents the estimated fee for submitting transaction calldata to L1 (Layer 1).
+
+## v1.10.0
+
+This version was released on March 3, 2025.
+
+### New Features
+Now you can initiate and track registration for Babylon airdrop and Babylon Phase-2 with the following operations:
+  - [List wallets eligible for Babylon airdrop](/v2/api-references/stakings/list-wallets-eligible-for-babylon-airdrop)
+  - [Register for Babylon airdrop](/v2/api-references/stakings/register-for-babylon-airdrop)
+  - [List Babylon airdrop registrations](/v2/api-references/stakings/list-babylon-airdrop-registrations)
+  - [Get Babylon airdrop registration details](/v2/api-references/stakings/get-babylon-airdrop-registration-details)
+  - [List staking positions eligible for Babylon Phase-2](/v2/api-references/stakings/list-staking-positions-eligible-for-babylon-phase-2)
+  - [Register for Babylon Phase-2](/v2/api-references/stakings/register-for-babylon-phase-2)
+  - [List Babylon Phase-2 registrations](/v2/api-references/stakings/list-babylon-phase-2-registrations)
+  - [Get Babylon Phase-2 registration details](/v2/api-references/stakings/get-babylon-phase-2-registration-details)
+
+### Improvements
+- Added a `utxo_change` property with UTXO change information to the `TransactionRawTxInfo` schema.
+- Added 3 enum values `BitHive`, `BERABeacon`, and `BeraChainBGT` to the `StakingPoolType` schema.
+- Added 6 enum values `bithive_signet`, `bithive`, `beacon_bera`, `beacon_bera_testnet`, `berachain_bgt`, and `berachain_bgt_testnet` to the `StakingPoolId` schema.
+- Added a property `wallet_id` to the `AddressesEventData` schema.
+- Added a property `mpc_used_key_share_holder_group` to the `MpcContractCallSource`, `MpcMessageSignSource`, and `MpcTransferSource` schemas to indicate which key share holder group is used for this transaction.
+
+## v1.9.0
+
+This version was released on February 19, 2025.
+
+### New Features
+- Added [List address balances by token](/v2/api-references/wallets/list-address-balances-by-token) operation for MPC Wallets to retrieve token balances across multiple addresses. 
+- Enhanced MPC Wallet key share holder management with new operations:
+  - [Get key share holder information](/v2/api-references/wallets--mpc-wallets/get-key-share-holder-information): Retrieve detailed information about specific key share holders.
+  - [List all key share holders](/v2/api-references/wallets--mpc-wallets/list-all-key-share-holders): Get a comprehensive list of all key share holders.
+- Added the [Sign and broadcast transaction](/v2/api-references/transactions/sign-and-broadcast-transaction) operation, along with the `Built` transaction sub-status and the `unsigned_raw_tx` property in the `raw_tx_info` object of the `Transaction` schema, to manually sign and broadcast transactions that were built without being executed automatically.
+
+### Improvements
+- Enhanced the [List UTXOs](/v2/api-references/wallets/list-utxos) operation with a new `tx_hash` query parameter, enabling UTXO lookup by transaction hash.
+- Enhanced the [Sign message](/v2/api-references/transactions/sign-message) operation to support raw message and BTC EIP-191 signature.
+- Enhanced the [Create addresses in wallet](/v2/api-references/wallets/create-addresses-in-wallet) operation to enable generating tweaked addresses.
+- Enhanced the [Transfer token](/v2/api-references/transactions/transfer-token) operation by adding a new property `change_output_type` to the `AddressTransferDestination` schema.
+- Added a `tx_info` property to the `TransactionDepositToAddressDestination` schema, including `vout_n` index information.
+
+## v1.8.0
+
+This version was released on January 8, 2025.
+
+### New Features
+- Added Travel Rule operations:
+  - [Submit Travel Rule information for deposits](/v2/api-references/travelrule/submit-travel-rule-information-for-deposits)
+  - [Submit Travel Rule information for withdrawals](/v2/api-references/travelrule/submit-travel-rule-information-for-withdrawals)
+  - [Retrieve transaction limitations](/v2/api-references/travelrule/retrieve-transaction-limitations)
+  - [List supported countries](/v2/api-references/travelrule/list-supported-countries)
+- Added support for Sky Farm staking protocol.
+- Added the [List all callback messages](/v2/api-references/developers/list-all-callback-messages) and [Retry callback message](/v2/api-references/developers/retry-callback-message) operations for efficient management on callback messages.
+
+
+### Improvements
+- Added new [webhook event types](/v2/guides/webhooks-callbacks/webhook-event-type#webhook-event-types) `wallets.addresses.created`, `wallets.created`, and `mpc_vaults.created` and new event data types `Addresses`, `WalletInfo`, and `MPCVault` to optimize the processing of webhook events.
+- Made several improvements to staking operations:
+  - Added the `BabylonStakingActivityDetailExtra`, `EthStakingActivityDetailExtra`, and `CoreStakingActivityDetailExtra` schemas to represent the extra details for each staking protocol.
+  - Added the `request_id` query parameter for the [List staking activities](/v2/api-references/stakings/list-staking-activities) operation to filter activities based on a specific request ID.
+  - Made the `extra` property optional in the `CreateStakeActivity` schema.
+- Added the `root_pubkey` property to the `AddressInfo` schema to indicate the root extended public key of the address.
+- Added the `TransactionSelectedUtxo` schema to represent the selected UTXO information in a transaction.
+
+
+## v1.7.0
+
+This version was released on December 19, 2024.
+
+### Breaking Changes
+- Renamed `create_timestamp` to `created_timestamp` in the `MPCProject` schema to improve consistency in naming conventions.
+
+### New features
+
+- Added the [Create claim activity](/v2/api-references/stakings/create-claim-activity) operation for claiming staking rewards.
+- Added a new version of the [Estimate staking fees](/v2/api-references/stakings/estimate-staking-fees-v2) operation with improved functionality.
+- Added support for staking in the CORE protocol.
+- Added the `auto_fuel` property to the request payloads of the following operations to enable the use of [Fee Station](https://manuals.cobo.com/en/portal/fee-station/introduction) for automatic transaction fee payment:
+  - [Transfer token](/v2/api-references/transactions/transfer-token)
+  - [Call smart contract](/v2/api-references/transactions/call-smart-contract)
+  - [Speed up transaction](/v2/api-references/transactions/speed-up-transaction)
+  - [Drop transaction](/v2/api-references/transactions/drop-transaction)
+
+### Improvements
+
+- Made several fields optional in the `BabylonValidator` schema.
+- Extended ETH staking functionality by adding the `beacon_validators` property to the `EthStakingExtra` schema to represent the list of validator information.
+- Improved the `StakingPoolId` schema by making it an enum type.
+- Extended the `ActivityAction` schema with additional enums to cover more actions that can occur during a staking activity.
+- Deprecated the original version of the "Estimate staking fees" operation.
+
+
+## v1.6.0
+
+This version was released on November 13, 2024.
+
+### Breaking changes
+
+- Removed the "Get address information" operation.
+- Made `amount` a required property in the `AddressTransferDestination` schema.
+
+### New features
+
+- Added the following new operations:
+  - [Get API key information](/v2/api-references/developers/get-api-key-information): Retrieve details of your API key.
+  - [Check address validity across chains](/v2/api-references/wallets/check-address-validity-across-chains): Validate addresses across multiple chains.
+- Added support for Ethereum staking. 
+
+### Improvements
+
+- Made the following properties optional:
+  - `request_id` and `destination` in `EstimateTransferFeeParams`
+  - `request_id` in `EstimateContractCallFeeParams`
+- Removed the `script` property from:
+  - `TransactionTransferToAddressDestination`
+  - `AddressTransferDestination`
+
+## v1.5.0
+
+This version was released on October 24, 2024.
+
+### Breaking Changes
+
+In this release, the following parameter names in the [Python SDK](https://github.com/CoboGlobal/cobo-waas2-python-sdk/) have been updated:
+
+- `ORG_MINUS_CONTROLLED` → `ORG_CONTROLLED`
+- `USER_MINUS_CONTROLLED` → `USER_CONTROLLED`
+- `SAFE_LEFT_CURLY_BRACKET_WALLET_RIGHT_CURLY_BRACKET` → `SAFE_WALLET`
+
+Please update your code to reflect these changes, as previous parameter names are no longer supported.
+
+
+### New features
+
+* Added the [List Delegates](/v2/api-references/wallets--smart-contract-wallets/list-delegates) operation for Smart Contract Wallets.  
+* Added the [List address book entries](/v2/api-references/addressbooks/list-address-book-entries) operation to retrieve addresses from your address book.  
+* Added the [Trigger test event](/v2/api-references/developers--webhooks/trigger-test-event) operation to test the functionality of your webhook endpoint.
+
+
+### Improvements
+
+* Added the `asset_model_type` property in the response of the [Get token information](/v2/api-references/wallets/get-token-information) operation to indicate whether a token uses the account model or the UTXO model.  
+* Added the `calldata_info` property to the `TransactionEvmContractDestination` schema to provide a more detailed representation of smart contract calldata.  
+* Added the `TransactionRawMessageSignDestination` schema and added the `Raw_Message_Signature` value to the `destination_type` enum to represent the transaction destination for raw message signatures.  
+* Added `Stake` and `Unstake` as new possible values for the `types` query parameter in the [List all transactions](/v2/api-references/transactions/list-all-transactions) operation.  
+* Added `bitmart` and `bitfinex` as new possible values to the `exchange_id` enum.  
+* The `delegate` property is no longer a required property in the `TransactionSmartContractSafeWalletSource` schema.
+
+## v1.4.0
+
+This version was released on September 25, 2024.
+
+### Improvements
+
+- Improved the tracking of transactions by adding and removing certain statuses and sub-statuses in the `TransactionStatus` and `TransactionSubStatus` schemas.
+- Added the `MPCProcessing` status in the `TSSRequestStatus` schema to indicate that the TSS request approval is waiting to be started.
+- Removed the `nonce` property in the `MpcContractCallSource` schema.
+
+## v1.3.0
+
+This version was released on September 12, 2024.
+
+### New features
+
+- You can now stake your tokens with the WaaS 2.0 API. Staking operations include:
+  - [List staking positions](/v2/api-references/stakings/list-staking-positions)
+  - [Get staking position details](/v2/api-references/stakings/get-staking-position-details)
+  - [List staking activities](/v2/api-references/stakings/list-staking-activities)
+  - [Estimate staking fees](/v2/api-references/stakings/estimate-staking-fees)
+  - [Create stake activity](/v2/api-references/stakings/create-stake-activity)
+  - [Create unstake activity](/v2/api-references/stakings/create-unstake-activity)
+  - [Create withdraw activity](/v2/api-references/stakings/create-withdraw-activity)
+  - [Get staking activity details](/v2/api-references/stakings/get-staking-activity-details)
+  - [List staking pools](/v2/api-references/stakings/list-staking-pools)
+  - [Get staking pool details](/v2/api-references/stakings/get-staking-pool-details)
+- Added the [Broadcast signed transactions](/v2/api-references/transactions/broadcast-signed-transactions) operation to broadcast signed transactions.
+
+### Improvements
+
+- Changed the path of the [Check Cobo Loop transfers](/v2/api-references/transactions/check-cobo-loop-transfers) operation from `/wallets/check_loop_transfers` to `/transactions/check_loop_transfers`.
+- Added the `dust_threshold` and `custodial_minimum_deposit_threshold` properties in the `TokenInfo` schema to indicate the minimum withdrawal and deposit amounts for Custodial Wallets.
+- Added the `confirming_threshold` property in the `ChainInfo` schema to indicate the number of confirmations required for a transaction on each chain.
+
+### Bug fixes
+
+- Fixed an issue with using WaaS SDKs to perform operations relating to contract call or message signing.
+
+## v1.2.0
+
+This version was released on August 21, 2024.
+
+### New features
+
+- Added support for [Exchange Wallets](https://manuals.cobo.com/en/portal/exchange-wallets/introduction) and [Smart Contract Wallets](https://manuals.cobo.com/en/portal/smart-contract-wallets/introduction). Added the following operations for Exchange Wallets:
+  - [List supported exchanges](/v2/api-references/wallets--exchange-wallet/list-supported-exchanges)
+  - [List supported assets](/v2/api-references/wallets--exchange-wallet/list-supported-assets)
+  - [List supported chains](/v2/api-references/wallets--exchange-wallet/list-supported-chains)
+  - [List asset balances](/v2/api-references/wallets--exchange-wallet/list-asset-balances)
+- Added the following operations for batch payment:
+  - [Check addresses validity](/v2/api-references/wallets/check-addresses-validity)
+  - [Check Cobo Loop transfers](/v2/api-references/transactions/check-cobo-loop-transfers)
+- You can now subscribe to TSS request-related event types for your webhook endpoints. For more information about TSS request-related event types, refer to [Webhook event types and data types](/v2/guides/webhooks-callbacks/webhook-event-type).
+
+### Improvements
+
+- The `sub_wallet_id` property was renamed as `trading_account_type`. Affected schemas include:
+  - `ExchangeTransferSource`
+  - `ExchangeTransferDestination`
+  - `TransactionTransferToWalletDestination`
+  - `TransactionExchangeWalletSource`
+  - `TransactionDepositFromWalletSource`
+  - `TransactionDepositToWalletDestination`
+- Added the `PendingApprovalStart` enum value in the `TransactionSubStatus` enum to indicate a status that requires specific action from users for proceeding with the transaction.
+- Added the `project_name` and `vault_name` properties in the `MPCWalletInfo` schema to indicate the project name and vault name.
+- Added the `description` and `created_timestamp` properties in the `TSSRequest` schema to indicate the description and creation time of the TSS request.
+- Added the `account_id` property in the `KeyShareHolder` schema to indicate the key share holder’s account ID on Cobo Portal.
+- Added the `signer_key_share_holder_group_id` property in the `TransactionMPCWalletSource` schema to indicate the ID of the key share holder group as the transaction signer.
+- Added the `description` property in the request body of [Create TSS request](/v2/api-references/wallets--mpc-wallets/create-tss-request) to indicate the description of the TSS request.
+
+## v1.1.0
+
+This version was released on August 7, 2024.
+
+### New features
+
+Added OAuth operations for Cobo Portal App developers:
+
+- [Get access token](/v2/api-references/oauth/get-org-access-token)
+- [Refresh access token](/v2/api-references/oauth/refresh-org-access-token)
+
+### Improvements
+
+- The data type of `data.response_body` was updated from object to string in the response of [List webhook event logs](/v2/api-references/developers--webhooks/list-webhook-event-logs). 
+- Added the `signer` property to indicate whether the key share holder's TSS Node is a designated transaction signer. Affected schemas include:
+  - `CreateKeyShareHolder`
+  - `KeyShareHolder`
+- The `node_count` property was renamed as `participants` in:
+  - The request body of [Create project](/v2/api-references/wallets--mpc-wallets/create-project)
+  - The request body of [Create key share holder group](/v2/api-references/wallets--mpc-wallets/create-key-share-holder-group)
+  - The `KeyShareHolderGroup` schema
+  - The `MPCProject` schema
+- The `pubkey` property was renamed as `root_pubkey` in the `RootPubkey` schema.
+- Added the `root_pubkey` property to indicate the vault's root extended public key in the `TSSGroups` schema.
+- Several timestamp-related properties were renamed using the “_timestamp” suffix. Affected schemas include:
+  - `Transaction`
+  - `TransactionBlockInfo`
+  - `TransactionTimeline`
+  - `KeyShareHolderGroup`
+  - `MPCVault`
+
+## v1.0.0
+
+This is the first release of the Cobo WaaS 2.0 API.
+
+This release includes support for [Custodial Wallets](https://manuals.cobo.com/en/portal/custodial-wallets/introduction) and [MPC Wallets](https://manuals.cobo.com/en/portal/mpc-wallets/introduction), with the following categories of operations:
+
+- [General wallet operations](/v2/api-references/wallets/list-supported-chains)
+- [MPC Wallets-specific operations](/v2/api-references/wallets--mpc-wallets/list-all-cobo-key-share-holders)
+- [Transactions operations](/v2/api-references/transactions/estimate-transaction-fee)
+- [Webhook operations](/v2/api-references/developers--webhooks/list-webhook-endpoints)
+
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

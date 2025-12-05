@@ -1,0 +1,267 @@
+
+
+## Cobo Portal Chinese <-> English Bilingual Glossary
+
+### General Terms
+| **English**  | **Chinese** | **Context/Notes** |
+|--------------|-------------|-------------------|
+| Organization | 团队        | When referring to the Organization module, use "团队管理"；In sentences, use "团队" or "团队账号" based on context |
+| Project      | 项目        | |
+| Label        | 标签        | |
+
+### Account & Wallet Types
+| **English**                  | **Chinese**  | **Context/Notes** |
+|-----------------------------|--------------|-------------------|
+| Main Account                | 主账户       | |
+| Sub Account                 | 子账户       | |
+| Custodial Wallets          | 全托管钱包   | |
+| Asset Wallets              | 资产钱包     | |
+| Web3 Wallets               | Web3 钱包    | |
+| MPC Wallets                | MPC 钱包     | |
+| Organization-Controlled Wallets | 机构钱包  | |
+| User-Controlled Wallets     | 终端用户钱包 | |
+| Smart Contract Wallets      | 智能合约钱包 | |
+| Safe{Wallet}               | Safe{Wallet} | Keep original |
+| Exchange Wallets           | 交易所钱包   | |
+
+### User Roles & Permissions
+| **English** | **Chinese** | **Context/Notes** |
+|------------|-------------|-------------------|
+| Viewer     | 观察员      | |
+| Spender    | 提币员      | |
+| Approver   | 审批员      | |
+| Operator   | 操作员      | |
+| Admin      | 管理员      | |
+| Signer     | 签名人      | |
+
+### Transaction & Asset Related
+| **English**        | **Chinese**  | **Context/Notes** |
+|-------------------|--------------|-------------------|
+| Token             | 代币         | |
+| Chain             | 链           | |
+| Withdraw          | 提币         | |
+| Deposit           | 充币         | |
+| Address           | 地址         | |
+| Gas Fee           | gas 费       | |
+| Network Fee       | 网络费用     | |
+| Total Balance     | 资产余额     | |
+| Value/Total Value | 价值/总价值  | |
+| Token Transfer    | 代币转账     | |
+| Token Approval    | 代币授权     | |
+| Auto Fueling      | 自动加油     | |
+
+### Risk Control & Policies
+| **English**                    | **Chinese**        | **Context/Notes** |
+|-------------------------------|-------------------|-------------------|
+| Risk Controls                 | 风险控制          | |
+| Transaction Policies          | 交易风控规则      | |
+| On-chain Transaction Policies | 链上交易风控规则  | |
+| Off-chain Transaction Policies| 链下交易风控规则  | |
+| Governance Policies           | 业务风控规则      | |
+| Transfer Policies             | 转账风控规则      | |
+| Contract Call Policies        | 合约风控规则      | |
+| Approval Quorum              | 审批门槛          | |
+| Threshold                    | 阈值              | |
+| Threshold Signature Scheme (TSS) | 门限签名机制   | |
+
+### System & Environment
+| **English**    | **Chinese** | **Context/Notes** |
+|----------------|-------------|-------------------|
+| Cobo Portal    | Cobo Portal | Do not translate |
+| Cobo Portal Apps| Cobo Portal Apps | Do not translate |
+| Cobo Accounts  | Cobo Accounts | Do not translate |
+| Cobo Loop      | Cobo Loop   | Do not translate |
+| Cobo Custody   | Cobo Custody| Do not translate |
+| Sandbox        | 测试环境     | |
+| Development    | 开发环境     | |
+| Production     | 正式环境     | |
+| App            | App         | Do not translate |
+| dApp           | dApp        | Do not translate |
+
+### Metrics & Statistics
+| **English**              | **Chinese**      | **Context/Notes** |
+|-------------------------|------------------|-------------------|
+| Outgoing Transfer Volume| 累计提币金额      | |
+| Assets Under Custody (AUC)| 资产托管金额    | |
+| Wallet Addresses        | 钱包地址数        | |
+| API Calls              | API 调用次数      | |
+| Chains                 | 可用公链数        | |
+| Users                  | 团队成员数        | |
+| Last Activity Time     | 最后活跃时间      | |
+
+### Authentication & Navigation
+| **English**     | **Chinese** | **Context/Notes** |
+|----------------|-------------|-------------------|
+| Log in         | 登录        | |
+| Log out        | 登出        | |
+| Address List   | 地址列表    | |
+| Address Book   | 地址薄      | |
+| Prerequisite   | 前提条件    | |
+| Troubleshooting| 问题排查    | |
+
+### Payments & Compliance
+| **English**                        | **Chinese**        | **Context/Notes** |
+|-----------------------------------|-------------------|-------------------|
+
+# General
+| Cobo payments solution          | Cobo 支付解决方案          | Use the plural form "payments" when possible |
+| Payouts          | 资金转出          | Use the plural form "payments" when possible |
+| Pay-in type                   | 收款模式           | Method of receiving cryptocurrency payments |
+| Order mode                       | 订单模式           | |
+| Top-up mode                      | 充值模式           | |
+| Subscription mode                      | 订阅模式           | |
+| Pay-in order                     | 收款订单/支付订单           | |
+| Payment collection               | 收款               | |
+| Payments API                      | Payments API        | Keep original |
+| Payments App                     | Payments App       | Keep original |
+
+# Payment Status & Amounts
+| Abnormal payment                 | 异常支付           | Includes overpayment, underpayment, late payment |
+| Actual received amount           | 实收金额           | |
+| Late payment                     | 晚付               | |
+| Overpayment                      | 多付               | |
+| Underpayment                     | 少付               | |
+| Amount payable                  | 应付金额           | |
+| Product order amount             | 商品订单金额       | |
+| Under review                     | 审查中             | |
+| Final state                   | 最终状态           | Final/terminal order status |
+| isolated                         | 隔离的             | For transaction/fund status descriptions |
+
+# Addresses & Transactions
+| Receiving address                | 收款地址           | |
+| Top-up address                   | 充值地址           | |
+| Deposit transaction              | 充币交易           | |
+| Cross-chain                      | 跨链               | |
+| Crypto payouts                | 加密货币转账       | Also can be "提币" in wallet context |
+
+# Merchants & Developers
+| Merchant                         | 商户               | Institutions providing goods or services to payers |
+| Merchant actual receipt          | 商户实收金额       | |
+| Merchant balance                 | 商户余额           | |
+| Merchant funds                   | 商户资金           | |
+| Developer                        | 开发者             | Institutions integrating the payment solution |
+| Developer balance                | 开发者余额         | |
+| Developer fee                    | 开发者费用         | |
+| Developer fee rate               | 开发者费率         | |
+| Developer funds                  | 开发者资金         | |
+| Downstream merchants             | 下游商户           | Merchants served by PSPs or e-commerce platforms |
+| Payment service provider (PSP)   | 支付服务提供商     | Can be abbreviated as PSP |
+
+# Platforms & Services
+| Direct-to-consumer (DTC) websites| 直销网站           | Use instead of "independent websites" |
+| E-commerce platform              | 电商平台           | |
+| Gaming platform                  | 游戏平台           | |
+| OTC vendor                     | OTC 供应商         | |
+| Screening App                    | Screening App      | Keep original |
+| Token Swap App                   | Token Swap App     | Keep original |
+
+# Fund Management
+| fund sweeping                    | 资金归集           | Preferred term for fund consolidation |
+| Sweeping                         | 归集               | Short form of "fund sweeping" |
+| Idle funds                       | 闲置资金           | |
+| Collection-on-behalf-of (COBO)           | 代收款             | Collecting payments on behalf of merchants |
+| Settlement                       | 结算               | |
+| Settlement request               | 结算请求           | |
+| Settled amount                   | 已结算金额         | |
+
+# Refunds
+| Refund order                     | 退款订单           | |
+| Refund processing fee            | 退款手续费         | |
+| Refunded amount                  | 已退款金额         | |
+
+# Compliance & Review
+| AML/KYT screening                 | AML/KYT 扫描       | Use "扫描" for AML/KYT context |
+| Compliance screening              | 合规筛查           | Use "screening" not "scanning"|
+| Know Your Transaction (KYT)      | KYT           | Full term expansion |
+| Manual review                    | 人工审核           | |
+
+# Fiat Conversion
+| Fiat off-ramp                         | 法币出金           | Convert crypto to fiat and transfer to bank |
+| On-ramp                          | 法币入金               | Convert fiat to crypto |
+| payout                           | 资金转出           ｜ ｜
+| Stablecoin                       | 稳定币             | |
+
+# Other Parties
+| Payer                            | 付款方             | Party making payment for goods/services |
+
+### Technical Terms
+| **English**                | **Chinese**    | **Context/Notes** |
+|---------------------------|----------------|-------------------|
+| Vault                     | Vault          | Keep original |
+| Nonce                     | Nonce          | Keep original |
+| Memo/Tag                  | Memo/Tag       | Keep original |
+| Multisig                  | 多签            | |
+| WaaS                      | WaaS           | Keep original |
+| Initiator                 | 发起者          | |
+| API Initiators            | API 发起者      | |
+| Web Initiators            | Web 发起者      | |
+| API operations            | API 操作        | |
+| Org Access Tokens            | Org Access Tokens   | Keep original |
+
+## MPC Wallets
+
+| Holder groups                                      | 持有者组                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| Key share holder groups                            | 私钥分片持有者组                                             |
+| root extended private key                          | 根扩展私钥                                                   |
+| Main GroupSigning GroupRecovery Group              | 主控组签名组恢复组                                           |
+| Key share holder 1Key share holder 2               | 私钥分片持有者 1私钥分片持有者 2                             |
+| Change Address                                     | 找零地址                                                     |
+| Sweep-To Destination                               | 归集目标地                                                   |
+| Deposit Address                                    | 收币地址                                                     |
+| Organization-Controlled VaultUser-Controlled Vault | 机构 Vault终端用户 Vault                                     |
+| Server Co-Signer                                      | 服务端签名人                                      |
+| Mobile Co-Signer                                   | 移动端签名人                                       |
+| priority fee                                       | 不译                                                       |
+| base fee                                           | 不翻译                                                       |
+| Project （in User-Controlled Wallets）             | 项目                                                         |
+| organization                                       | 机构（当描述 MPC 钱包时，翻译为机构；当指代 Organization 这一功能时，翻译为团队） |
+| TSS Node ID                                        | 不翻译                                                       |
+| reshare                                            | 生成一个新的主控组的私钥分片                                 |
+
+## Exchange Wallets
+
+| account abstraction wallets | 账户抽象钱包 |
+| --------------------------- | ------------ |
+| Delegate                    | 不翻译       |
+
+## SCW Wallets
+
+| approved spender | 被授权的合约地址 |
+| ---------------- | ---------------- |
+|                  |                  |
+
+## Bills & payments
+
+| Free Trial  | 免费试用 |
+| ----------- | -------- |
+| Starter     | 入门版   |
+| Standard    | 标准版   |
+| Enterprise  | 专业版   |
+| On-demand   | 按量付费 |
+| Usage       | 用量包   |
+| Fee Station | 不翻译   |
+| Fee Reserve | 不翻译   |
+
+## Developer Console
+
+| Developer Console | 开发者控制台  |
+| ----------------- | ------------- |
+| Dashboard         | 业务数据概览  |
+| webhook events    | Webhook 事件  |
+| callback messages | Callback 消息 |
+| webhook endpoint  | 不翻译        |
+| callback endpoint | 不翻译        |
+| API key           | 不翻译        |
+| API secret        | 不翻译        |
+| revoke            | 撤销          |
+
+## Cobo Portal Apps
+
+| Batch Payouts | 不翻译 |
+| ------------- | ------ |
+| Invoicing     | 不翻译 |
+| Reports       | 不翻译 |
+| Staking       | 不翻译 |
+| SuperLoop     | 不翻译 |
+| SuperLoop     | 不翻译 |
