@@ -1,0 +1,115 @@
+
+| 英文 | 中文 |
+|--------------|-------------|
+| address | 地址 |
+| Address Book | 地址薄 |
+| Address List | 地址列表 |
+| Admin | 管理员 |
+| API Initiators | API 发起者 |
+| API key | API Key |
+| app | App |
+| app key | App Key |
+| app secret | App Secret |
+| approved spender | 被授权的合约地址 |
+| Approver | 审批员 |
+| Assets Under Custody (AUC) | 资产托管金额 |
+| Asset Wallets | 资产钱包 |
+| Batch Payouts | Batch Payouts |
+| base fee | Base Fee |
+| callback | Callback |
+| callback messages | Callback 消息 |
+| change address | 找零地址 |
+| co-signer | 签名人 |
+| Cobo Accounts | Cobo Accounts |
+| Cobo CLI | Cobo CLI |
+| Cobo Custody | Cobo Custody |
+| Cobo Loop | Cobo Loop |
+| Cobo Portal | Cobo Portal |
+| Cobo Portal Apps | Cobo Portal Apps |
+| Contract Call Policies | 合约风控规则 |
+| Custodial Wallets | 全托管钱包 |
+| dashboard | 业务数据概览 |
+| Delegate | Delegate |
+| delegate | Delegate |
+| deposit | 充币 |
+| deposit address | 收币地址 |
+| Developer Console | 开发者控制台 |
+| dApp | dApp |
+| Earn | Earn |
+| endpoint | Endpoint |
+| Enterprise | 专业版 |
+| Exchange Wallets | 交易所钱包 |
+| Fee Reserve | Fee Reserve |
+| Fee Station | Fee Station |
+| Free Trial | 免费试用 |
+| gas fee | Gas Fee |
+| Governance Policies | 业务风控规则 |
+| holder groups | 持有者组 |
+| Invoicing | Invoicing |
+| initiator | 发起者 |
+| key share holder | 私钥分片持有者 |
+| key share holder groups | 私钥分片持有者组 |
+| last activity time | 最后活跃时间 |
+| log in | 登录 |
+| log out | 登出 |
+| Main Account | 主账户 |
+| Main Group | 主控组 |
+| Manifest file | Manifest File |
+| memo | Memo |
+| mobile co-signer | 移动端签名人 |
+| Multisig | 多签 |
+| network fee | 网络费用 |
+| nonce | Nonce |
+| on-chain transaction policies | 链上交易风控规则 |
+| on-demand | 按量付费 |
+| Operator | 操作员 |
+| Org Access Token | Org Access Token |
+| Organization | 团队 |
+| Organization-Controlled Wallets | 机构钱包 |
+| outgoing transfer volume | 累计提币金额 |
+| prerequisite | 前提条件 |
+| priority fee | Priority Fee |
+| Production | 正式环境 |
+| Project | 项目 |
+| Refresh Token | Refresh Token |
+| Reports | Reports |
+| reshare | 生成一个新的主控组的私钥分片 |
+| revoke | 撤销 |
+| Risk Controls | 风险控制 |
+| root extended private key | 根扩展私钥 |
+| Safe{Wallet} | Safe{Wallet} |
+| server co-signer | 服务端签名人 |
+| Signer | 签名人 |
+| Signing Group | 签名组 |
+| Smart Contract Wallets | 智能合约钱包 |
+| Spender | 提币员 |
+| Staking | Staking |
+| Standard | 标准版 |
+| Starter | 入门版 |
+| Sub Account | 子账户 |
+| SuperLoop | SuperLoop |
+| sweep-to destination | 归集目标地 |
+| System & Environment | 系统与环境 |
+| tag | Tag |
+| threshold | 阈值 |
+| Threshold Signature Scheme (TSS) | 门限签名机制 |
+| token | 代币 |
+| Token Approval | 代币授权 |
+| Token Bridge | Token Bridge |
+| token transfer | 代币转账 |
+| Transfer Policies | 转账风控规则 |
+| troubleshooting | 问题排查 |
+| TSS Node | TSS Node |
+| User Info Token | User Info Token |
+| User-Controlled Wallets | 终端用户钱包 |
+| Vault | Vault |
+| Viewer | 观察员 |
+| WaaS | WaaS |
+| Wallet Addresses | 钱包地址数 |
+| Web Initiators | Web 发起者 |
+| webhook | Webhook |
+| webhook endpoint | Webhook Endpoint |
+| webhook events | Webhook 事件 |
+| Web3 Wallets | Web3 钱包 |
+| withdraw | 提币 |
+| withdrawal | 提币 |

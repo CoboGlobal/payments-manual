@@ -1,0 +1,401 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Developer Hub",
+  "colors": {
+    "primary": "#1F32D6",
+    "light": "#1F32D6",
+    "dark": "#1F32D6"
+  },
+  "favicon": "/logo/cobo.svg",
+  "navigation": {
+    "versions": [
+      {
+        "version": "🌐 EN",
+        "tabs": [
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "en/guides/overview",
+                  "en/guides/features",
+                  "en/guides/changelog"
+                ]
+              },
+              {
+                "group": "Pay-In",
+                "pages": [
+                  {
+                    "group": "Prerequisites",
+                    "pages": [
+                      "en/guides/preparation",
+                      "en/guides/preparation-prod"
+                    ]
+                  },
+                  {
+                    "group": "Collect Payments",
+                    "pages": [
+                      "en/guides/get-topup-addresses",
+                      "en/guides/create-orders",
+                      "en/guides/create-subscriptions"
+                    ]
+                  },
+                  {
+                    "group": "Build Checkout Page",
+                    "pages": [
+                      "en/guides/payment-link",
+                      "en/guides/checkout-sdk",
+                      "en/guides/third-party-wallet-support",
+                      "en/guides/wallet-fee-deduction"
+                    ]
+                  },
+                  {
+                    "group": "Refunds",
+                    "pages": [
+                      "en/guides/create-refund-link"
+                    ]
+                  },
+                  "en/guides/counterparties"
+                ]
+              },
+              {
+                "group": "Funds Management",
+                "pages": [
+                  "en/guides/amounts-and-balances",
+                  "en/guides/fiat-payouts",
+                  "en/guides/crypto-payouts",
+                  "en/guides/destinations"
+                ]
+              },
+              {
+                "group": "Collection-on-behalf-of",
+                "pages": [
+                  "en/guides/merchants"
+                ]
+              },
+              {
+                "group": "Reference",
+                "pages": [
+                  "en/guides/supported-chains-and-tokens",
+                  "en/guides/status-and-events",
+                  "en/guides/roles-and-permissions",
+                  "en/guides/api-reference",
+                  "en/guides/error-codes"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Development Tools",
+                "pages": [
+                  "en/api-references/playground",
+                  "en/api-references/use-postman-to-call-waas-api",
+                  "en/api-references/pagination",
+                  "en/api-references/error-codes"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "en/api-references/development/event-type-and-data"
+                ]
+              },
+              {
+                "group": "Merchants",
+                "pages": [
+                  "en/api-references/payment/create-merchant",
+                  "en/api-references/payment/update-merchant",
+                  "en/api-references/payment/list-all-merchants"
+                ]
+              },
+              {
+                "group": "Pay-ins (Top-up Mode)",
+                "pages": [
+                  "en/api-references/payment/createget-top-up-address",
+                  "en/api-references/payment/update-top-up-address",
+                  "en/api-references/payment/list-payers",
+                  "en/api-references/payment/list-top-up-payer-accounts"
+                ]
+              },
+              {
+                "group": "Pay-ins (Order Mode)",
+                "pages": [
+                  "en/api-references/payment/create-pay-in-order",
+                  "en/api-references/payment/update-pay-in-order",
+                  "en/api-references/payment/get-pay-in-order-information",
+                  "en/api-references/payment/list-all-pay-in-orders",
+                  "en/api-references/payment/create-order-link"
+                ]
+              },
+              {
+                "group": "Refunds",
+                "pages": [
+                  "en/api-references/payment/create-refund-order",
+                  "en/api-references/payment/create-refund-link",
+                  "en/api-references/payment/update-refund-order",
+                  "en/api-references/payment/cancel-refund-order",
+                  "en/api-references/payment/get-refund-order-information",
+                  "en/api-references/payment/list-all-refund-orders"
+                ]
+              },
+              {
+                "group": "Balances",
+                "pages": [
+                  "en/api-references/payment/list-merchant-balances",
+                  "en/api-references/payment/get-developer-balance",
+                  "en/api-references/payment/get-withdrawable-balances",
+                  "en/api-references/payment/list-payment-wallet-balances"
+                ]
+              },
+              {
+                "group": "Settlements",
+                "pages": [
+                  "en/api-references/payment/create-settlement-request",
+                  "en/api-references/payment/list-all-settlement-requests",
+                  "en/api-references/payment/get-settlement-request-information",
+                  "en/api-references/payment/list-all-settlement-details",
+                  "en/api-references/payment/list-all-bank-accounts",
+                  "en/api-references/payment/update-bank-account",
+                  "en/api-references/payment/create-crypto-address",
+                  "en/api-references/payment/delete-crypto-address",
+                  "en/api-references/payment/list-crypto-addresses",
+                  "en/api-references/payment/create-forced-sweep",
+                  "en/api-references/payment/list-forced-sweeps"
+                ]
+              },
+              {
+                "group": "Fees and Exchange Rates",
+                "pages": [
+                  "en/api-references/payment/get-exchange-rate",
+                  "en/api-references/payment/batch-get-exchange-rates",
+                  "en/api-references/payment/estimate-fees",
+                  "en/api-references/payment/list-all-supported-tokens"
+                ]
+              },
+              {
+                "group": "Webhook Endpoints",
+                "pages": [
+                  "en/api-references/developers--webhooks/list-webhook-endpoints",
+                  "en/api-references/developers--webhooks/register-webhook-endpoint",
+                  "en/api-references/developers--webhooks/get-webhook-endpoint-information",
+                  "en/api-references/developers--webhooks/update-webhook-endpoint"
+                ]
+              },
+              {
+                "group": "Webhook Events",
+                "pages": [
+                  "en/api-references/developers--webhooks/get-webhook-event-types",
+                  "en/api-references/developers--webhooks/list-all-webhook-events",
+                  "en/api-references/developers--webhooks/retrieve-event-information",
+                  "en/api-references/developers--webhooks/list-webhook-event-logs",
+                  "en/api-references/developers--webhooks/retry-event",
+                  "en/api-references/developers--webhooks/trigger-test-event"
+                ]
+              },
+              {
+                "group": "Developer Console",
+                "pages": [
+                  "en/api-references/developers/get-api-key-information",
+                  "en/api-references/developers/list-all-callback-messages",
+                  "en/api-references/developers/retry-callback-message"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Developer Tools",
+            "groups": [
+              {
+                "group": "WaaS SDKs",
+                "pages": [
+                  "en/developer-tools/quickstart-python",
+                  "en/developer-tools/quickstart-java",
+                  "en/developer-tools/quickstart-go",
+                  "en/developer-tools/quickstart-javascript"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "version": "🌐 中文版",
+        "tabs": [
+          {
+            "tab": "开发指南",
+            "groups": [
+              {
+                "group": "概览",
+                "pages": [
+                  "cn/guides/overview",
+                  "cn/guides/features",
+                  "cn/guides/changelog"
+                ]
+              },
+              {
+                "group": "收款",
+                "pages": [
+                  {
+                    "group": "前置准备",
+                    "pages": [
+                      "cn/guides/preparation",
+                      "cn/guides/preparation-prod"
+                    ]
+                  },
+                  {
+                    "group": "发起收款",
+                    "pages": [
+                      "cn/guides/get-topup-addresses",
+                      "cn/guides/create-orders",
+                      "cn/guides/create-subscriptions"
+                    ]
+                  },
+                  {
+                    "group": "搭建收款页面",
+                    "pages": [
+                      "cn/guides/payment-link",
+                      "cn/guides/checkout-sdk",
+                      "cn/guides/third-party-wallet-support",
+                      "cn/guides/wallet-fee-deduction"
+                    ]
+                  },
+                  {
+                    "group": "退款",
+                    "pages": [
+                      "cn/guides/create-refund-link"
+                    ]
+                  },
+                  "cn/guides/counterparties"
+                ]
+              },
+              {
+                "group": "资金管理",
+                "pages": [
+                  "cn/guides/amounts-and-balances",
+                  "cn/guides/fiat-payouts",
+                  "cn/guides/crypto-payouts",
+                  "cn/guides/destinations"
+                ]
+              },
+              {
+                "group": "代收款",
+                "pages": [
+                  "cn/guides/merchants"
+                ]
+              },
+              {
+                "group": "索引信息",
+                "pages": [
+                  "cn/guides/supported-chains-and-tokens",
+                  "cn/guides/status-and-events",
+                  "cn/guides/roles-and-permissions",
+                  "cn/guides/error-codes",
+                  "cn/guides/batch-payouts",
+                  "cn/guides/api-reference",
+                  "cn/guides/troubleshooting"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API 参考",
+            "groups": [
+              {
+                "group": "概览",
+                "pages": [
+                  "cn/api-references/overview",
+                  "cn/api-references/use-postman-to-call-waas-api"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "开发者工具",
+            "groups": [
+              {
+                "group": "WaaS SDKs",
+                "pages": [
+                  "cn/developer-tools/quickstart-python",
+                  "cn/developer-tools/quickstart-java",
+                  "cn/developer-tools/quickstart-go",
+                  "cn/developer-tools/quickstart-javascript"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/Cobo-Developers-final72px.svg",
+    "dark": "/logo/dark.png",
+    "href": "https://www.cobo.com/developers/v2/guides/overview/introduction"
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "mdx": {
+      "server": "https://api.dev.cobo.com",
+      "auth": {
+        "method": "cobo"
+      }
+    }
+  },
+  "appearance": {
+    "default": "light",
+    "strict": true
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Submit Feedback",
+        "href": "https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI"
+      },
+      {
+        "label": "Product Manuals",
+        "href": "https://manuals.cobo.com/en/portal/introduction"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Cobo Portal",
+      "href": "https://portal.cobo.com/login"
+    }
+  },
+  "footer": {
+    "socials": {
+      "twitter": "https://twitter.com/Cobo_Global",
+      "github": "https://github.com/CoboGlobal/",
+      "linkedin": "https://www.linkedin.com/company/cobo-global/"
+    }
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-XLRX3YMJXT"
+    },
+    "intercom": {
+      "appId": "n51r1fwb"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
+  },
+  "errors": {
+    "404": {
+      "redirect": true
+    }
+  },
+  "redirects": []
+}
