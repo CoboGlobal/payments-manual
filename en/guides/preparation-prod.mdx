@@ -19,7 +19,7 @@ In the production environment, the system only activates some commonly used chai
    1. Log in to Cobo Portal [production environment](https://portal.cobo.com/login).
    2. Click the profile icon in the lower left corner, then click **Pricing Plan**.
    3. Navigate to **Chains** and click the **Manage** icon.
-   <img src="/v2/images/payments/add-chain.png" className="screenshot_full_screen" alt="Add chains"/>
+   <img src="/en/images/payments/add-chain.png" className="screenshot_full_screen" alt="Add chains"/>
    4. On the **Manage** page, view the list of available chains. If the chain you need is not in the list, click **Add Chain** to add more chains for your team.
 
 ### Enable Cobo KYT
@@ -109,11 +109,11 @@ A group of key share holders is called a [holder group](https://manuals.cobo.com
 
 The following diagram shows a Main Group with two key share holders. Cobo holds one key share, and your team holds the other.
 
-<img src="/v2/images/payments/key-shares.svg" className="diagram" alt="Key shares"/>
+<img src="/en/images/payments/key-shares.svg" className="diagram" alt="Key shares"/>
 
 Follow these steps to create a Main Group in Cobo Portal:
 1. Log in to Cobo Portal [production environment](https://portal.cobo.com/login).
-2. Click <img src="/v2/images/guides/wallets-icon.svg" className="icon"></img> > **MPC Wallets**.
+2. Click <img src="/en/images/guides/wallets-icon.svg" className="icon"></img> > **MPC Wallets**.
 3. Click **Create Vault**. Follow the on-screen instructions to complete Vault creation.
 4. After creating the Vault, the **Generate Main Group key shares** dialog box will automatically pop up. In the dialog box, navigate to the **Key share holder 2** section and configure the holder. For detailed information about signer types and their setup, see the [**Signer Type** table](https://manuals.cobo.com/en/portal/mpc-wallets/ocw/holder-group-main-group).
 
@@ -149,7 +149,7 @@ For more details, see [Mobile Co-Signer backup key shares instructions](https://
 
 - **Holder group configuration**: In addition to the Main Group, you need to create at least one Signing Group and one Recovery Group separately. It is strongly recommended not to have the same key share holder belong to different types of holder groups at the same time, for example, belonging to both the Main Group and a Signing Group. If this situation occurs, please ensure that there is more than one Signing Group.
 - **Signer type**: Since a large number of fund sweeping transactions may occur before settlement and the transaction times are concentrated, please ensure that you set up a [Server Co-Signer](/v2/guides/mpc-wallets/server-co-signer/tss-node-overview) in your [Main Group](https://manuals.cobo.com/en/portal/mpc-wallets/ocw/holder-group-main-group) or [Signing Group](https://manuals.cobo.com/en/portal/mpc-wallets/ocw/holder-group-signing-group) to achieve automated signing.
-- **Risk control configuration**: If you choose to use [TSS Node callback](/v2/guides/mpc-wallets/server-co-signer/callback-server-overview) as the risk control mechanism for your Server Co-Signer, you need to add your wallet's sweep-to destination address to the whitelist of the callback server. After adding, the Server Co-Signer will automatically sign withdrawal transactions from the sweep-to destination address when performing payouts or refunds. For detailed whitelist configuration methods, refer to [Risk control best practices - Auto sweeping implementation](/v2/guides/mpc-wallets/server-co-signer/risk-control-best-practices#auto-sweeping-implementation). You can view the sweep-to destination address of a wallet under the **Addresses** → **Sweep To** tab of the wallet.<img src="/v2/images/payments/auto-sweep-address-list.png" className="screenshot_modal" alt="Wallet sweep-to destination address list" />
+- **Risk control configuration**: If you choose to use [TSS Node callback](/v2/guides/mpc-wallets/server-co-signer/callback-server-overview) as the risk control mechanism for your Server Co-Signer, you need to add your wallet's sweep-to destination address to the whitelist of the callback server. After adding, the Server Co-Signer will automatically sign withdrawal transactions from the sweep-to destination address when performing payouts or refunds. For detailed whitelist configuration methods, refer to [Risk control best practices - Auto sweeping implementation](/v2/guides/mpc-wallets/server-co-signer/risk-control-best-practices#auto-sweeping-implementation). You can view the sweep-to destination address of a wallet under the **Addresses** → **Sweep To** tab of the wallet.<img src="/en/images/payments/auto-sweep-address-list.png" className="screenshot_modal" alt="Wallet sweep-to destination address list" />
 
 
 

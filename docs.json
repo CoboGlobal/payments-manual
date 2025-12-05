@@ -81,7 +81,6 @@
                   "en/guides/supported-chains-and-tokens",
                   "en/guides/status-and-events",
                   "en/guides/roles-and-permissions",
-                  "en/guides/api-reference",
                   "en/guides/error-codes"
                 ]
               }
@@ -97,12 +96,6 @@
                   "en/api-references/use-postman-to-call-waas-api",
                   "en/api-references/pagination",
                   "en/api-references/error-codes"
-                ]
-              },
-              {
-                "group": "Webhooks",
-                "pages": [
-                  "en/api-references/development/event-type-and-data"
                 ]
               },
               {
@@ -200,9 +193,7 @@
               {
                 "group": "Developer Console",
                 "pages": [
-                  "en/api-references/developers/get-api-key-information",
-                  "en/api-references/developers/list-all-callback-messages",
-                  "en/api-references/developers/retry-callback-message"
+                  "en/api-references/developers/get-api-key-information"
                 ]
               }
             ]
@@ -217,6 +208,49 @@
                   "en/developer-tools/quickstart-java",
                   "en/developer-tools/quickstart-go",
                   "en/developer-tools/quickstart-javascript"
+                ]
+              },
+              {
+                "group": "Server co-signers",
+                "pages": [
+                  "en/developer-tools/server-co-signer/tss-node-overview",
+                  {
+                    "group": "Deploy and configure a server co-signer",
+                    "pages": [
+                      "en/developer-tools/server-co-signer/tss-node-release-notes",
+                      "en/developer-tools/server-co-signer/tss-node-network-environments",
+                      "en/developer-tools/server-co-signer/tss-node-server-environments",
+                      "en/developer-tools/server-co-signer/tss-node-deployment",
+                      "en/developer-tools/server-co-signer/tss-node-update"
+                    ]
+                  },
+                  {
+                    "group": "Risk control mechanisms",
+                    "pages": [
+                      "en/developer-tools/server-co-signer/risk-control-mechanisms",
+                      "en/developer-tools/server-co-signer/risk-control-best-practices",
+                      "en/developer-tools/server-co-signer/embedded-risk-controls",
+                      {
+                        "group": "TSS Node callback",
+                        "pages": [
+                          "en/developer-tools/server-co-signer/callback-server-overview",
+                          "en/developer-tools/server-co-signer/callback-server-deploy",
+                          "en/developer-tools/server-co-signer/callback-server-configure",
+                          "en/developer-tools/server-co-signer/callback-server-data-structure"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Backup, restore, and recovery",
+                    "pages": [
+                      "en/developer-tools/server-co-signer/disaster-recovery-overview",
+                      "en/developer-tools/server-co-signer/key-shares-backup",
+                      "en/developer-tools/server-co-signer/key-shares-restore"
+                    ]
+                  },
+                  "en/developer-tools/server-co-signer/key-share-verify",
+                  "en/developer-tools/server-co-signer/appendix"
                 ]
               }
             ]
@@ -294,10 +328,7 @@
                   "cn/guides/supported-chains-and-tokens",
                   "cn/guides/status-and-events",
                   "cn/guides/roles-and-permissions",
-                  "cn/guides/error-codes",
-                  "cn/guides/batch-payouts",
-                  "cn/guides/api-reference",
-                  "cn/guides/troubleshooting"
+                  "cn/guides/error-codes"
                 ]
               }
             ]
@@ -324,6 +355,49 @@
                   "cn/developer-tools/quickstart-java",
                   "cn/developer-tools/quickstart-go",
                   "cn/developer-tools/quickstart-javascript"
+                ]
+              },
+              {
+                "group": "服务端签名人",
+                "pages": [
+                  "cn/developer-tools/server-co-signer/tss-node-overview",
+                  {
+                    "group": "部署和配置服务端签名人",
+                    "pages": [
+                      "cn/developer-tools/server-co-signer/tss-node-release-notes",
+                      "cn/developer-tools/server-co-signer/tss-node-network-environments",
+                      "cn/developer-tools/server-co-signer/tss-node-server-environments",
+                      "cn/developer-tools/server-co-signer/tss-node-deployment",
+                      "cn/developer-tools/server-co-signer/tss-node-update"
+                    ]
+                  },
+                  {
+                    "group": "风控机制",
+                    "pages": [
+                      "cn/developer-tools/server-co-signer/risk-control-mechanisms",
+                      "cn/developer-tools/server-co-signer/risk-control-best-practices",
+                      "cn/developer-tools/server-co-signer/embedded-risk-controls",
+                      {
+                        "group": "TSS Node Callback",
+                        "pages": [
+                          "cn/developer-tools/server-co-signer/callback-server-overview",
+                          "cn/developer-tools/server-co-signer/callback-server-deploy",
+                          "cn/developer-tools/server-co-signer/callback-server-configure",
+                          "cn/developer-tools/server-co-signer/callback-server-data-structure"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "备份和恢复",
+                    "pages": [
+                      "cn/developer-tools/server-co-signer/disaster-recovery-overview",
+                      "cn/developer-tools/server-co-signer/key-shares-backup",
+                      "cn/developer-tools/server-co-signer/key-shares-restore"
+                    ]
+                  },
+                  "cn/developer-tools/server-co-signer/key-share-verify",
+                  "cn/developer-tools/server-co-signer/appendix"
                 ]
               }
             ]
