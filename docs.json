@@ -90,7 +90,7 @@
             "tab": "API Reference",
             "groups": [
               {
-                "group": "Development Tools",
+                "group": "Get Started",
                 "pages": [
                   "en/api-references/playground",
                   "en/api-references/use-postman-to-call-waas-api",
@@ -99,101 +99,95 @@
                 ]
               },
               {
-                "group": "Merchants",
+                "group": "Pay-ins",
+                "pages": [
+                  {
+                    "group": "Top-up Mode",
+                    "pages": [
+                      "en/api-references/payment/createget-top-up-address",
+                      "en/api-references/payment/update-top-up-address",
+                      "en/api-references/payment/list-payers",
+                      "en/api-references/payment/list-top-up-payer-accounts"
+                    ]
+                  },
+                  {
+                    "group": "Order Mode",
+                    "pages": [
+                      "en/api-references/payment/create-pay-in-order",
+                      "en/api-references/payment/update-pay-in-order",
+                      "en/api-references/payment/get-pay-in-order-information",
+                      "en/api-references/payment/list-all-pay-in-orders",
+                      "en/api-references/payment/create-order-link"
+                    ]
+                  },
+                  {
+                    "group": "Refunds",
+                    "pages": [
+                      "en/api-references/payment/create-refund-order",
+                      "en/api-references/payment/create-refund-link",
+                      "en/api-references/payment/update-refund-order",
+                      "en/api-references/payment/cancel-refund-order",
+                      "en/api-references/payment/get-refund-order-information",
+                      "en/api-references/payment/list-all-refund-orders"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Funds Management",
+                "pages": [
+                  {
+                    "group": "Balances",
+                    "pages": [
+                      "en/api-references/payment/list-merchant-balances",
+                      "en/api-references/payment/get-developer-balance",
+                      "en/api-references/payment/get-withdrawable-balances",
+                      "en/api-references/payment/list-payment-wallet-balances"
+                    ]
+                  },
+                  {
+                    "group": "Payouts",
+                    "pages": [
+                      "en/api-references/payment/create-settlement-request",
+                      "en/api-references/payment/list-all-settlement-requests",
+                      "en/api-references/payment/get-settlement-request-information",
+                      "en/api-references/payment/list-all-settlement-details"
+                    ]
+                  },
+                  {
+                    "group": "Payout Destinations",
+                    "pages": [
+                      "en/api-references/payment/list-all-bank-accounts",
+                      "en/api-references/payment/update-bank-account",
+                      "en/api-references/payment/create-crypto-address",
+                      "en/api-references/payment/delete-crypto-address",
+                      "en/api-references/payment/list-crypto-addresses"
+                    ]
+                  },
+                  {
+                    "group": "Fees and Exchange Rates",
+                    "pages": [
+                      "en/api-references/payment/get-exchange-rate",
+                      "en/api-references/payment/batch-get-exchange-rates",
+                      "en/api-references/payment/estimate-fees",
+                      "en/api-references/payment/list-all-supported-tokens"
+                    ]
+                  },
+                  {
+                    "group": "Forced Sweeps (Deprecated)",
+                    "pages": [
+                      "en/api-references/payment/create-forced-sweep",
+                      "en/api-references/payment/list-forced-sweeps"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Merchant Operations",
                 "pages": [
                   "en/api-references/payment/create-merchant",
                   "en/api-references/payment/update-merchant",
                   "en/api-references/payment/list-all-merchants"
-                ]
-              },
-              {
-                "group": "Pay-ins (Top-up Mode)",
-                "pages": [
-                  "en/api-references/payment/createget-top-up-address",
-                  "en/api-references/payment/update-top-up-address",
-                  "en/api-references/payment/list-payers",
-                  "en/api-references/payment/list-top-up-payer-accounts"
-                ]
-              },
-              {
-                "group": "Pay-ins (Order Mode)",
-                "pages": [
-                  "en/api-references/payment/create-pay-in-order",
-                  "en/api-references/payment/update-pay-in-order",
-                  "en/api-references/payment/get-pay-in-order-information",
-                  "en/api-references/payment/list-all-pay-in-orders",
-                  "en/api-references/payment/create-order-link"
-                ]
-              },
-              {
-                "group": "Refunds",
-                "pages": [
-                  "en/api-references/payment/create-refund-order",
-                  "en/api-references/payment/create-refund-link",
-                  "en/api-references/payment/update-refund-order",
-                  "en/api-references/payment/cancel-refund-order",
-                  "en/api-references/payment/get-refund-order-information",
-                  "en/api-references/payment/list-all-refund-orders"
-                ]
-              },
-              {
-                "group": "Balances",
-                "pages": [
-                  "en/api-references/payment/list-merchant-balances",
-                  "en/api-references/payment/get-developer-balance",
-                  "en/api-references/payment/get-withdrawable-balances",
-                  "en/api-references/payment/list-payment-wallet-balances"
-                ]
-              },
-              {
-                "group": "Settlements",
-                "pages": [
-                  "en/api-references/payment/create-settlement-request",
-                  "en/api-references/payment/list-all-settlement-requests",
-                  "en/api-references/payment/get-settlement-request-information",
-                  "en/api-references/payment/list-all-settlement-details",
-                  "en/api-references/payment/list-all-bank-accounts",
-                  "en/api-references/payment/update-bank-account",
-                  "en/api-references/payment/create-crypto-address",
-                  "en/api-references/payment/delete-crypto-address",
-                  "en/api-references/payment/list-crypto-addresses",
-                  "en/api-references/payment/create-forced-sweep",
-                  "en/api-references/payment/list-forced-sweeps"
-                ]
-              },
-              {
-                "group": "Fees and Exchange Rates",
-                "pages": [
-                  "en/api-references/payment/get-exchange-rate",
-                  "en/api-references/payment/batch-get-exchange-rates",
-                  "en/api-references/payment/estimate-fees",
-                  "en/api-references/payment/list-all-supported-tokens"
-                ]
-              },
-              {
-                "group": "Webhook Endpoints",
-                "pages": [
-                  "en/api-references/developers--webhooks/list-webhook-endpoints",
-                  "en/api-references/developers--webhooks/register-webhook-endpoint",
-                  "en/api-references/developers--webhooks/get-webhook-endpoint-information",
-                  "en/api-references/developers--webhooks/update-webhook-endpoint"
-                ]
-              },
-              {
-                "group": "Webhook Events",
-                "pages": [
-                  "en/api-references/developers--webhooks/get-webhook-event-types",
-                  "en/api-references/developers--webhooks/list-all-webhook-events",
-                  "en/api-references/developers--webhooks/retrieve-event-information",
-                  "en/api-references/developers--webhooks/list-webhook-event-logs",
-                  "en/api-references/developers--webhooks/retry-event",
-                  "en/api-references/developers--webhooks/trigger-test-event"
-                ]
-              },
-              {
-                "group": "Developer Console",
-                "pages": [
-                  "en/api-references/developers/get-api-key-information"
                 ]
               }
             ]
@@ -201,6 +195,14 @@
           {
             "tab": "Developer Tools",
             "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "en/developer-tools/get-started-with-waas",
+                  "en/developer-tools/environments",
+                  "en/developer-tools/cobo-auth"
+                ]
+              },
               {
                 "group": "WaaS SDKs",
                 "pages": [
@@ -211,46 +213,11 @@
                 ]
               },
               {
-                "group": "Server co-signers",
+                "group": "Webhooks and Callbacks",
                 "pages": [
-                  "en/developer-tools/server-co-signer/tss-node-overview",
-                  {
-                    "group": "Deploy and configure a server co-signer",
-                    "pages": [
-                      "en/developer-tools/server-co-signer/tss-node-release-notes",
-                      "en/developer-tools/server-co-signer/tss-node-network-environments",
-                      "en/developer-tools/server-co-signer/tss-node-server-environments",
-                      "en/developer-tools/server-co-signer/tss-node-deployment",
-                      "en/developer-tools/server-co-signer/tss-node-update"
-                    ]
-                  },
-                  {
-                    "group": "Risk control mechanisms",
-                    "pages": [
-                      "en/developer-tools/server-co-signer/risk-control-mechanisms",
-                      "en/developer-tools/server-co-signer/risk-control-best-practices",
-                      "en/developer-tools/server-co-signer/embedded-risk-controls",
-                      {
-                        "group": "TSS Node callback",
-                        "pages": [
-                          "en/developer-tools/server-co-signer/callback-server-overview",
-                          "en/developer-tools/server-co-signer/callback-server-deploy",
-                          "en/developer-tools/server-co-signer/callback-server-configure",
-                          "en/developer-tools/server-co-signer/callback-server-data-structure"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "group": "Backup, restore, and recovery",
-                    "pages": [
-                      "en/developer-tools/server-co-signer/disaster-recovery-overview",
-                      "en/developer-tools/server-co-signer/key-shares-backup",
-                      "en/developer-tools/server-co-signer/key-shares-restore"
-                    ]
-                  },
-                  "en/developer-tools/server-co-signer/key-share-verify",
-                  "en/developer-tools/server-co-signer/appendix"
+                  "en/developer-tools/introduction",
+                  "en/developer-tools/set-up-endpoint",
+                  "en/developer-tools/webhook-event-type"
                 ]
               }
             ]
@@ -339,8 +306,7 @@
               {
                 "group": "概览",
                 "pages": [
-                  "cn/api-references/overview",
-                  "cn/api-references/use-postman-to-call-waas-api"
+                  "cn/api-references/overview"
                 ]
               }
             ]
@@ -348,6 +314,14 @@
           {
             "tab": "开发者工具",
             "groups": [
+              {
+                "group": "入门",
+                "pages": [
+                  "cn/developer-tools/get-started-with-waas",
+                  "cn/developer-tools/environments",
+                  "cn/developer-tools/cobo-auth"
+                ]
+              },
               {
                 "group": "WaaS SDKs",
                 "pages": [
@@ -358,46 +332,11 @@
                 ]
               },
               {
-                "group": "服务端签名人",
+                "group": "Webhooks 和 Callbacks",
                 "pages": [
-                  "cn/developer-tools/server-co-signer/tss-node-overview",
-                  {
-                    "group": "部署和配置服务端签名人",
-                    "pages": [
-                      "cn/developer-tools/server-co-signer/tss-node-release-notes",
-                      "cn/developer-tools/server-co-signer/tss-node-network-environments",
-                      "cn/developer-tools/server-co-signer/tss-node-server-environments",
-                      "cn/developer-tools/server-co-signer/tss-node-deployment",
-                      "cn/developer-tools/server-co-signer/tss-node-update"
-                    ]
-                  },
-                  {
-                    "group": "风控机制",
-                    "pages": [
-                      "cn/developer-tools/server-co-signer/risk-control-mechanisms",
-                      "cn/developer-tools/server-co-signer/risk-control-best-practices",
-                      "cn/developer-tools/server-co-signer/embedded-risk-controls",
-                      {
-                        "group": "TSS Node Callback",
-                        "pages": [
-                          "cn/developer-tools/server-co-signer/callback-server-overview",
-                          "cn/developer-tools/server-co-signer/callback-server-deploy",
-                          "cn/developer-tools/server-co-signer/callback-server-configure",
-                          "cn/developer-tools/server-co-signer/callback-server-data-structure"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "group": "备份和恢复",
-                    "pages": [
-                      "cn/developer-tools/server-co-signer/disaster-recovery-overview",
-                      "cn/developer-tools/server-co-signer/key-shares-backup",
-                      "cn/developer-tools/server-co-signer/key-shares-restore"
-                    ]
-                  },
-                  "cn/developer-tools/server-co-signer/key-share-verify",
-                  "cn/developer-tools/server-co-signer/appendix"
+                  "cn/developer-tools/introduction",
+                  "cn/developer-tools/set-up-endpoint",
+                  "cn/developer-tools/webhook-event-type"
                 ]
               }
             ]
