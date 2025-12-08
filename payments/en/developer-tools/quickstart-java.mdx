@@ -6,7 +6,7 @@ lang: "en"
 
 This guide introduces how to get started with using the Cobo Payments Java SDK, which allows you to integrate the Cobo payments service into your existing application using the Java programming language.
 
-To learn more about the initial setup steps necessary for utilizing the Payments API, see [Send your first request](/v2/guides/get-started/get-started-with-api).
+To learn more about the initial setup steps necessary for utilizing the Payments API, see [Send your first request](/payments/en/developer-tools/get-started-with-api).
 
 You can go to [GitHub](https://github.com/CoboGlobal/cobo-waas2-java-sdk/) to access the source code of the SDK.
 
@@ -16,7 +16,7 @@ You can go to [GitHub](https://github.com/CoboGlobal/cobo-waas2-java-sdk/) to ac
 - Install Maven 3.8.3 or newer / Gradle 7.2 or newer
 
 - Follow the instructions in [Set up your account and organization](https://manuals.cobo.com/en/portal/quick-start-guide) to set up your Cobo account and create your organization. If an organization has already been set up, ask your organization admin to invite you to join the organization.
-- You have [generated an API key and an API secret](/v2/guides/overview/cobo-auth#generate-an-api-key-and-an-api-secret), and [registered the API key](https://manuals.cobo.com/en/portal/developer-console/create-api-key) on Cobo Portal.
+- You have [generated an API key and an API secret](/payments/en/developer-tools/cobo-auth#generate-an-api-key-and-an-api-secret), and [registered the API key](https://manuals.cobo.com/en/portal/developer-console/create-api-key) on Cobo Portal.
 
 ## Add dependency
 
@@ -55,7 +55,7 @@ ApiClient defaultClient = Configuration.getDefaultApiClient();
 defaultClient.setPrivKey("<YOUR_API_SECRET_IN_HEX>");
 ```
 
-2. Select which [environment](/v2/guides/overview/environments) you want to use. The SDK uses the production environment by default. 
+2. Select which [environment](/payments/en/developer-tools/environments) you want to use. The SDK uses the production environment by default. 
 
 ```java
 // Select the development environment

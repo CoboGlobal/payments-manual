@@ -54,7 +54,7 @@ You need to complete SDK OAuth authentication through Access Token. The authenti
 3. The Access Token is valid for 1 hour. Before the Access Token expires, the server needs to call [Refresh Access Token](/v2/api-references/oauth/refresh-access-token) and pass in the Refresh Token obtained in the above steps to obtain a new Access Token and Refresh Token. If the Token expires, the iFrame will send a `TOKEN_EXPIRED` event to the parent page.
 
 
-The following code snippet shows an example of using the [Python SDK](/v2/developer-tools/quickstart-python) to obtain Access Token and Refresh Token:
+The following code snippet shows an example of using the [Python SDK](/payments/en/developer-tools/quickstart-python) to obtain Access Token and Refresh Token:
 
 ```py
 from cobo_waas2 import Configuration, ApiClient, OAuthApi, ExchangePermissionTokenRequest, RefreshPermissionTokenRequest

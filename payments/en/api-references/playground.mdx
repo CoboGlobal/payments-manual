@@ -9,8 +9,8 @@ The API Playground is a web-based tool designed for developers looking to explor
 ## Prerequisites
 
 Before using the API Playground, make sure you have completed the following:
-- Set up your Cobo Account and create the required API key and API secret. For instructions, see [Set up Cobo Accounts](https://manuals.cobo.com/en/accounts/sign-up) and [Generate an API key and an API secret](/v2/guides/overview/cobo-auth#generate-an-api-key-and-an-api-secret).
-- Register the API key on Cobo Portal based on the environment that you use. For more details, refer to [Register the API key](/v2/guides/overview/cobo-auth#register-the-api-key) and [Environments](/v2/guides/overview/environments).
+- Set up your Cobo Account and create the required API key and API secret. For instructions, see [Set up Cobo Accounts](https://manuals.cobo.com/en/accounts/sign-up) and [Generate an API key and an API secret](/payments/en/developer-tools/cobo-auth#generate-an-api-key-and-an-api-secret).
+- Register the API key on Cobo Portal based on the environment that you use. For more details, refer to [Register the API key](/payments/en/developer-tools/cobo-auth#register-the-api-key) and [Environments](/payments/en/developer-tools/environments).
 
 ## Steps
 
@@ -25,7 +25,7 @@ Before using the API Playground, make sure you have completed the following:
 2. Modify the request as follows:
 
    - In the **Authorization** section, enter your API secret into the `BIZ-API-KEY` field.
-      <Note>For API requests sent via the API Playground, you only need to provide your API secret in the request headers. However, for actual API requests, you need to provide your API key, a nonce, and an API signature as request headers. For more details, see [Authentication](/v2/guides/overview/cobo-auth). </Note>
+      <Note>For API requests sent via the API Playground, you only need to provide your API secret in the request headers. However, for actual API requests, you need to provide your API key, a nonce, and an API signature as request headers. For more details, see [Authentication](/payments/en/developer-tools/cobo-auth). </Note>
    - Set the path parameters, query parameters, and request body as needed.
 
 3. Choose the API base URL that you want to send requests to:
@@ -36,7 +36,7 @@ Before using the API Playground, make sure you have completed the following:
 
    <img src="/payments/en/images/api-reference/playground-switch.png" className="screenshot_full_screen" alt="API Playground switch environment" />
 
-   <Note> For security reasons, it is strongly recommended to use the development environment for testing purposes. For more information about differences between the development and production environments, see [Environments](/v2/guides/overview/environments).</Note>
+   <Note> For security reasons, it is strongly recommended to use the development environment for testing purposes. For more information about differences between the development and production environments, see [Environments](/payments/en/developer-tools/environments).</Note>
 
 4. Click the **Send** button to submit the request.
 
