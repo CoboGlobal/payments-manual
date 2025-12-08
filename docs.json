@@ -7,7 +7,7 @@
     "light": "#1F32D6",
     "dark": "#1F32D6"
   },
-  "favicon": "/logo/cobo.svg",
+  "favicon": "/payments/logo/cobo.svg",
   "navigation": {
     "versions": [
       {
@@ -19,9 +19,9 @@
               {
                 "group": "Overview",
                 "pages": [
-                  "en/guides/overview",
-                  "en/guides/features",
-                  "en/guides/changelog"
+                  "payments/en/guides/overview",
+                  "payments/en/guides/features",
+                  "payments/en/guides/changelog"
                 ]
               },
               {
@@ -30,58 +30,58 @@
                   {
                     "group": "Prerequisites",
                     "pages": [
-                      "en/guides/preparation",
-                      "en/guides/preparation-prod"
+                      "payments/en/guides/preparation",
+                      "payments/en/guides/preparation-prod"
                     ]
                   },
                   {
                     "group": "Collect Payments",
                     "pages": [
-                      "en/guides/get-topup-addresses",
-                      "en/guides/create-orders",
-                      "en/guides/create-subscriptions"
+                      "payments/en/guides/get-topup-addresses",
+                      "payments/en/guides/create-orders",
+                      "payments/en/guides/create-subscriptions"
                     ]
                   },
                   {
                     "group": "Build Checkout Page",
                     "pages": [
-                      "en/guides/payment-link",
-                      "en/guides/checkout-sdk",
-                      "en/guides/third-party-wallet-support",
-                      "en/guides/wallet-fee-deduction"
+                      "payments/en/guides/payment-link",
+                      "payments/en/guides/checkout-sdk",
+                      "payments/en/guides/third-party-wallet-support",
+                      "payments/en/guides/wallet-fee-deduction"
                     ]
                   },
                   {
                     "group": "Refunds",
                     "pages": [
-                      "en/guides/create-refund-link"
+                      "payments/en/guides/create-refund-link"
                     ]
                   },
-                  "en/guides/counterparties"
+                  "payments/en/guides/counterparties"
                 ]
               },
               {
                 "group": "Funds Management",
                 "pages": [
-                  "en/guides/amounts-and-balances",
-                  "en/guides/fiat-payouts",
-                  "en/guides/crypto-payouts",
-                  "en/guides/destinations"
+                  "payments/en/guides/amounts-and-balances",
+                  "payments/en/guides/fiat-payouts",
+                  "payments/en/guides/crypto-payouts",
+                  "payments/en/guides/destinations"
                 ]
               },
               {
                 "group": "Collection-on-behalf-of",
                 "pages": [
-                  "en/guides/merchants"
+                  "payments/en/guides/merchants"
                 ]
               },
               {
                 "group": "Reference",
                 "pages": [
-                  "en/guides/supported-chains-and-tokens",
-                  "en/guides/status-and-events",
-                  "en/guides/roles-and-permissions",
-                  "en/guides/error-codes"
+                  "payments/en/guides/supported-chains-and-tokens",
+                  "payments/en/guides/status-and-events",
+                  "payments/en/guides/roles-and-permissions",
+                  "payments/en/guides/error-codes"
                 ]
               }
             ]
@@ -92,10 +92,10 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "en/api-references/playground",
-                  "en/api-references/use-postman-to-call-api",
-                  "en/api-references/pagination",
-                  "en/api-references/error-codes"
+                  "payments/en/api-references/playground",
+                  "payments/en/api-references/use-postman-to-call-api",
+                  "payments/en/api-references/pagination",
+                  "payments/en/api-references/error-codes"
                 ]
               },
               {
@@ -104,31 +104,31 @@
                   {
                     "group": "Top-up Mode",
                     "pages": [
-                      "en/api-references/payment/createget-top-up-address",
-                      "en/api-references/payment/update-top-up-address",
-                      "en/api-references/payment/list-payers",
-                      "en/api-references/payment/list-top-up-payer-accounts"
+                      "payments/en/api-references/payment/createget-top-up-address",
+                      "payments/en/api-references/payment/update-top-up-address",
+                      "payments/en/api-references/payment/list-payers",
+                      "payments/en/api-references/payment/list-top-up-payer-accounts"
                     ]
                   },
                   {
                     "group": "Order Mode",
                     "pages": [
-                      "en/api-references/payment/create-pay-in-order",
-                      "en/api-references/payment/update-pay-in-order",
-                      "en/api-references/payment/get-pay-in-order-information",
-                      "en/api-references/payment/list-all-pay-in-orders",
-                      "en/api-references/payment/create-order-link"
+                      "payments/en/api-references/payment/create-pay-in-order",
+                      "payments/en/api-references/payment/update-pay-in-order",
+                      "payments/en/api-references/payment/get-pay-in-order-information",
+                      "payments/en/api-references/payment/list-all-pay-in-orders",
+                      "payments/en/api-references/payment/create-order-link"
                     ]
                   },
                   {
                     "group": "Refunds",
                     "pages": [
-                      "en/api-references/payment/create-refund-order",
-                      "en/api-references/payment/create-refund-link",
-                      "en/api-references/payment/update-refund-order",
-                      "en/api-references/payment/cancel-refund-order",
-                      "en/api-references/payment/get-refund-order-information",
-                      "en/api-references/payment/list-all-refund-orders"
+                      "payments/en/api-references/payment/create-refund-order",
+                      "payments/en/api-references/payment/create-refund-link",
+                      "payments/en/api-references/payment/update-refund-order",
+                      "payments/en/api-references/payment/cancel-refund-order",
+                      "payments/en/api-references/payment/get-refund-order-information",
+                      "payments/en/api-references/payment/list-all-refund-orders"
                     ]
                   }
                 ]
@@ -139,45 +139,45 @@
                   {
                     "group": "Balances",
                     "pages": [
-                      "en/api-references/payment/list-merchant-balances",
-                      "en/api-references/payment/get-developer-balance",
-                      "en/api-references/payment/get-withdrawable-balances",
-                      "en/api-references/payment/list-payment-wallet-balances"
+                      "payments/en/api-references/payment/list-merchant-balances",
+                      "payments/en/api-references/payment/get-developer-balance",
+                      "payments/en/api-references/payment/get-withdrawable-balances",
+                      "payments/en/api-references/payment/list-payment-wallet-balances"
                     ]
                   },
                   {
                     "group": "Payouts",
                     "pages": [
-                      "en/api-references/payment/create-settlement-request",
-                      "en/api-references/payment/list-all-settlement-requests",
-                      "en/api-references/payment/get-settlement-request-information",
-                      "en/api-references/payment/list-all-settlement-details"
+                      "payments/en/api-references/payment/create-settlement-request",
+                      "payments/en/api-references/payment/list-all-settlement-requests",
+                      "payments/en/api-references/payment/get-settlement-request-information",
+                      "payments/en/api-references/payment/list-all-settlement-details"
                     ]
                   },
                   {
                     "group": "Payout Destinations",
                     "pages": [
-                      "en/api-references/payment/list-all-bank-accounts",
-                      "en/api-references/payment/update-bank-account",
-                      "en/api-references/payment/create-crypto-address",
-                      "en/api-references/payment/delete-crypto-address",
-                      "en/api-references/payment/list-crypto-addresses"
+                      "payments/en/api-references/payment/list-all-bank-accounts",
+                      "payments/en/api-references/payment/update-bank-account",
+                      "payments/en/api-references/payment/create-crypto-address",
+                      "payments/en/api-references/payment/delete-crypto-address",
+                      "payments/en/api-references/payment/list-crypto-addresses"
                     ]
                   },
                   {
                     "group": "Fees and Exchange Rates",
                     "pages": [
-                      "en/api-references/payment/get-exchange-rate",
-                      "en/api-references/payment/batch-get-exchange-rates",
-                      "en/api-references/payment/estimate-fees",
-                      "en/api-references/payment/list-all-supported-tokens"
+                      "payments/en/api-references/payment/get-exchange-rate",
+                      "payments/en/api-references/payment/batch-get-exchange-rates",
+                      "payments/en/api-references/payment/estimate-fees",
+                      "payments/en/api-references/payment/list-all-supported-tokens"
                     ]
                   },
                   {
                     "group": "Forced Sweeps (Deprecated)",
                     "pages": [
-                      "en/api-references/payment/create-forced-sweep",
-                      "en/api-references/payment/list-forced-sweeps"
+                      "payments/en/api-references/payment/create-forced-sweep",
+                      "payments/en/api-references/payment/list-forced-sweeps"
                     ]
                   }
                 ]
@@ -185,9 +185,9 @@
               {
                 "group": "Merchant Operations",
                 "pages": [
-                  "en/api-references/payment/create-merchant",
-                  "en/api-references/payment/update-merchant",
-                  "en/api-references/payment/list-all-merchants"
+                  "payments/en/api-references/payment/create-merchant",
+                  "payments/en/api-references/payment/update-merchant",
+                  "payments/en/api-references/payment/list-all-merchants"
                 ]
               }
             ]
@@ -198,26 +198,26 @@
               {
                 "group": "Get Started",
                 "pages": [
-                  "en/developer-tools/get-started-with-api",
-                  "en/developer-tools/environments",
-                  "en/developer-tools/cobo-auth"
+                  "payments/en/developer-tools/get-started-with-api",
+                  "payments/en/developer-tools/environments",
+                  "payments/en/developer-tools/cobo-auth"
                 ]
               },
               {
                 "group": "Payments API SDKs",
                 "pages": [
-                  "en/developer-tools/quickstart-python",
-                  "en/developer-tools/quickstart-java",
-                  "en/developer-tools/quickstart-go",
-                  "en/developer-tools/quickstart-javascript"
+                  "payments/en/developer-tools/quickstart-python",
+                  "payments/en/developer-tools/quickstart-java",
+                  "payments/en/developer-tools/quickstart-go",
+                  "payments/en/developer-tools/quickstart-javascript"
                 ]
               },
               {
                 "group": "Webhooks and Callbacks",
                 "pages": [
-                  "en/developer-tools/webhook",
-                  "en/developer-tools/set-up-endpoint",
-                  "en/developer-tools/webhook-event-type"
+                  "payments/en/developer-tools/webhook",
+                  "payments/en/developer-tools/set-up-endpoint",
+                  "payments/en/developer-tools/webhook-event-type"
                 ]
               }
             ]
@@ -233,9 +233,9 @@
               {
                 "group": "概览",
                 "pages": [
-                  "cn/guides/overview",
-                  "cn/guides/features",
-                  "cn/guides/changelog"
+                  "payments/cn/guides/overview",
+                  "payments/cn/guides/features",
+                  "payments/cn/guides/changelog"
                 ]
               },
               {
@@ -244,58 +244,58 @@
                   {
                     "group": "前置准备",
                     "pages": [
-                      "cn/guides/preparation",
-                      "cn/guides/preparation-prod"
+                      "payments/cn/guides/preparation",
+                      "payments/cn/guides/preparation-prod"
                     ]
                   },
                   {
                     "group": "发起收款",
                     "pages": [
-                      "cn/guides/get-topup-addresses",
-                      "cn/guides/create-orders",
-                      "cn/guides/create-subscriptions"
+                      "payments/cn/guides/get-topup-addresses",
+                      "payments/cn/guides/create-orders",
+                      "payments/cn/guides/create-subscriptions"
                     ]
                   },
                   {
                     "group": "搭建收款页面",
                     "pages": [
-                      "cn/guides/payment-link",
-                      "cn/guides/checkout-sdk",
-                      "cn/guides/third-party-wallet-support",
-                      "cn/guides/wallet-fee-deduction"
+                      "payments/cn/guides/payment-link",
+                      "payments/cn/guides/checkout-sdk",
+                      "payments/cn/guides/third-party-wallet-support",
+                      "payments/cn/guides/wallet-fee-deduction"
                     ]
                   },
                   {
                     "group": "退款",
                     "pages": [
-                      "cn/guides/create-refund-link"
+                      "payments/cn/guides/create-refund-link"
                     ]
                   },
-                  "cn/guides/counterparties"
+                  "payments/cn/guides/counterparties"
                 ]
               },
               {
                 "group": "资金管理",
                 "pages": [
-                  "cn/guides/amounts-and-balances",
-                  "cn/guides/fiat-payouts",
-                  "cn/guides/crypto-payouts",
-                  "cn/guides/destinations"
+                  "payments/cn/guides/amounts-and-balances",
+                  "payments/cn/guides/fiat-payouts",
+                  "payments/cn/guides/crypto-payouts",
+                  "payments/cn/guides/destinations"
                 ]
               },
               {
                 "group": "代收款",
                 "pages": [
-                  "cn/guides/merchants"
+                  "payments/cn/guides/merchants"
                 ]
               },
               {
                 "group": "索引信息",
                 "pages": [
-                  "cn/guides/supported-chains-and-tokens",
-                  "cn/guides/status-and-events",
-                  "cn/guides/roles-and-permissions",
-                  "cn/guides/error-codes"
+                  "payments/cn/guides/supported-chains-and-tokens",
+                  "payments/cn/guides/status-and-events",
+                  "payments/cn/guides/roles-and-permissions",
+                  "payments/cn/guides/error-codes"
                 ]
               }
             ]
@@ -306,7 +306,7 @@
               {
                 "group": "概览",
                 "pages": [
-                  "cn/api-references/overview"
+                  "payments/cn/api-references/overview"
                 ]
               }
             ]
@@ -317,26 +317,26 @@
               {
                 "group": "入门",
                 "pages": [
-                  "cn/developer-tools/get-started-with-api",
-                  "cn/developer-tools/environments",
-                  "cn/developer-tools/cobo-auth"
+                  "payments/cn/developer-tools/get-started-with-api",
+                  "payments/cn/developer-tools/environments",
+                  "payments/cn/developer-tools/cobo-auth"
                 ]
               },
               {
                 "group": "Payments API SDKs",
                 "pages": [
-                  "cn/developer-tools/quickstart-python",
-                  "cn/developer-tools/quickstart-java",
-                  "cn/developer-tools/quickstart-go",
-                  "cn/developer-tools/quickstart-javascript"
+                  "payments/cn/developer-tools/quickstart-python",
+                  "payments/cn/developer-tools/quickstart-java",
+                  "payments/cn/developer-tools/quickstart-go",
+                  "payments/cn/developer-tools/quickstart-javascript"
                 ]
               },
               {
                 "group": "Webhooks 和 Callbacks",
                 "pages": [
-                  "cn/developer-tools/webhook",
-                  "cn/developer-tools/set-up-endpoint",
-                  "cn/developer-tools/webhook-event-type"
+                  "payments/cn/developer-tools/webhook",
+                  "payments/cn/developer-tools/set-up-endpoint",
+                  "payments/cn/developer-tools/webhook-event-type"
                 ]
               }
             ]
@@ -346,8 +346,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/Cobo-Developers-final72px.svg",
-    "dark": "/logo/dark.png",
+    "light": "/payments/logo/Cobo-Developers-final72px.svg",
+    "dark": "/payments/logo/dark.png",
     "href": "https://www.cobo.com/developers/v2/guides/overview/introduction"
   },
   "api": {
