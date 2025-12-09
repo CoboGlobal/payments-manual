@@ -1,0 +1,35 @@
+---
+title: "Webhook 介绍"
+lang: "zh-hans"
+sidebarTitle: "介绍"
+---
+
+Webhook 是 Cobo 支付服务与您的 App 进行通信的重要机制。在您设置并注册 Webhook Endpoint 后，当事件发生时，Cobo 支付服务会将推送消息发送到指定的 URL。它们允许您的 App 实时接收更新或通知，并相应地响应事件。
+
+
+您可以在 **Cobo Portal** > **开发者** > **Webhook 事件** 中查看您团队中所有 Webhook 事件的数据。
+
+## 处理 Webhook 事件
+
+按照以下步骤处理 Cobo 支付服务发送的 Webhook 事件：
+
+1. 创建一个 Webhook Endpoint。
+    - 选择服务器环境。
+    - 定义Endpoint URL。
+2. 在服务器端实现处理逻辑。
+    - 解析 API 请求。
+    - 验证签名。
+    - 响应 API 请求。
+    - 添加其他处理逻辑（如果适用）。
+3. 在 Cobo Portal 上注册 Endpoint。
+    <Note>注册 Webhook Endpoint 时，您需要指定要订阅的事件类型。</Note>
+
+要创建 Endpoint 并实现处理逻辑，请参阅 [设置 Webhook Endpoint](/payments/cn/developer-tools//set-up-endpoint)。
+
+要注册 Endpoint，请参阅 [注册 Webhook Endpoint](https://manuals.cobo.com/cn/portal/developer-console/webhooks-create)。
+
+要了解事件类型和事件数据类型的信息，请参阅[事件与状态](/payments/cn/guides/status-and-events)。
+
+
+
+<Tip>欢迎您[提交反馈](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI)来帮助改进我们的文档！</Tip>

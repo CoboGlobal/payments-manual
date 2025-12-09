@@ -1,0 +1,84 @@
+---
+title: "Send your first request"
+lang: "en"
+---
+
+
+This guide explains how to get started with using the Payments API. By the end of this guide, you will be able to successfully call an API operation and receive a response.
+
+## Before you begin
+
+If you choose to use a Payments API SDK instead of manually writing the API requests, you need to first install the right version of the corresponding programming language. For example, if you want to use the [Python SDK](/payments/en/developer-tools/quickstart-python), you need to have Python 3.7 or a newer version installed.
+
+## Set up an account
+
+Follow the instructions in [Preparation for development environment](/payments/en/guides/preparation) to set up your Cobo account and create your organization. If an organization has already been set up, ask your organization admin to invite you to join the organization.
+
+<Note>This guide uses the development environment in all of its examples. Please create your organization in the development environment at https://portal.dev.cobo.com/.</Note>
+
+## Generate an API key and an API secret
+
+Generate an Ed25519 key pair as the API key and API secret. This guide uses OpenSSL as an example. To learn other methods for generating an API key and an API secret, see [Generate an API key and an API secret](/payments/en/developer-tools/cobo-auth#generate-an-api-key-and-an-api-secret).
+
+1. In a terminal window, run the following OpenSSL commands:
+
+```shell
+# Generate a private key and save it in the `private.key.pem` file.
+openssl genpkey -algorithm ed25519 -out private_key.pem
+
+# Extract the public key from the private key and save it in the `public.key.pem` file.
+openssl pkey -in private_key.pem -pubout -out public_key.pem
+```
+
+
+The private key is saved in the `private.key.pem` file, and the public key is saved in the `public.key.pem` file. 
+
+
+
+2. You can print the keys by running the following commands:
+
+```
+# Export the private key in hexadecimal format.
+openssl pkey -in private_key.pem -text | grep 'priv:' -A 3 | tail -n +2 | tr -d ':\n '
+
+# Export the public key in hexadecimal format.
+openssl pkey -pubin -in public_key.pem -text | grep 'pub:' -A 3 | tail -n +2 | tr -d ':\n '
+```
+
+## Register the API key
+
+Register your API key and configure related permissions on Cobo Portal.
+
+1. Log in to [Cobo Portal](https://portal.dev.cobo.com/login) (development environment).
+2. On the left navigation menu, click **Developer** > **API Keys**.
+3. Click **Register API Key**.
+4. Enter the API key name (maximum 30 characters).
+5. Enter the public key you have generated in the previous step.
+6. Select **Role & Wallet Scope**. Each user role is permitted to call a specific set of operations, and the wallet scope determines the set of wallets this API key can access.
+7. Leave **Callback Endpoint** empty.
+8. Select **Temporary** as the key type. <Note>If you already have a static IP address, you can select **Permanent** as the key type instead and enter your IP address in **IP Whitelist**.</Note>
+9. Click **Register**.
+10. Notify your organization admins to approve the request on Cobo Guard. 
+<Note>By default, it requires the approval of at least half of the admins to successfully register an API key. </Note>
+
+You can only start using an API key after its status becomes **Active**.
+
+## Authenticate your requests
+
+<Note>You can skip this step if you choose to [use a Payments API SDK](/payments/en/developer-tools/quickstart-python), which encapsulates the authentication mechanism.</Note>
+
+To authenticate your API request, you need to provide your API key, a nonce, and the API signature as request headers. For more information, see [Cobo Auth](/payments/en/developer-tools/cobo-auth).
+
+```
+headers = {
+  "Biz-Api-Key": {YOUR_API_KEY}.hex(),
+  "Biz-Api-Nonce": {Nonce},
+  "Biz-Api-Signature": {YOUR_API_SIGNATURE}.hex(),
+}
+```
+
+- Biz-Api-Key: The API key. To learn how to generate an API key, see [Generate an API key and an API secret](/payments/en/developer-tools/cobo-auth#generate-an-api-key-and-an-api-secret).
+- Biz-Api-Nonce: A nonce is the current time in Unix timestamp format, measured in milliseconds. 
+- Biz-Api-Signature: The API signature. To learn how to calculate an API signature, see [Calculate an API Signature](/payments/en/developer-tools/cobo-auth#calculate-the-api-signature).
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

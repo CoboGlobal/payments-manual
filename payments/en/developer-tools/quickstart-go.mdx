@@ -1,0 +1,59 @@
+---
+title: "Get started with Go SDK"
+lang: "en"
+---
+
+
+This guide introduces how to get started with using the Cobo Payments Go SDK, which allows you to integrate the Cobo payments service into your existing application using the Go programming language. 
+
+To learn more about the initial setup steps necessary for utilizing the Payments API, see [Send your first request](/payments/en/developer-tools/get-started-with-api).
+
+You can go to [GitHub](https://github.com/CoboGlobal/cobo-waas2-go-sdk/) to access the source code of the SDK.
+
+## Prerequisites
+
+- You have installed Go 1.18 or newer.
+- Follow the instructions in [Preparation for development environment](/payments/en/guides/preparation) to set up your Cobo account and create your organization. If an organization has already been set up, ask your organization admin to invite you to join the organization.
+- Follow the instructions in [Send your first request](/payments/en/developer-tools/get-started-with-api) to generate an API key and an API secret, and register the API key on Cobo Portal.
+
+## Install the SDK
+
+1. Create a Go project if you haven't.
+2. In the `go.mod` file of your project, add the following line:
+
+    ```go
+    require github.com/CoboGlobal/cobo-waas2-go-sdk {VERSION}
+    ```
+
+    <Note>Replace \{VERSION\} with the lastest version number, for example, `v1.2.0`. Obtain the latest version number from the [GitHub repository](https://github.com/CoboGlobal/cobo-waas2-go-sdk/tags).</Note>
+
+3. Run the `go mod tidy` command in a terminal or in your IDE to install the dependencies.
+4. In your `main.go` file, import the WaaS SDK as follows:
+
+    ```go
+    import (
+        ...
+        coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+        ...
+    )
+    ```
+
+## Configure API key and HTTP host
+
+In the main function in your `main.go` file, configure the HTTP host by selecting the environment and provide your API secret.
+The following code snippet shows the configuration for the development environment.
+
+```go
+// Select the environment that you use and comment out the other line of code
+ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+// ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.ProdEnv)
+ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+    // Replace `<YOUR_API_SECRET>` with your API secret.
+    Secret: "<YOUR_API_SECRET>",
+})
+```
+## Sample code
+
+For operation-specific documentation and sample code, see the [docs](https://github.com/CoboGlobal/cobo-waas2-go-api/tree/master/docs) folder in the Payments API SDK GitHub repository. 
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

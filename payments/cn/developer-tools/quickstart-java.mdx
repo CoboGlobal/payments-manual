@@ -1,0 +1,70 @@
+---
+title: "Java SDK 快速入门"
+lang: "zh-hans"
+---
+
+
+本指南介绍如何开始使用 Cobo Payments Java SDK，它允许您使用 Java 编程语言将 Cobo 支付服务集成到您的现有 App 中。
+
+要了解使用 Payments API 所需的初始设置步骤，请参阅[发送您的第一个 API 请求](/payments/cn/developer-tools/get-started-with-api)。
+
+您可以访问 [GitHub](https://github.com/CoboGlobal/cobo-waas2-java-sdk/) 查看 SDK 的源代码。
+
+## 前提条件
+
+- 安装 Java 1.8 或更新版本
+- 安装 Maven 3.8.3 或更新版本 / Gradle 7.2 或更新版本
+- 按照[开发环境前置准备](/payments/cn/guides/preparation)中的说明设置您的 Cobo 账户并创建您的团队。如果已经设置了团队，请让您的团队管理员邀请您加入团队。
+- 按照[发送您的第一个 API 请求](/payments/cn/developer-tools/get-started-with-api)中的说明，生成 API Key 和 API Secret，并在 Cobo Portal 上注册了 API Key。
+
+## 添加依赖
+
+对于 Maven 用户，将依赖添加到您项目的 POM 文件中：
+
+```
+<dependency>
+  <groupId>com.cobo.waas2</groupId>
+  <artifactId>cobo-waas2</artifactId>
+  <version>{VERSION}</version>
+  <scope>compile</scope>
+</dependency>
+```
+
+对于 Gradle 用户，将依赖添加到您项目的构建文件中：
+
+```
+  repositories {
+    mavenCentral()     // 从 Maven Central 获取依赖
+  }
+
+  dependencies {
+     implementation "com.cobo.waas2:cobo-waas2:{VERSION}"
+  }
+```
+
+<Note>将 \{VERSION\} 替换为最新版本号，例如 `1.2.0`。从 [GitHub 仓库](https://github.com/CoboGlobal/cobo-waas2-java-sdk/tags)获取最新版本号。</Note>
+
+## 配置 API Key 和 HTTP Host
+
+1. 设置 API Secret。
+
+```java
+ApiClient defaultClient = Configuration.getDefaultApiClient();
+defaultClient.setPrivKey("<YOUR_API_SECRET_IN_HEX>");
+```
+
+2. 选择环境。
+
+```java
+// 选择开发环境
+defaultClient.setEnv(Env.DEV);
+
+// 选择生产环境
+// defaultClient.setEnv(Env.PROD);
+```
+
+## 示例代码
+
+API 操作级别的文档和示例代码请参照 Payments API SDK GitHub 仓库内的 [docs](https://github.com/CoboGlobal/cobo-waas2-java-sdk/tree/master/docs) 文件夹。
+
+<Tip>欢迎您[提交反馈](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI)来帮助改进我们的文档！</Tip>

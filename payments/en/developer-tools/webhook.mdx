@@ -1,0 +1,35 @@
+---
+title: "Introduction to Webhooks"
+lang: "en"
+sidebarTitle: "Introduction"
+---
+
+Webhooks are essential mechanisms for the Cobo payments service to communicate with your application. After you set up and register webhook endpoints, the Cobo payments service sends push messages to the designated URL when an event occurs. They allow your application to receive real-time updates or notifications and to respond to events accordingly.
+
+
+You can view the data of all webhook events in your organization on **Cobo Portal** > **Developer** > **Webhook Events**.
+
+## Handle webhook events
+
+Follow the steps listed below to handle webhook events sent from the Cobo payments service:
+
+1. Create a webhook endpoint.
+    - Choose a server environment.
+    - Define an endpoint URL.
+2. Implement the handling logic on the server side.
+    - Parse the API request.
+    - Verify the signature.
+    - Respond to the API request.
+    - Add other handling logic (if applicable).
+3. Register the endpoint on Cobo Portal.
+    <Note>When registering a webhook endpoint, you need to specify the event types to which you want to subscribe.</Note>
+
+To create an endpoint and implement the handling logic, see [Set up a webhook endpoint](/payments/en/developer-tools/set-up-endpoint).
+
+To register the endpoint, see [Register a webhook endpoint](https://manuals.cobo.com/en/portal/developer-console/webhooks-create).
+
+To learn more about event types and event data types, see [Events and status](/payments/en/guides/status-and-events).
+
+
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

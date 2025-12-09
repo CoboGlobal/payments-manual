@@ -1,0 +1,56 @@
+---
+title: "Get started with Python SDK"
+lang: "en"
+---
+
+
+This guide introduces how to get started with using the Cobo Payments Python SDK, which allows you to integrate the Cobo payments service into your existing application using the Python programming language.
+
+To learn more about the initial setup steps necessary for utilizing the Payments API, see [Send your first request](/payments/en/developer-tools/get-started-with-api).
+
+You can go to [GitHub](https://github.com/CoboGlobal/cobo-waas2-python-sdk/) to access the source code of the SDK.
+
+## Prerequisites
+
+- You have installed Python 3.7 or newer.
+- Follow the instructions in [Preparation for development environment](/payments/en/guides/preparation) to set up your Cobo account and create your organization. If an organization has already been set up, ask your organization admin to invite you to join the organization.
+- Follow the instructions in [Send your first request](/payments/en/developer-tools/get-started-with-api) to generate an API key and an API secret, and register the API key on Cobo Portal.
+
+## Install the SDK
+
+1. Install the SDK using the pip install command.
+   Open a terminal window and run the following command:
+
+   ```shell
+   pip install cobo-waas2=={VERSION}
+   ```
+  <Note>Replace \{VERSION\} with the lastest version number, for example, `1.2.0`. Obtain the latest version number from the [GitHub repository](https://github.com/CoboGlobal/cobo-waas2-python-sdk/tags).</Note>
+
+2. Import the package in your project files as follows:
+
+   ```python
+   import cobo_waas2
+   ```
+
+## Configure API key and HTTP host
+
+You can refer to the [configuration.py file](https://github.com/CoboGlobal/cobo-waas2-python-api/blob/master/cobo_waas2/configuration.py) in the SDK repository for all supported configuration parameters.
+
+```python
+configuration = cobo_waas2.Configuration(
+
+  # Replace `<YOUR_API_SECRET>` with your API secret.
+  api_private_key="<YOUR_API_SECRET>",
+
+  # To use the development environment, set the host to `https://api.dev.cobo.com/v2`.
+  # To use the production environment, set the host to `https://api.cobo.com/v2`.
+  host="https://api.dev.cobo.com/v2"
+
+)
+```
+
+## Code samples
+
+For operation-specific documentation and sample code, see the [docs](https://github.com/CoboGlobal/cobo-waas2-python-api/tree/master/docs) folder in the GitHub repository. 
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

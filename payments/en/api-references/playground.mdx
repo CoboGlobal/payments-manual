@@ -1,0 +1,45 @@
+---
+title: "Send a request with API Playground"
+lang: "en"
+description: "Interactive API playground for the Payments API, allowing developers to test endpoints and view responses."
+---
+
+The API Playground is a web-based tool designed for developers looking to explore and experiment with the Cobo Payments API directly from the documentation site, all within the browser.
+
+## Prerequisites
+
+Before using the API Playground, make sure you have completed the following:
+- Follow the instructions in [Preparation for development environment](/payments/en/guides/preparation) to set up your Cobo account and create your organization. If an organization has already been set up, ask your organization admin to invite you to join the organization.
+- Follow the instructions in [Send your first request](/payments/en/developer-tools/get-started-with-api) to generate an API key and an API secret, and register the API key on Cobo Portal.
+
+## Steps
+
+1. Go to any API operation in the API Reference and click **Try it**.  
+
+   <img src="/payments/en/images/api-reference/playground-try.png" className="screenshot_full_screen" alt="API Playground try" />
+
+   The API Playground panel will appear, showing a request editor, sample codes for different programming languages, and a response viewer.
+
+   <img src="/payments/en/images/api-reference/playground.png" className="screenshot_full_screen" alt="API Playground panel" />
+
+2. Modify the request as follows:
+
+   - In the **Authorization** section, enter your API secret into the `BIZ-API-KEY` field.
+      <Note>For API requests sent via the API Playground, you only need to provide your API secret in the request headers. However, for actual API requests, you need to provide your API key, a nonce, and an API signature as request headers. For more details, see [Authentication](/payments/en/developer-tools/cobo-auth). </Note>
+   - Set the path parameters, query parameters, and request body as needed.
+
+3. Choose the API base URL that you want to send requests to:
+   - Development environment: https://api.dev.cobo.com/v2/
+   - Production environment: https://api.cobo.com/v2/
+
+   You can switch between development and production directly in the API Playground by clicking the arrow icon next to the base URL.
+
+   <img src="/payments/en/images/api-reference/playground-switch.png" className="screenshot_full_screen" alt="API Playground switch environment" />
+
+   <Note> For security reasons, it is strongly recommended to use the development environment for testing purposes. For more information about differences between the development and production environments, see [Environments](/payments/en/developer-tools/environments).</Note>
+
+4. Click the **Send** button to submit the request.
+
+Upon successful submission, you will find the response returned from the Cobo payments service in the response viewer.
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>
