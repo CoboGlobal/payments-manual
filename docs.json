@@ -63,6 +63,7 @@
                 "group": "Funds Management",
                 "pages": [
                   "payments/en/guides/amounts-and-balances",
+                  "payments/en/guides/allocate-funds",
                   "payments/en/guides/fiat-payouts",
                   "payments/en/guides/crypto-payouts",
                   "payments/en/guides/destinations"
@@ -271,6 +272,7 @@
                 "group": "资金管理",
                 "pages": [
                   "payments/cn/guides/amounts-and-balances",
+                  "payments/cn/guides/allocate-funds",
                   "payments/cn/guides/fiat-payouts",
                   "payments/cn/guides/crypto-payouts",
                   "payments/cn/guides/destinations"
