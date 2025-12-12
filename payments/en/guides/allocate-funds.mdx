@@ -1,0 +1,34 @@
+---
+title: "Allocate funds"
+lang: "en"
+---
+
+<Note>**Disclaimer: This article contains AI translations and should only be used as reference.** Contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com) if you have any questions.</Note>
+
+You can use the Allocate feature to manually transfer funds between two different accounts for various business scenarios:
+
+- **Late payment in order mode**: Funds are automatically settled to the developer account. If the funds should actually belong to the merchant, you can allocate them back to the merchant account.
+- **Multi-merchant revenue sharing for a transaction**: After automatic settlement, you can manually allocate funds to flexibly distribute revenue among merchant accounts.
+- **Developer fee entry error or undercollection**: You can manually allocate funds from the merchant account to the developer account to collect the correct developer fee.
+
+<Note>
+- Allocation is currently limited to accounts within the same wallet. It is essentially an internal adjustment of balances between two accounts and does not involve actual on-chain transfers. Therefore, when the source account and destination account are in different wallets, you may not be able to complete the allocation, or the allocatable amount may be limited.
+- If you encounter situations where allocation is not possible or the allocatable amount is insufficient, it is recommended to use the Payout feature to transfer funds directly to the target merchant's external address.
+</Note>
+
+## Steps
+
+1. In the Payments App, click **Fund Management** > **Balance** to go to the **Balance** page.
+2. Click the **Merchant Balance** or **Developer Balance** tab, and locate the corresponding account balance card.
+3. Click the **Allocate** button on the balance card.
+   <img src="/payments/en/images/payments/allocate.png" className="screenshot_full_screen" alt="Allocate funds between accounts"/>
+4. Fill in the allocation form:
+   - **From**: Select the source account.
+   - **To**: Select the destination account.
+   - **Token**: Select the token you want to allocate. You can only allocate one token at a time.
+   - **Amount**: Enter the amount to allocate.
+   - **Description**: Enter a description for the allocation.
+5. Click **Preview** to review the allocation details.
+6. Confirm the allocation.
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

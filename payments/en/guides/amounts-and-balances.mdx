@@ -1,25 +1,35 @@
 ---
-title: "Funds allocation and balances"
+title: "Accounts and fund allocation"
 lang: "en"
 ---
 
 <Note>**Disclaimer: This article contains AI translations and should only be used as reference.** Contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com) if you have any questions.</Note>
 
-Cobo maintains revenue and expenditure records for two types of funds: **merchant funds** and **developer funds**. **Merchant** represents the actual business entity receiving payments, while **developer** represents the entity providing payment collection services (that is, you). All payment collection needs to specify the merchant to which it belongs, and determines the revenue share that the developer should receive through developer fees/rates.
+This article introduces the various types of accounts involved in fund management, and how funds are efficiently allocated and managed between accounts through **settlement** and **allocation** after payment collection.
 
-By creating merchants and setting developer fees/rates, you can achieve automated fund settlement and revenue sharing:
+## Accounts
 
-- If you serve payers directly:
-  - Usually, you only need to create one merchant (use the merchant created by default by the system), and no need to configure a developer fee rate.
-  - If you want to manage funds separately for different business lines, you can create a merchant for each business line.
-- If you are a platform institution serving multiple downstream merchants, you can create a merchant in the system for each downstream merchant and achieve automated merchant settlement and platform revenue allocation by setting developer fees/rates.
+An account is a virtual fund entity managed in the system ledger, without a one-to-one correspondence to on-chain wallets or addresses.
+- Each operation such as payment collection, settlement, fees, refunds, or payouts creates detailed entries in the ledger, which dynamically update the balance of each account.
+- Fund allocation between accounts (such as automatic settlement or manual allocation) only flows within the ledger and does not directly result in on-chain transfers. Only when performing payouts or refunds will actual on-chain asset transfers be triggered.
 
-For more information on usage scenarios and descriptions of merchant management, refer to [Merchant management](/payments/en/guides/merchants).
+The following accounts are currently supported:
 
+- **Developer account**: A single account that holds the developer balance. This represents funds belonging to you as the payment collection service provider.
+- **Merchant accounts**: Each merchant corresponds to an account that holds its respective merchant balance. Each merchant represents an actual business entity receiving payments.
 
-## Amount allocation overview
+When you perform operations such as payouts or refunds, you need to select which account to use as the source of funds.
 
-The following diagram shows the overall allocation and flow of funds during the payment process (sample data):
+## Fund settlement and allocation
+
+Funds can be distributed between accounts in two ways:
+
+- **Automatic settlement**: During the payment collection process, funds are automatically settled to merchant accounts and the developer account based on predefined rules.
+- **Manual allocation**: You can use the Allocate feature to manually transfer funds between accounts.
+
+### Automatic settlement
+
+When a payment is received, the system automatically distributes funds to the corresponding merchant account and developer account based on predefined rules. The diagram below illustrates this settlement process. The specific settlement rules may vary depending on the payment collection mode:
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
@@ -28,16 +38,16 @@ graph TD
     C[Payer B<br/>100 USDT] --> D[Merchant B<br/>Rate: 1.5%]
     E[Payer C<br/>100 USDT] --> F[Merchant C<br/>Rate: 1%]
     
-    B --> G[Merchant A Balance<br/>98 USDT]
+    B --> G[Merchant A Account<br/>98 USDT]
     B --> H[Developer Fee<br/>2 USDT]
     
-    D --> I[Merchant B Balance<br/>98.5 USDT]
+    D --> I[Merchant B Account<br/>98.5 USDT]
     D --> J[Developer Fee<br/>1.5 USDT]
     
-    F --> K[Merchant C Balance<br/>99 USDT]
+    F --> K[Merchant C Account<br/>99 USDT]
     F --> L[Developer Fee<br/>1 USDT]
     
-    H --> M[Developer Balance<br/>4.5 USDT]
+    H --> M[Developer Account<br/>4.5 USDT]
     J --> M
     L --> M
     
@@ -56,94 +66,73 @@ graph TD
     style M fill:#fff3e0
 ```
 
+#### Top-up mode
 
-## Amount allocation rules
+In top-up mode, fund settlement is based on the developer fee rate (`developer_fee_rate`) set when creating the merchant. The developer fee rate determines the proportion of each top-up that is settled to the developer account.
 
-In different pay-in types and refund scenarios, the collection method and calculation rules for developer fees differ. The following will detail the fund allocation mechanism in various scenarios.
-
-
-### Top-up mode
-
-In top-up mode, fund allocation is based on the developer fee rate (`developer_fee_rate`) set when creating the merchant. The developer fee rate determines the proportion the developer receives in each top-up.
-
-**Example**: When the developer fee rate is 1%, a 100 USDT top-up will be allocated as 99 USDT merchant funds and 1 USDT developer fee.
+**Example**: When the developer fee rate is 1%, a 100 USDT top-up will be settled as 99 USDT to the merchant account and 1 USDT to the developer account.
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
     A[Developer fee rate: 1%] --> B[Payer top-up<br/>100 USDT]
     
-    B --> C[Merchant actual receipt<br/>99 USDT]
-    B --> D[Developer fee<br/>1 USDT]
-
-    C --> E[Merchant balance increases<br/>99 USDT]
-    D --> F[Developer balance increases<br/>1 USDT]
-
+    B -->|99 USDT| E[Merchant account<br/>+99 USDT]
+    B -->|1 USDT| F[Developer account<br/>+1 USDT]
     
     style A fill:#e3f2fd
     style B fill:#f3e5f5
-    style C fill:#c8e6c9
-    style D fill:#fff3e0
     style E fill:#c8e6c9
     style F fill:#fff3e0
 ```
 
+#### Order mode
 
+In order mode, fund settlement is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the product order amount (`order_amount`) determines the proportion of each order that is settled to the developer account.
 
-### Order mode
+**Example**: When the product order amount is 99 USDT and the developer fee is 1 USDT, the actual received amount of 100 USDT will be settled as 99 USDT to the merchant account and 1 USDT to the developer account:
 
-In order mode, fund allocation is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the product order amount (`order_amount`) determines the proportion the developer receives in each order.
-
-**Example**: When the product order amount is 99 USDT and the developer fee is 1 USDT, the actual received amount of 100 USDT from the order will be allocated as 99 USDT merchant actual receipt and 1 USDT developer fee:
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
     A[Product order amount 99 USDT<br/>Developer fee 1 USDT] --> B[Payer payment<br/>100 USDT]
     
-    B --> C[Merchant actual receipt<br/>99 USDT]
-    B --> D[Developer fee<br/>1 USDT]
-    
-    C --> E[Merchant balance increases<br/>99 USDT]
-    D --> F[Developer balance increases<br/>1 USDT]
+    B -->|99 USDT| E[Merchant account<br/>+99 USDT]
+    B -->|1 USDT| F[Developer account<br/>+1 USDT]
     
     style A fill:#e3f2fd
     style B fill:#f3e5f5
-    style C fill:#c8e6c9
-    style D fill:#fff3e0
     style E fill:#c8e6c9
     style F fill:#fff3e0
 ```
 
-
-
 <Note>
 Special case handling:
 
-- Overpayment/Underpayment: Allocate funds according to the same ratio as above
-- Late payment: All funds are recorded as developer fee
+- Overpayment/Underpayment: Funds are settled according to the same ratio as above
+- Late payment: All funds are settled to the developer account
 </Note>
 
-### Refunds
+#### Refunds
 
-The source of the refund amount can be either the merchant balance or the developer balance.
+The source of the refund amount can be either the merchant account or the developer account.
 
- - When the refund amount comes from the merchant balance, you can specify the developer fee amount. For example, when the refund amount (`payable_amount`) is 100 USDT and the developer fee (`merchant_fee_amount`) is 1 USDT, 1 USDT from the 100 USDT refund amount will be allocated as the developer fee, and the payer will actually receive 99 USDT.
-- When the refund amount comes from the developer balance, the developer fee field will be ignored, and the full refund amount will be deducted from the developer balance and transferred to the payer.
+- When the refund amount comes from the merchant account, you can specify a developer fee to charge a service fee for the refund. For example, when the refund amount (`payable_amount`) is 100 USDT and the developer fee (`merchant_fee_amount`) is 1 USDT, 1 USDT from the 100 USDT refund will be settled to the developer account, and the payer will actually receive 99 USDT.
+- When the refund amount comes from the developer account, the developer fee field will be ignored, and the full refund amount will be deducted from the developer account and transferred to the payer.
 
-
-The following diagram shows the allocation and flow of funds during the refund process (sample data):
+The following diagram shows the settlement and flow of funds during the refund process (sample data):
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
-    F[Select refund source] -->|Refund from merchant balance| E1[Create refund order<br/>Refund amount: 100 USDT<br/>Developer fee: 1 USDT]
-    F -->|Refund from developer balance| E2[Create refund order<br/>Refund amount: 100 USDT]
+    F[Select refund source] -->|Refund from merchant account| E1[Create refund order<br/>Refund amount: 100 USDT<br/>Developer fee: 1 USDT]
+    F -->|Refund from developer account| E2[Create refund order<br/>Refund amount: 100 USDT]
     
-    E1 --> G[Deduct 100 USDT from merchant balance]
-    E2 --> H[Deduct 100 USDT from developer balance]
+    E1 --> G[Deduct 100 USDT from<br/>merchant account]
+    E2 --> H[Deduct 100 USDT from<br/>developer account]
     
     G --> J[Payer actually receives<br/>99 USDT]
-    G --> K[Developer balance increases<br/>1 USDT]
+    G --> K[Developer account<br/>+1 USDT]
     
     H --> L[Transfer to payer<br/>100 USDT]
     
@@ -157,24 +146,38 @@ graph TD
     style L fill:#c8e6c9
 ```
 
+### Manual allocation
 
-## Balance
+In addition to automatic settlement during payment collection, you can also use the Allocate feature to manually transfer funds between accounts. For details, see [Allocate funds](/payments/en/guides/allocate-funds).
 
-The following diagram shows the main sources and uses of merchant balance and developer balance:
+## Balances
 
-<Info>Under review/isolated/frozen amounts will not be counted towards merchant actual receipt or developer balance.</Info>
+Account balance refers to the total amount of funds in an account that can be used for payouts or refunds at a specific moment. This balance can be queried through the **Balance** module in the Payments App or by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance).
+
+
+Balance changes mainly come from the following activities:
+
+**Situations that increase balance:**
+- Automatic settlement during payment collection
+- Manual allocation transfer in
+- Automatic settlement during refunds (only applicable to the developer account)
+
+**Situations that decrease balance:**
+- Payout
+- Refund
+- Manual allocation transfer out
+
+The following diagram shows the main sources and destinations of merchant account balances and developer account balances (allocation operations not included):
+
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
-    A[Payment]
+    A[Payment collection]
     
     A --> L[Under review, isolated<br>or frozen amount]
-    A --> D[Merchant actual receipt]
-    A --> E[Developer fee]
-    
-    D --> F[Merchant balance]
-    E --> G[Developer balance]
+    A --> F[Merchant account balance]
+    A --> G[Developer account balance]
     
     F --> H[Payout]
     F --> I[Refund]
@@ -182,8 +185,7 @@ graph TD
     G --> J[Payout]
     G --> K[Refund]
     
-    M[Developer fee collected from refunds] --> E
-    P[Transfer from external wallet] --> G
+    M[Developer fee collected from refunds] --> G
     
     style A fill:#e1f5fe
     style F fill:#c8e6c9
@@ -194,30 +196,9 @@ graph TD
     style K fill:#fff3e0
     style M fill:#e1f5fe
     style L fill:#ffebee
-    style P fill:#e1f5fe
 ```
 
 
-### Merchant balance
 
-**Merchant balance** refers to the total amount of funds that a merchant can withdraw or refund at a specific moment. Calculation formula:
-
-`Merchant balance = Total merchant actual receipt - Withdrawn merchant funds - Merchant funds used for refunds`
-
-
-This balance can be queried through the **Balance** module of Payments App or by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances).
-
-
-### Developer balance
-
-**Developer balance** refers to the total amount of funds that the developer can withdraw or refund at a specific moment. Calculation formula:
-
-
-`Developer balance = Total developer fees - Withdrawn developer funds - Developer funds used for refunds`
-
-<Info>In addition to developer fees in various pay-in types, the total developer fees also include funds transferred from external wallets.</Info>
-
-This balance can be queried through the **Balance** module of Payments App or by calling [Get developer balance](/payments/en/api-references/payment/get-developer-balance).
 
 <Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>
-

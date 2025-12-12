@@ -26,10 +26,9 @@ You can create off-ramp requests through Payments App or Payments API.
 2. In the left navigation bar, click **Apps**, then click the **Payments** card to launch the App.
 3. In the App's left navigation bar, click **Funds Management** > **Payouts**.
 4. You can choose to withdraw from **Merchant balance** or **Developer balance**. In this example, we choose to withdraw from the merchant balance. Click the **Settle** button on the **Merchant balance** card.
-5. In the pop-up window, select **Fiat withdrawal**. The pay-in type can be **Order** or **Top-up**, corresponding to order mode and top-up mode payment balances respectively. In this example, we select order mode.
-6. Fill in the withdrawal information:
-   - Select the orders you want to withdraw from. The system will automatically calculate the total cryptocurrency amount for this withdrawal.
-   - Select the bank account to receive fiat currency. To add a new bank account, refer to [Destinations](/payments/en/guides/destinations).
+5. In the pop-up window, select **Fiat Off-Ramp**.
+   <img src="/payments/en/images/payments/fiat-payout.png" className="screenshot_full_screen" alt="Fiat withdrawal entry" />
+6. Fill in the withdrawal information, including token, merchant name, amount, and receiving bank account. To add a new bank account, refer to [Destinations](/payments/en/guides/destinations).
 <Note>
 On the off-ramp page, you can view the detailed fee breakdown and estimated arrival amount for this withdrawal:
 
@@ -92,7 +91,7 @@ You can also actively query withdrawal request status through Payments App or Pa
 1. Log in to Cobo Portal [development environment](https://portal.dev.cobo.com/login) or [production environment](https://portal.cobo.com/login).
 2. In the left navigation bar, click **Apps**, then click the **Payments** card to launch the App.
 3. In the App's left navigation bar, click **Funds Management** > **Payouts**.
-4. View the status and details of all withdrawal requests on the **Settlement History** tab.
+4. View the status and details of all withdrawal requests on the **Payout History** tab.
   </Tab>
 
   <Tab title="Payments API" icon="code">

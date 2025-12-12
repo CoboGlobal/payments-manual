@@ -3,84 +3,105 @@ title: "发布历史"
 lang: "zh-hans"
 ---
 
-本文记录了 Cobo 支付解决方案的所有重要更新。
+本文记录 Cobo 支付解决方案的全部重要更新与即将上线的功能，助您及时掌握产品动态与升级信息。
+
+
+## 功能预告（即将发布）
+
+<Note>以下功能即将上线，敬请期待。</Note>
+
+| 功能 | 功能预告 |
+|------|----------|
+| **资金管理** | - 新增批量转出功能，支持一次性将加密货币转账至大量地址。<br/>- 新增划转相关 API 操作，用于在不同账户间灵活分配资金。<br/>- 全新资金转出（Payout）API 操作，转出流程更加高效，无需区分资金来源（收款/充值模式）或指定订单，只需填写金额即可完成转出。 |
+| **收款** | - [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 和 [Create order link](/payments/en/api-references/payment/create-order-link) 字段简化：支持自定义应付金额，去除 exchange_rate 字段，并优化了部分字段命名，增强了可读性和易用性。<br/>- 金额字段的全局精度统一为 2 位小数，方便对账和资金管理。|
+| **支付链接** | 使用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建订单支付链接时，现支持配置商户原购物页 URL。在用户支付成功或遇到异常时，可跳转回原购物页面，提升用户支付体验。|
 
 ## 2025 年 12 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments App** |  - 新增[交易对手方](/payments/cn/guides/counterparties)功能，用于管理付款方信息<br/>- 新增[转出目的地](/payments/cn/guides/destinations)功能，用于集中管理资金转出时的目的地信息。 | 2025-12-03 |
+| **资金管理** | - 新增[划转](/payments/cn/guides/allocate-funds)功能，支持在不同账户之间手动分配资金。目前已支持通过 Payments App 操作，API 即将开放。<br/>- 新增[账户](/payments/cn/guides/amounts-and-balances#账户)概念。账户为系统账本下管理的虚拟资金主体。详见[账户与资金分配](/payments/cn/guides/amounts-and-balances)。<br/>- 简化了资金转出流程。转出时无需选择资金来源（收款或充值模式）或指定订单，只需直接填写金额，更加高效便捷。目前已支持通过 Payments App 操作，API 即将开放。详见[法币出金](/payments/cn/guides/fiat-payouts)和[加密货币转账](/payments/cn/guides/crypto-payouts)。 | 2025-12-12 |
+| **支付链接** | [订单支付链接](/payments/cn/guides/payment-link)全新改版：<br/>- 全新视觉与交互设计<br/>- 桌面端新增支持 Binance Wallet（EVM 及 Solana 链）<br/>- 支持扫描含金额的二维码，自动填充转账金额<br/>- 第三方钱包调用优化：调用流程简化、支持推荐前一次使用的钱包 | 2025-12-12 |
+| **交易对手方** | 新增[交易对手方](/payments/cn/guides/counterparties)功能，用于管理付款方信息。 目前已支持通过 Payments App 操作，API 即将开放。| 2025-12-03 |
+| **转出目的地** | 新增[转出目的地](/payments/cn/guides/destinations)功能，用于集中管理资金转出时的目的地信息。 目前已支持通过 Payments App 操作，API 即将开放。| 2025-12-03 |
 
 ## 2025 年 11 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments API** | API SDK v1.27.0 发版。<br/><br/>**不兼容变更：**<br/><br/>- Get payer balance 操作已删除。<br/>- [Get Access Token](/v2/api-references/oauth/get-access-token) 和 [Refresh Access Token](/v2/api-references/oauth/refresh-access-token) 操作已废弃。<br/><br/>**新增功能：**<br/><br/>- 新增 [Batch get exchange rates](/payments/en/api-references/payment/batch-get-exchange-rates) 操作，用于批量获取汇率。 | 2025-11-26 |
-| **Payments API** | API SDK v1.26.0 发版。<br/><br/>- 新增 [Create refund link](/payments/en/api-references/payment/create-refund-link) 操作，用于创建退款链接。<br/>- `RefundStatus` Schema 新增 `AddressPending` 和 `AddressSubmitted` 状态。 | 2025-11-12 |
+| **资金管理** | (SDK v1.27.0) Get payer balance 操作已删除。 | 2025-11-26 |
+| **汇率** | (SDK v1.27.0) 新增 [Batch get exchange rates](/payments/en/api-references/payment/batch-get-exchange-rates) 操作，用于批量获取汇率。 | 2025-11-26 |
+| **SDK & API** | (SDK v1.27.0) [Get Access Token](/v2/api-references/oauth/get-access-token) 和 [Refresh Access Token](/v2/api-references/oauth/refresh-access-token) 操作已废弃。 | 2025-11-26 |
+| **退款** | (SDK v1.26.0) 新增 [Create refund link](/payments/en/api-references/payment/create-refund-link) 操作，用于创建退款链接。`RefundStatus` Schema 新增 `AddressPending` 和 `AddressSubmitted` 状态。 | 2025-11-12 |
 
 ## 2025 年 10 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments API** | API SDK v1.25.0 发版。<br/><br/>- **不兼容变更**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 操作中，先前已废弃的 `settlements.currency` 和 `settlements.bank_account_id` 字段现已删除。请使用顶层的 `currency` 和 `bank_account_id` 字段来指定法币币种和银行账户。<br/> &nbsp;&nbsp;&nbsp;&nbsp;<br/>- **新增功能**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- 新增 [Create order link](/payments/en/api-references/payment/create-order-link) 操作，用于创建收款订单的付款链接。<br/> &nbsp;&nbsp;&nbsp;&nbsp;- 新增 `payment.transaction.failed` 事件。该事件会在充币交易合规扫描不通过时触发。<br/> &nbsp;&nbsp;&nbsp;&nbsp;- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 请求体新增 `amount_tolerance` 字段，用于指定可接受的少付金额偏差。 | 2025-10-30 |
-| **Payments App** | 新增自动创建钱包功能，简化商户配置流程，提升接入效率。详情请参考[创建商户](/payments/cn/guides/preparation#创建商户)。相关 API 操作：[Create merchant](/payments/en/api-references/payment/create-merchant)、[List all merchants](/payments/en/api-references/payment/list-all-merchants)。 | 2025-10-21 |
-| **Payments API** | API SDK v1.24.0 发版。主要变更如下：<br/><br/>- **不兼容变更**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 操作中，`settlements.currency` 和 `settlements.bank_account_id` 字段已废弃。请使用顶层的 `currency` 和 `bank_account_id` 字段来指定法币币种和银行账户。<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- **Java SDK 不兼容变更**：以下操作的 `merchantId` 字段变为可选参数后，在代码中需要将其调整至必填参数之后，否则会导致编译错误：<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [Update top-up address](/payments/en/api-references/payment/update-top-up-address)<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [List payers](/payments/en/api-references/payment/list-payers)<br/><br/><br/>- **新增功能**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create merchant](/payments/en/api-references/payment/create-merchant) 以及 [List all merchants](/payments/en/api-references/payment/list-all-merchants) 操作新增 `wallet_setup` 字段，用于指定商户的钱包配置。同时废弃了 `wallet_id` 字段。<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Estimate fees](/payments/en/api-references/payment/estimate-fees) 操作：用于预估各类操作的手续费<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 操作新增 `custom_exchange_rate` 字段：支持自定义汇率<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 请求包体新增字段：<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- `currency`：指定法币出金币种<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- `bank_account_id`：指定收款银行账户<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- `remark`：添加法币出金备注<br/><br/>- **字段变更**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- `merchant_id` 字段在以下操作中变更为可选：<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [Update top-up address](/payments/en/api-references/payment/update-top-up-address)<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- [List payers](/payments/en/api-references/payment/list-payers)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- `SettleRequestStatus` Schema 新增 `Canceled` 状态：表示银行转账失败<br/>&nbsp;&nbsp;&nbsp;&nbsp;- `Settlement` Schema 新增 `currency`、`received_amount_fiat` 和 `bank_account` 字段：用于描述法币出金的币种、预估到账金额和银行账户信息 | 2025-10-15 |
-| **Payments API** |为了简化结算流程，提升用户体验，我们对 Payments API 进行了优化，取消了可结算余额、强制归集等概念和相关操作：<br/><br/>**废弃的操作：**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- 可结算余额查询：[Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 支付钱包余额查询：[List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 强制归集操作：[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep)、[List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps)<br/><br/>**废弃的字段：**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 和 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 中的 `available_balance` 字段<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 中的 `use_dedicated_address` 字段<br/><br/><Warning>上述操作及字段仅为兼容旧版本而保留，不建议在新实现中继续使用。</Warning> | 2025-10-01 |
-
-
+| **资金管理** | (SDK v1.25.0) [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 操作中，先前已废弃的 `settlements.currency` 和 `settlements.bank_account_id` 字段现已删除。请使用顶层的 `currency` 和 `bank_account_id` 字段来指定法币币种和银行账户。 | 2025-10-30 |
+| **支付链接** | (SDK v1.25.0) 新增 [Create order link](/payments/en/api-references/payment/create-order-link) 操作，用于创建收款订单的支付链接。 | 2025-10-30 |
+| **收款** | (SDK v1.25.0) - 新增 `payment.transaction.failed` 事件。该事件会在充币交易合规扫描不通过时触发。<br/>- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 请求体新增 `amount_tolerance` 字段，用于指定可接受的少付金额偏差。 | 2025-10-30 |
+| **商户管理** | 新增自动创建钱包功能，简化商户配置流程，提升接入效率。详情请参考[创建商户](/payments/cn/guides/preparation#创建商户)。相关 API 操作：[Create merchant](/payments/en/api-references/payment/create-merchant)、[List all merchants](/payments/en/api-references/payment/list-all-merchants)。 | 2025-10-21 |
+| **商户管理** | (SDK v1.24.0) [Create merchant](/payments/en/api-references/payment/create-merchant) 以及 [List all merchants](/payments/en/api-references/payment/list-all-merchants) 操作新增 `wallet_setup` 字段，用于指定商户的钱包配置。同时废弃了 `wallet_id` 字段。 | 2025-10-15 |
+| **资金管理** | (SDK v1.24.0) - [Estimate fees](/payments/en/api-references/payment/estimate-fees) 操作：用于预估各类操作的手续费。<br/>- [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 请求包体新增 `currency`、`bank_account_id`、`remark` 字段。<br/>- `SettleRequestStatus` Schema 新增 `Canceled` 状态：表示银行转账失败。<br/>- `Settlement` Schema 新增 `currency`、`received_amount_fiat` 和 `bank_account` 字段。 | 2025-10-15 |
+| **收款** | (SDK v1.24.0) - [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 操作新增 `custom_exchange_rate` 字段：支持自定义汇率。<br/>- `merchant_id` 字段在 [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[Update top-up address](/payments/en/api-references/payment/update-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers) 操作中变更为可选。 | 2025-10-15 |
+| **资金管理** | 为了简化结算流程，提升用户体验，我们对 Payments API 进行了优化，取消了可结算余额、强制归集等概念和相关操作：<br/><br/>**废弃的操作：**<br/>- 可结算余额查询：[Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances)<br/>- 支付钱包余额查询：[List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)<br/>- 强制归集操作：[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep)、[List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps)<br/><br/>**废弃的字段：**<br/>- [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 和 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 中的 `available_balance` 字段<br/>- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 中的 `use_dedicated_address` 字段<br/><br/><Warning>上述操作及字段仅为兼容旧版本而保留，不建议在新实现中继续使用。</Warning> | 2025-10-01 |
 
 ## 2025 年 09 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **支付解决方案** | 新增支持 Solana 链。 | 2025-09-26 |
-| **Payments API** |订单模式新增支持 [payment.transaction.completed](/payments/cn/guides/status-and-events) 事件。| 2025-09-05 |
-
+| **支持的链** | 新增支持 Solana 链。 | 2025-09-26 |
+| **收款** | 订单模式新增支持 [payment.transaction.completed](/payments/cn/guides/status-and-events) 事件。 | 2025-09-05 |
 
 ## 2025 年 08 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments API** |API SDK v1.22.0 发版。变更如下：<br/><br/>- **不兼容变更**<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;-[Create settlement request](/payments/en/api-references/payment/create-settlement-request) 请求包体中的 ​`settlements.token_id` 字段从可选改为必填。同时，​`settlements.amount` 字段仅表示待结算的加密货币金额，不再表示法币金额。<br/><br/>- 新增余额相关操作：<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List merchant balances](/payments/en/api-references/payment/list-merchant-balances)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Get developer balance](/payments/en/api-references/payment/get-developer-balance)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Get payer balance](/payments/en/api-references/payment/get-payer-balance)| 2025-08-28 |
-| **Payments API** |API SDK v1.21.0 发版。变更如下：<br/><br/>- 新增结算相关操作：<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List all settlement details](/payments/en/api-references/payment/list-all-settlement-details)：用于查询结算详情。<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create crypto address](/payments/en/api-references/payment/create-crypto-address)：用于注册加密货币转账地址<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Delete crypto address](/payments/en/api-references/payment/delete-crypto-address)：用于取消注册加密货币转账地址<br/><br/>- 新增退款相关操作：<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Update refund order](/payments/en/api-references/payment/update-refund-order)：用于更新退款订单的收币地址。<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Cancel refund order](/payments/en/api-references/payment/cancel-refund-order)：用于取消退款订单| 2025-08-13 |
-| **Checkout SDK** | - 新增支持通过第三方钱包进行支付，支持 EVM 和 Tron 链主流钱包。<br/>- 新增支持通过 `cryptoAmount` 参数直接以加密货币指定订单金额。| 2025-08-11 |
-
+| **资金管理** | (SDK v1.22.0) - [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 请求包体中的 `settlements.token_id` 字段从可选改为必填。同时，`settlements.amount` 字段仅表示待结算的加密货币金额，不再表示法币金额。<br/>- 新增余额相关操作：[List merchant balances](/payments/en/api-references/payment/list-merchant-balances)、[Get developer balance](/payments/en/api-references/payment/get-developer-balance)、[List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)、[Get payer balance](/payments/en/api-references/payment/get-payer-balance) | 2025-08-28 |
+| **资金管理** | (SDK v1.21.0) 新增结算相关操作：[List all settlement details](/payments/en/api-references/payment/list-all-settlement-details)、[Create crypto address](/payments/en/api-references/payment/create-crypto-address)、[Delete crypto address](/payments/en/api-references/payment/delete-crypto-address)。 | 2025-08-13 |
+| **退款** | (SDK v1.21.0) 新增退款相关操作：[Update refund order](/payments/en/api-references/payment/update-refund-order)、[Cancel refund order](/payments/en/api-references/payment/cancel-refund-order)。 | 2025-08-13 |
+| **支付链接** | - 新增支持通过第三方钱包进行支付，支持 EVM 和 Tron 链主流钱包。<br/>- 新增支持通过 `cryptoAmount` 参数直接以加密货币指定订单金额。 | 2025-08-11 |
 
 ## 2025 年 07 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Checkout SDK** | 新增支持通过 `developerName` 参数自定义收单页面底部的 "Powered by xxx" 字样。 | 2025-07-30 |
-| **Payments API** |API SDK v1.20.0 发版。变更如下：<br/><br/>- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 新增功能：支持直接以加密货币指定订单金额。当 `currency` 参数为空时，`order_amount` 和 `fee_amount` 将以 `token_id` 指定的加密货币为单位，而不是法币。<br/><br/>- 新增 [Update top-up address](/payments/en/api-references/payment/update-top-up-address) 操作，用于更新充值地址。<br/><br/> - 新增强制归集相关操作：<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create forced sweep](/payments/en/api-references/payment/create-forced-sweep)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps)<br/><br/>- [Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances) 新增 `available_balance` 和 `total_balance` 字段，分别代表可结算余额和总余额。<br/><br/>- 新增 `payment.address.updated` Webhook 事件，用于通知充值地址更新。同时，订单相关事件新增了多个字段。| 2025-07-30 |
-| **Payments API** | - [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 新增功能：当 `order_ids` 参数为空时，自动结算该商户的所有未结算订单。 | 2025-07-24 |
-| **Payments App** | - 新增支持充值模式，您可在 Web 界面：<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 创建和管理充值地址<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 监控充值交易状态<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 导出充值记录 | 2025-07-10 |
-| **Payments API** | API SDK v1.18.0 发版。变更如下：<br/><br/>- 新增充值模式相关操作：<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [List payers](/payments/en/api-references/payment/list-payers)<br/>&nbsp;&nbsp;具体集成步骤请参考[获取充值地址](/payments/cn/guides/get-topup-addresses)<br/><br/>- 为 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 新增 `use_dedicated_address` 参数，支持指定使用独立收款地址<br/><br/>- 新增与充值模式相关的多个 [Webhook 事件](/payments/cn/guides/status-and-events) | 2025-07-02 |
-
+| **收款** | (SDK v1.20.0) - [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 新增功能：支持直接以加密货币指定订单金额。当 `currency` 参数为空时，`order_amount` 和 `fee_amount` 将以 `token_id` 指定的加密货币为单位，而不是法币。<br/>- 新增 [Update top-up address](/payments/en/api-references/payment/update-top-up-address) 操作，用于更新充值地址。<br/>- 新增 `payment.address.updated` Webhook 事件，用于通知充值地址更新。 | 2025-07-30 |
+| **资金管理** | (SDK v1.20.0) - 新增强制归集相关操作：[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep)、[List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps)。<br/>- [Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances) 新增 `available_balance` 和 `total_balance` 字段，分别代表可结算余额和总余额。 | 2025-07-30 |
+| **支付链接** | 新增支持通过 `developerName` 参数自定义收单页面底部的 "Powered by xxx" 字样。 | 2025-07-30 |
+| **资金管理** | [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 新增功能：当 `order_ids` 参数为空时，自动结算该商户的所有未结算订单。 | 2025-07-24 |
+| **收款** | 新增支持充值模式，您可在 Web 界面：创建和管理充值地址、监控充值交易状态、导出充值记录。 | 2025-07-10 |
+| **收款** | (SDK v1.18.0) 新增充值模式相关操作：[Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers)。具体集成步骤请参考[获取充值地址](/payments/cn/guides/get-topup-addresses)。新增与充值模式相关的多个 [Webhook 事件](/payments/cn/guides/status-and-events)。 | 2025-07-02 |
 
 ## 2025 年 06 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments App** | - 新增仪表盘、余额查询、报表导出功能 | 2025-06-27 |
-| **Payments App** | - 新增支持全托管钱包 | 2025-06-19 |
-| **Payments API** | API SDK v1.17.0 发版。变更如下：<br/><br/>- 新增支持加密货币提现的结算方式。相关操作：<br/>&nbsp;&nbsp;&nbsp;&nbsp;-[Create settlement request](/payments/en/api-references/payment/create-settlement-request)<br/>&nbsp;&nbsp;&nbsp;&nbsp;-[List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses)<br/><br/>- [Create refund order](/payments/en/api-references/payment/create-refund-order) 新增开发者费用相关字段。您可以在退款时向商家收取开发者费用。更多信息可参考[处理退款申请](/payments/cn/guides/handle-abnormality-order#处理退款申请)。<br/><br/>- 新增以下操作，用于完成 Checkout SDK 的 OAuth 认证：<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Get Access Token](/v2/api-references/oauth/get-access-token)<br/>&nbsp;&nbsp;&nbsp;&nbsp;- [Refresh Access Token](/v2/api-references/oauth/refresh-access-token)| 2025-06-18 |
-| **Payments App** | - 新增支持加密货币出金的结算方式 | 2025-06-10 |
-| **Checkout SDK** | - Checkout SDK v1.1.0 发版。Checkout SDK 提供开箱即用的收单前端组件，支持 iframe 嵌入方式快速集成 | 2025-06-09 |
+| **报表与仪表盘** | 新增仪表盘、余额查询、报表导出功能。 | 2025-06-27 |
+| **商户管理** | 新增支持全托管钱包。 | 2025-06-19 |
+| **资金管理** | (SDK v1.17.0) 新增支持加密货币提现的结算方式。相关操作：[Create settlement request](/payments/en/api-references/payment/create-settlement-request)、[List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses)。 | 2025-06-18 |
+| **退款** | (SDK v1.17.0) [Create refund order](/payments/en/api-references/payment/create-refund-order) 新增开发者费用相关字段。您可以在退款时向商家收取开发者费用。更多信息可参考[处理退款申请](/payments/cn/guides/handle-abnormality-order#处理退款申请)。 | 2025-06-18 |
+| **支付链接** | (SDK v1.17.0) 新增以下操作，用于完成 Checkout SDK 的 OAuth 认证：[Get Access Token](/v2/api-references/oauth/get-access-token)、[Refresh Access Token](/v2/api-references/oauth/refresh-access-token)。 | 2025-06-18 |
+| **资金管理** | 新增支持加密货币出金的结算方式。 | 2025-06-10 |
+| **支付链接** | (Checkout SDK v1.1.0) Checkout SDK 提供开箱即用的收单前端组件，支持 iframe 嵌入方式快速集成。 | 2025-06-09 |
 
 ## 2025 年 05 月
-| 产品 | 变更说明 | 发布时间 |
+
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments App** | - App 发布，提供 Web 界面进行订单管理、结算管理和商户管理 | 2025-05-22 |
+| **Payments App** | App 发布，提供 Web 界面进行订单管理、结算管理和商户管理。 | 2025-05-22 |
 
 ## 2025 年 04 月
 
-| 产品 | 变更说明 | 发布时间 |
+| 功能 | 变更说明 | 发布时间 |
 |------|----------|----------|
-| **Payments API** | API SDK v1.14.0 发版。变更如下：<br/><br/>- 新增支付相关的核心操作：<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 创建和管理收款订单<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 处理退款申请<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 执行结算操作<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 商户信息管理<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 银行账户管理<br/>&nbsp;&nbsp;&nbsp;&nbsp;- 实时汇率查询<br/><br/>- 新增支付相关的 [Webhook 事件](/payments/cn/guides/status-and-events)，用于实时通知订单、退款和结算状态变更。 | 2025-04-23 |
-
-
-
-
+| **收款** | (SDK v1.14.0) 新增创建和管理收款订单功能。 | 2025-04-23 |
+| **退款** | (SDK v1.14.0) 新增处理退款申请功能。 | 2025-04-23 |
+| **资金管理** | (SDK v1.14.0) 新增执行结算操作功能。 | 2025-04-23 |
+| **商户管理** | (SDK v1.14.0) 新增商户信息管理、银行账户管理功能。 | 2025-04-23 |
+| **汇率** | (SDK v1.14.0) 新增实时汇率查询功能。 | 2025-04-23 |
+| **Webhook** | (SDK v1.14.0) 新增支付相关的 [Webhook 事件](/payments/cn/guides/status-and-events)，用于实时通知订单、退款和结算状态变更。 | 2025-04-23 |
 
 
 <Tip>欢迎您[提交反馈](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI)来帮助改进我们的文档！</Tip>
