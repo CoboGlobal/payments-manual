@@ -90,7 +90,7 @@ sequenceDiagram
 - **订单金额**（`pricing_amount`）：订单金额，不包括开发者费用。
   - 如果设置了 `pricing_currency`，订单金额以该法币计价。
   - 如果未设置 `pricing_currency`，订单金额以 `payable_currency` 指定的加密货币计价。
-- **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。开发者费用和订单金额之间的比例决定了您和下游商户之间的收入分成比例。更多信息请参考[资金分配与余额管理](/payments/cn/guides/amounts-and-balances)。
+- **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。开发者费用和订单金额之间的比例决定了您和下游商户之间的收入分成比例。更多信息请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
   <Info>如果您是商户（直接服务于付款方），通常无需设置开发者费用。</Info>
 - **应付金额**（`payable_amounts`）：付款方实际需支付的加密货币金额，以 `payable_currency` 指定的加密货币为单位。该字段为可选字段：
   - 如果您指定了 `payable_amounts`，则系统直接使用这些值作为各种加密货币的应付金额。

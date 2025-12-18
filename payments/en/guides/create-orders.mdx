@@ -62,7 +62,7 @@ You can call [Create pay-in order](/payments/en/api-references/payment/create-pa
 - **Pricing Amount** (`pricing_amount`): The base amount of the order, excluding the developer fee.
   - If `pricing_currency` is set, the order amount is denominated in that fiat currency.
   - If `pricing_currency` is not set, the order amount is denominated in the cryptocurrency specified by `payable_currency`.
-- **Developer Fee** (`fee_amount`): If you are a platform serving multiple downstream merchants and need to distribute revenue between you and your downstream merchants, you can set this fee to achieve that. The ratio between the developer fee and the pricing amount determines the revenue split between you and your downstream merchants. For more information, see [Amount Distribution and Balance Management](/payments/en/guides/amounts-and-balances).
+- **Developer Fee** (`fee_amount`): If you are a platform serving multiple downstream merchants and need to distribute revenue between you and your downstream merchants, you can set this fee to achieve that. The ratio between the developer fee and the pricing amount determines the revenue split between you and your downstream merchants. For more information, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
   <Info>If you are a merchant (serving users directly), you typically don't need to set the developer fee.</Info>
 - **Payable Amount** (`payable_amount`): The actual cryptocurrency amount that the user needs to pay, denominated in the cryptocurrency specified by `payable_currency`.
   - If you specify `payable_amount`, this value is used directly as the amount the payer needs to pay.
@@ -139,7 +139,7 @@ The following three exception situations may occur during the payment process:
 | **Underpayment** | Within the order validity period, the payer's actual payment amount is less than the amount payable | The order status is `Underpaid` (final state).|
 | **Late payment** | The payer makes the first or subsequent payment after the order expires | Does not change the order status. Each late payment will trigger one `payment.transaction.late` webhook event.|
 
-[Funds allocation and balances](/payments/en/guides/amounts-and-balances) details how Cobo handles funds in the case of overpayment, underpayment, and late payment.
+[Accounts and fund allocation](/payments/en/guides/amounts-and-balances) details how Cobo handles funds in the case of overpayment, underpayment, and late payment.
 
 
 
@@ -173,7 +173,7 @@ sequenceDiagram
 6. In the pop-up form:
    - Select the source of the refund amount. You can choose **Merchant balance** or **Developer balance**.
    - Enter the refund amount. This amount must not exceed the corresponding merchant balance or developer balance.
-   - (Optional) Enter the developer fee amount. This fee will be deducted from the refund amount and credited to the developer balance. For a detailed description of developer fees, refer to [Funds allocation and balances](/payments/en/guides/amounts-and-balances).
+   - (Optional) Enter the developer fee amount. This fee will be deducted from the refund amount and credited to the developer balance. For a detailed description of developer fees, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
    - Enter the receiving address. You can click **Use original payment address**, and the system will automatically fill in the original payment address for this order. If you want to refund to another address, you can also manually enter the target address.
 5. Click **Preview** to confirm that all information is correct, then click **Submit** to create the refund order.
 
@@ -187,7 +187,7 @@ Call [Create refund order](/payments/en/api-references/payment/create-refund-ord
      - The actual refund amount received by the payer = specified refund amount - developer fee (i.e., `payable_amount` - `merchant_fee_amount`).
      - Cobo will validate the refund amount. If the refund amount is less than the developer fee, the request will be rejected and the reason for failure will be returned, because in this case the payer cannot actually receive any refund.
 
-<Info>For more information about developer fees, refer to [Funds allocation and balances](/payments/en/guides/amounts-and-balances).</Info>
+<Info>For more information about developer fees, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).</Info>
 
   </Tab>
 </Tabs>

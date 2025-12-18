@@ -59,7 +59,7 @@ sequenceDiagram
 - **订单金额**（`pricing_amount`）：订单金额，不包括开发者费用。
   - 如果设置了 `pricing_currency`，订单金额以该法币计价。
   - 如果未设置 `pricing_currency`，订单金额以 `payable_currency` 指定的加密货币计价。
-- **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。开发者费用和订单金额之间的比例决定了您和下游商户之间的收入分成比例。更多信息请参考[资金分配与余额管理](/payments/cn/guides/amounts-and-balances)。
+- **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。开发者费用和订单金额之间的比例决定了您和下游商户之间的收入分成比例。更多信息请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
   <Info>如果您是商户（直接服务于付款方），通常无需设置开发者费用。</Info>
 - **应付金额**（`payable_amount`）：付款方实际需支付的加密货币金额，以 `payable_currency` 指定的加密货币为单位。该字段为可选字段：
   - 如果您指定了 `payable_amount`，则系统直接使用该值作为付款方需支付的金额。
@@ -139,7 +139,7 @@ sequenceDiagram
 | **少付** | 在订单有效期内，付款方实付金额少于应付金额 | 订单状态为 `Underpaid`（终态）。|
 | **晚付** | 付款方在订单过期后进行首次或再次付款 | 不会改变订单状态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。|
 
-[资金分配与余额管理](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下，Cobo 对资金的处理规则。
+[账户与资金分配](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下，Cobo 对资金的处理规则。
 
 
 
@@ -175,7 +175,7 @@ sequenceDiagram
 6. 在弹出的表单中：
    - 选择退款金额的来源，可以选择**商户余额**或**开发者余额**。
    - 填入退款金额。该金额不得高于对应的商户余额或开发者余额。
-   - （可选）填入开发者费用金额。该手续费会从退款金额中扣除，归入开发者余额。有关开发者费用的详细说明，请参考[资金分配与余额管理](/payments/cn/guides/amounts-and-balances)。
+   - （可选）填入开发者费用金额。该手续费会从退款金额中扣除，归入开发者余额。有关开发者费用的详细说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
    - 输入收款地址。您可以点击**使用原始支付地址**，系统将自动填入该笔订单的原始支付地址。如果您想退款到其他地址，也可以手动输入目标地址。
 5. 点击**预览**确认所有信息无误后，点击**提交**创建退款订单。
 
@@ -189,7 +189,7 @@ sequenceDiagram
      - 付款方实际收到的退款金额 = 指定退款金额 - 开发者费用（即 `payable_amount` - `merchant_fee_amount`）。
      - Cobo 会对退款金额进行校验。如果退款金额小于开发者费用，该请求将被拒绝并返回失败原因，因为此时付款方实际无法收到任何退款。
 
-<Info>关于更多开发者费用的说明，请参考[资金分配与余额管理](/payments/cn/guides/amounts-and-balances)。</Info>
+<Info>关于更多开发者费用的说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。</Info>
 
   </Tab>
 </Tabs>
