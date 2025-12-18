@@ -122,7 +122,7 @@
 | Overpayment                      | 多付               | |
 | Underpayment                     | 少付               | |
 | Amount payable                  | 应付金额           | |
-| Product order amount             | 商品订单金额       | |
+| Order amount             | 订单金额       | |
 | Under review                     | 审查中             | |
 | Final state                   | 最终状态           | Final/terminal order status |
 | isolated                         | 隔离的             | For transaction/fund status descriptions |

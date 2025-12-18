@@ -410,5 +410,10 @@
       "redirect": true
     }
   },
-  "redirects": []
+  "redirects": [
+    {
+      "source": "/payments/cn/api-references/overview",
+      "destination": "/payments/en/api-references"
+    }
+  ]
 }

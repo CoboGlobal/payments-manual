@@ -86,14 +86,14 @@ graph TD
 
 #### 订单模式
 
-在订单模式下，资金结算基于创建订单时设置的金额参数。开发者费用（`fee_amount`）与商品订单金额（`order_amount`）之间的比例决定每笔订单中结算到开发者账户的比例。
+在订单模式下，资金结算基于创建订单时设置的金额参数。开发者费用（`fee_amount`）与订单金额（`pricing_amount`）之间的比例决定每笔订单中结算到开发者账户的比例。
 
-**示例**：当商品订单金额为 99 USDT，开发者费用为 1 USDT 时，100 USDT 的订单实收金额将结算为 99 USDT 到商户账户，1 USDT 到开发者账户：
+**示例**：当订单金额为 99 USDT，开发者费用为 1 USDT 时，100 USDT 的订单实收金额将结算为 99 USDT 到商户账户，1 USDT 到开发者账户：
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
-    A[商品订单金额 99 USDT<br/>开发者费用 1 USDT] --> B[付款方支付<br/>100 USDT]
+    A[订单金额 99 USDT<br/>开发者费用 1 USDT] --> B[付款方支付<br/>100 USDT]
     
     B -->|99 USDT| E[商户账户<br/>+99 USDT]
     B -->|1 USDT| F[开发者账户<br/>+1 USDT]

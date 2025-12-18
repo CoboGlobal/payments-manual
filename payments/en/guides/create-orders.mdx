@@ -57,35 +57,32 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
   </Tab>
   <Tab title="Payments API" icon="code">
 
-You can call [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) to create a payment order. When creating an order, you need to specify the order amount, the cryptocurrency that the user will use for payment, and other information. The system will calculate the payable amount (`payable_amount`) based on this information. The calculation formula for the payable amount is:
+You can call [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) to create a payment order.
 
-**Payable Amount** = **(Order Amount + Developer Fee)** / **Exchange Rate**
-
-- **Payable Amount**: The actual cryptocurrency amount that the user needs to pay, denominated in the cryptocurrency specified by `token_id`. For example, if `token_id` is `ETH_USDT`, the user needs to pay the corresponding amount in USDT on the Ethereum chain.
-- **Order Amount**: The `order_amount` field you pass in when creating the order.
-- **Developer Fee**: The `fee_amount` field you pass in when creating the order. If you are a platform serving multiple downstream merchants and need to distribute revenue between you and your downstream merchants, you can set this fee to achieve that. The ratio between the developer fee and the order amount determines the revenue split between you and your downstream merchants. For more information, see [Amount Distribution and Balance Management](/payments/en/guides/amounts-and-balances).
+- **Pricing Amount** (`pricing_amount`): The base amount of the order, excluding the developer fee.
+  - If `pricing_currency` is set, the order amount is denominated in that fiat currency.
+  - If `pricing_currency` is not set, the order amount is denominated in the cryptocurrency specified by `payable_currency`.
+- **Developer Fee** (`fee_amount`): If you are a platform serving multiple downstream merchants and need to distribute revenue between you and your downstream merchants, you can set this fee to achieve that. The ratio between the developer fee and the pricing amount determines the revenue split between you and your downstream merchants. For more information, see [Amount Distribution and Balance Management](/payments/en/guides/amounts-and-balances).
   <Info>If you are a merchant (serving users directly), you typically don't need to set the developer fee.</Info>
-- **Exchange Rate**:
-  - If you only set the `token_id` field and do not set the `currency` field, both the order amount and developer fee are denominated in the cryptocurrency specified by `token_id`. In this case, the exchange rate is fixed at 1 and no conversion is required.
-  - If you set the `currency` field, both the order amount and developer fee are denominated in the fiat currency specified by `currency`.
-    - If you set the `custom_exchange_rate` field, the exchange rate is the value specified by `custom_exchange_rate`.
-    - If you do not set the `custom_exchange_rate` field, the exchange rate is the real-time rate between the fiat currency specified by `currency` and the cryptocurrency specified by `token_id`, based on the rate returned by [Get exchange rate](/payments/en/api-references/payment/get-exchange-rate) at the time the order is created.
+- **Payable Amount** (`payable_amount`): The actual cryptocurrency amount that the user needs to pay, denominated in the cryptocurrency specified by `payable_currency`.
+  - If you specify `payable_amount`, this value is used directly as the amount the payer needs to pay.
+  - If you do not specify `payable_amount`, the system calculates it using the real-time exchange rate: **Payable Amount = (Pricing Amount + Developer Fee) / Exchange Rate**. The exchange rate is based on the rate returned by [Get exchange rate](/payments/en/api-references/payment/get-exchange-rate) at the time the order is created.
 
 
-The table below shows how the payable amount is calculated by the system in four different configuration scenarios:
+The table below shows how the payable amount is determined in four different configuration scenarios:
 
 
 |  | Scenario 1 | Scenario 2 | Scenario 3 | Scenario 4 |
 | :-- | :-- | :-- | :-- | :-- |
-| Scenario Description | - Order amount in fiat currency<br></br>- Developer fee not set<br></br>- Use default exchange rate | - Order amount in cryptocurrency<br></br>- Developer fee not set<br></br>- Use default exchange rate | - Order amount in fiat currency<br></br>- Developer fee set<br></br>- Use custom exchange rate | - Order amount in cryptocurrency<br></br>- Developer fee set<br></br>- Use default exchange rate |
-| `order_amount` | `"100"` | `"100"` | `"100"` | `"100"` |
+| Scenario Description | - Pricing amount in fiat currency<br></br>- Developer fee not set<br></br>- System calculates payable amount | - Pricing amount in cryptocurrency<br></br>- Developer fee not set<br></br>- System calculates payable amount | - Pricing amount in fiat currency<br></br>- Developer fee set<br></br>- Custom payable amount | - Pricing amount in cryptocurrency<br></br>- Developer fee set<br></br>- System calculates payable amount |
+| `pricing_amount` | `"100"` | `"100"` | `"100"` | `"100"` |
 | `fee_amount` | `"0"` or not set | `"0"` or not set | `"2"` | `"2"` |
-| `currency` | `"USD"` | Not set | `"USD"` | Not set |
-| `token_id` | `"ETH_USDT"` | `"ETH_USDT"` | `"ETH_USDT"` | `"ETH_USDT"` |
-| `custom_exchange_rate` | Not set | Not set | `"0.98"` | Not set |
-| Real-time exchange rate | 0.99 | 1 | 0.99 | 1 |
-| Calculation Process | (100 + 0) / 0.99 | (100 + 0) / 1 | (100 + 2) / 0.98 | (100 + 2) / 1 |
-| `payable_amount` (final amount payable by user) | `"101.01"` | `"100"` | `"104.08"` | `"102"` |
+| `pricing_currency` | `"USD"` | Not set | `"USD"` | Not set |
+| `payable_currency` | `"ETH_USDT"` | `"ETH_USDT"` | `"ETH_USDT"` | `"ETH_USDT"` |
+| `payable_amount` | Not set | Not set | `"104.08"` | Not set |
+| Real-time exchange rate | 0.99 | 1 | N/A (custom payable amount used) | 1 |
+| Calculation Process | (100 + 0) / 0.99 | (100 + 0) / 1 | Directly uses specified payable_amount | (100 + 2) / 1 |
+| Final payable amount | `"101.01"` | `"100.00"` | `"104.08"` | `"102.00"` |
 </Tab>
   <Tab title="Create order link" icon="browser">
   You can call [Create order link](/payments/en/api-references/payment/create-order-link) to create an order payment link. The payment page is provided by Cobo, and users can access the link directly to complete the order payment. You can also embed the page into your existing website through an iFrame. For details, see [Create order link](/payments/en/guides/payment-link).

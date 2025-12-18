@@ -88,14 +88,14 @@ graph TD
 
 #### Order mode
 
-In order mode, fund settlement is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the product order amount (`order_amount`) determines the proportion of each order that is settled to the developer account.
+In order mode, fund settlement is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the order amount (`pricing_amount`) determines the proportion of each order that is settled to the developer account.
 
-**Example**: When the product order amount is 99 USDT and the developer fee is 1 USDT, the actual received amount of 100 USDT will be settled as 99 USDT to the merchant account and 1 USDT to the developer account:
+**Example**: When the order amount is 99 USDT and the developer fee is 1 USDT, the actual received amount of 100 USDT will be settled as 99 USDT to the merchant account and 1 USDT to the developer account:
 
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
 graph TD
-    A[Product order amount 99 USDT<br/>Developer fee 1 USDT] --> B[Payer payment<br/>100 USDT]
+    A[Order amount 99 USDT<br/>Developer fee 1 USDT] --> B[Payer payment<br/>100 USDT]
     
     B -->|99 USDT| E[Merchant account<br/>+99 USDT]
     B -->|1 USDT| F[Developer account<br/>+1 USDT]
