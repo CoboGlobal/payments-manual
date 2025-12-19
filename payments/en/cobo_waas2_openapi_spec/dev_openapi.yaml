@@ -15602,11 +15602,11 @@ components:
           example: '1.23'
         settled_amount:
           type: string
-          description: This field has been deprecated.
+          description: The total amount of the token that has been paid out from the merchant's balance.
           example: '1.23'
         payout_amount:
           type: string
-          description: The total amount of the token that has been paid out from the merchant's balance.
+          description: This field is reserved for future use.
           example: '1.23'
         refunded_amount:
           type: string
@@ -15629,10 +15629,7 @@ components:
           example: '1.23'
         locked_balance:
           type: string
-          description: |
-            The portion of the merchant's token balance that is temporarily locked and unavailable for payouts or refunds.
-
-            Tokens become locked when they are reserved for a pending payment, refund, or other transaction. Locked balances ensure that the same funds cannot be used for multiple operations simultaneously and will be released once the associated transaction is completed or cancelled.
+          description: This field is reserved for future use.
           example: '1.23'
     PspBalance:
       type: object
@@ -15649,11 +15646,11 @@ components:
           example: '1.23'
         settled_amount:
           type: string
-          description: This field has been deprecated.
+          description: The total amount of the token that has been paid out from the developer's balance.
           example: '1.23'
         payout_amount:
           type: string
-          description: The total amount of the token that has been paid out from the developer's balance.
+          description: This field is reserved for future use.
           example: '1.23'
         refunded_amount:
           type: string
@@ -15675,10 +15672,7 @@ components:
           example: '1.23'
         locked_balance:
           type: string
-          description: |
-            The portion of the developer's token balance that is temporarily locked and unavailable for payouts or refunds.
-
-            Tokens become locked when they are reserved for a pending payment, refund, or other transaction. Locked balances ensure that the same funds cannot be used for multiple operations simultaneously and will be released once the associated transaction is completed or cancelled.
+          description: This field is reserved for future use.
           example: '1.23'
     BridgingFee:
       type: object
