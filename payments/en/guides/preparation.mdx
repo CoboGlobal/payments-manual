@@ -97,7 +97,7 @@ You can create merchants using either the Payments App or Payments API.
   4. Click the **Create Merchant** button.
   5. Complete the following configurations in the popup:
      - Enter the merchant name.
-     - If you choose to use top-up or subscription mode, you can also set a **Developer fee rate**. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Funds allocation and balances](/payments/en/guides/amounts-and-balances).
+     - If you choose to use top-up or subscription mode, you can also set a **Developer fee rate**. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
 
 If your subsequent operations involve API calls, you can click the **View Detail** button after creation to obtain and save the merchant ID. You will need to use the merchant ID to identify this merchant in subsequent API calls.
 
@@ -109,7 +109,7 @@ If your subsequent operations involve API calls, you can click the **View Detail
    * `wallet_setup`: (Optional) Wallet setup. Each wallet contains multiple cryptocurrency addresses that serve as the merchant's receiving addresses. Based on your business needs, you can choose from the following two wallet setups:
        - **Shared** (default): Multiple merchants share the same wallet. The wallet's addresses may be used to receive payments for multiple merchants simultaneously.
        - **Separate**: Create a dedicated wallet for the merchant to achieve complete fund isolation. All addresses in this wallet are only used to receive payments for this merchant.
-   * `developer_fee_rate`: (Optional) If you choose to use top-up or subscription mode, you can also set a developer fee rate. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Funds allocation and balances](/payments/en/guides/amounts-and-balances).
+   * `developer_fee_rate`: (Optional) If you choose to use top-up or subscription mode, you can also set a developer fee rate. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
 
 
    After the call, you will receive a merchant ID (`merchant_id`), which serves as the unique identifier for this merchant in the Cobo system and is used to identify the merchant in subsequent API calls.
