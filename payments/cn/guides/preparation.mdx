@@ -76,45 +76,6 @@ Payments App 提供 Web 界面，让您可以便捷地进行收款查询、资�
 ## 业务配置
 
 
-<a id="merchants"></a>
-### 创建商户
-
-您可以使用 Payments App 或 Payments API 创建商户。
-
-- 如果您直接服务付款方，则可以直接使用系统创建的**默认商户**（商户名称与您的组织名称相同）。如果您想要为不同的业务线单独管理资金，也可以创建多个商户。
-- 如果您是服务多个下游商户的平台机构，则建议创建多个商户，并为每个商户配置专属的开发者费率，以实现商户的自动分账与结算。
-- 更多关于商户管理的使用场景和说明，可以参考[商户管理](/payments/cn/guides/merchants)。
-
-
-<Tabs>
-  <Tab title="Payments App" icon="pager">
-  1. 登录 Cobo Portal [开发环境](https://portal.dev.cobo.com/login)。
-  2. 在左侧导航栏中点击 **Apps**，然后点击 **Payments** 卡片，启动 App。
-  3. 在 App 的左侧导航栏中点击**商户**。
-  4. 点击**创建商户**按钮。
-  5. 在弹窗中完成如下配置：
-     - 填写商户名称。
-     - 如果您选择使用充值或者订阅模式，您还可以设置**开发者费率**。开发者费率决定了您作为开发者从每笔收款中获得的分成比例。例如，设置为 1% 意味着每笔收款中的 1% 将作为开发者费用分配给您。您可以在创建商户后随时调整开发者费率。更多关于开发者费率和资金分配的详细说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
-
-如果您的后续操作涉及到 API 调用，则可以在创建完成后点击**查看详情**按钮获取并保存商户 ID。您需要在后续 API 调用中使用商户 ID 来标识该商户。
-
-  </Tab>
-  <Tab title="Payments API" icon="code">
-
-1. 调用 [Create merchant](/payments/en/api-references/payment/create-merchant) 创建商户，在请求中传入以下信息：  
-   * `name`: 商户名称
-   * `wallet_setup`: （可选）钱包设置。每个钱包包含多个加密货币地址，作为商户的收款地址。根据您的业务需求，可以选择以下两种钱包设置：
-       - **Shared**（默认）：多个商户共享同一个钱包。该钱包的地址可能同时用于接收多个商户的收款。
-       - **Separate**：为商户创建专属钱包，实现资金完全隔离。该钱包的所有地址仅用于接收该商户的收款。
-   * `developer_fee_rate`: （可选）如果您选择使用充值或者订阅模式，您还可以设置开发者费率。开发者费率决定了您作为开发者从每笔收款中获得的分成比例。例如，设置为 1% 意味着每笔收款中的 1% 将作为开发者费用分配给您。您可以在创建商户后随时调整开发者费率。更多关于开发者费率和资金分配的详细说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
-
-
-   调用后，您将获取到商户 ID (`merchant_id`)，作为该商户在 Cobo 系统中的唯一标识符，用于后续 API 调用中标识该商户。
-
-  </Tab>
-</Tabs>
-
-
 ### 向 Fee Station 充值
 
 在您日常开展业务过程中，需要通过 [Fee Station](https://manuals.cobo.com/cn/portal/fee-station/introduction) 管理在 Cobo 产生的各类费用。在您开始集成之前，请确保您的 Fee Station 中有足够的资金用于支付资金转出、退款等环节产生的手续费：

@@ -5,32 +5,71 @@ lang: "zh-hans"
 
 本文介绍 Cobo 支付解决方案的核心功能。
 
-## 收款
+## 功能概览
 
+以下图表展示了支付解决方案的主要功能模块及其关系：
+
+<img src="/payments/cn/images/payments/feature-overview.svg" className="diagram" alt="Cobo 支付解决方案的功能模块及其关系"></img>
+
+
+## 核心业务功能
+
+### 收款
 - 提供灵活多样的收款模式，支持固定/不固定金额、限时/不限时支付、一次性/定期扣款等多种场景：
-  - **充值模式**：Cobo 会为每个付款方生成专用的充值地址，付款方可以随时向该地址充值任意金额。详情见[充值模式收款](/payments/cn/guides/get-topup-addresses)。
-  - **订单模式**：Cobo 会创建带有指定金额和有效期的支付订单，付款方需要在规定时间内完成支付。支持取消订单、退款，以及处理多付、少付、晚付等异常情况。详情见[订单模式收款](/payments/cn/guides/create-orders)。
-  - **订阅模式**：通过智能合约等方式定期、自动扣款。详情见[订阅模式收款](/payments/cn/guides/create-subscriptions)。
-- 链和币种支持：支持 USDC 和 USDT 两种主流稳定币，可在多个主流公链上使用。详情见[支持的币种与公链](/payments/cn/guides/supported-chains-and-tokens)。
+  - [充值模式收款](/payments/cn/guides/get-topup-addresses)：为每个付款方生成专用充值地址，付款方可以随时向该地址充值任意金额。
+    - [交易对手方管理](/payments/cn/guides/counterparties)：在使用充值模式进行收款时，您可以录入常用付款方的钱包地址。录入后，充值交易记录中将展示来源地址对应的付款方名称，帮助您及时了解资金来源方身份。
+  - [订单模式收款](/payments/cn/guides/create-orders)：您可以创建带有指定金额和有效期的支付订单，付款方需要在规定时间内完成支付。支持取消订单、退款，以及处理多付、少付、晚付等异常情况。
+    - [支付链接](/payments/cn/guides/payment-link)：在使用订单模式进行收款时，如果您希望节省自建支付页面的开发时间，可以直接使用 Cobo 提供的支付链接作为收款页面，或将其通过 iFrame 方式嵌入到您的网站或应用中。
+    - [退款链接](/payments/cn/guides/create-refund-link)：当终端用户因为各种原因需要退款时，您可以生成一个退款链接，让终端用户填写退款地址，并由 Cobo 自动完成退款流程。
+  - [订阅模式收款](/payments/cn/guides/create-subscriptions)：通过智能合约等方式定期、自动扣款。
+- [支持的链和代币](/payments/cn/guides/supported-chains-and-tokens)：Cobo 支付解决方案支持多种主流稳定币，如 USDC、USDT 等，并支持在多个主流公链上使用。
 
-## 资金管理
-- AML/KYT 扫描：根据您选择的钱包类型，Cobo 提供不同的合规扫描方案：
-  - 全托管钱包：强制使用 Cobo KYT 进行资金合规扫描，确保交易安全合规
-  - MPC 钱包：您可以灵活选择使用 Cobo KYT 或 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 进行合规扫描，满足不同的合规需求
+### 商户管理
+如果您是支付服务商（PSP）、电商平台等需要为下游商户提供服务的机构，可以通过商户管理模块为每个商户独立结算收入，并通过设置开发者费率，实现与商家的自动化收入分成。详情见[商户管理](/payments/cn/guides/merchants)和[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
+
+### 资金管理
+
+- 账户与资金分配：系统为您维护**开发者账户**和**商户账户**，用于记录和管理各方资金归属。付款完成后，系统会根据您配置的开发者费率自动将资金结算到相应账户；您也可以根据需要在账户之间手动划转资金。详情见[账户与资金分配](/payments/cn/guides/amounts-and-balances)和[划转资金](/payments/cn/guides/allocate-funds)。
 - 兑换和跨链：您可以使用 [Token Swap App](https://manuals.cobo.com/cn/apps/token-swap/introduction)，将一种加密货币兑换成另一种，或将其转移到不同的公链。
 - 理财/DeFi：如果您希望投资闲置资金以获取收益，可以使用 Cobo 的 [Earn App](https://manuals.cobo.com/cn/apps/earn/introduction) 购买稳健的理财产品，或将闲置资金投入到不同的 DeFi 协议中。
 
-## 资金转出
+### 资金转出
 
-- **法币出金**：通过 OTC 供应商，将加密货币兑换成法币后转入您的银行账户。详情见[法币出金](/payments/cn/guides/fiat-payouts)。
-- **加密货币转账**：通过链上转账将加密货币转至外部钱包地址。详情见[加密货币转账](/payments/cn/guides/crypto-payouts)。
-
-
-## 代收款
-
-如果您是支付服务商（PSP）、电商平台等需要为下游商户提供服务的机构，可以通过商户管理模块代商户收款并进行资金结算。详情见[商户管理](/payments/cn/guides/merchants)。
+- [法币出金](/payments/cn/guides/fiat-payouts)：通过 OTC 供应商，将加密货币兑换成法币后转入您的银行账户。
+- [加密货币转账](/payments/cn/guides/crypto-payouts)：通过链上转账将加密货币转至外部钱包地址。
+- [转出目的地管理](/payments/cn/guides/destinations)：集中管理资金转出时的目的地信息，包括加密货币钱包地址和银行账户。支持将目的地列表设置为白名单，从而灵活控制可转账的地址范围，提升安全性与操作效率。
 
 
+### 合规与风控
+
+您可以灵活选择使用 Cobo KYT 或 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 对收到的资金进行合规扫描，确保交易安全合规。
+
+
+## 开发者集成
+
+### API 集成
+通过 Payments API，您可以将收款、资金管理、资金转出等功能完整集成到您的系统中。我们提供多种编程语言的 SDK，简化开发流程：
+- [发送您的第一个 API 请求](/payments/cn/developer-tools/get-started-with-api)：了解 API 认证机制和基本使用方法
+- SDK 快速入门：[Python](/payments/cn/developer-tools/quickstart-python) | [JavaScript](/payments/cn/developer-tools/quickstart-javascript) | [Java](/payments/cn/developer-tools/quickstart-java) | [Go](/payments/cn/developer-tools/quickstart-go)
+
+### 事件通知
+通过配置 Webhook Endpoint，您可以实时接收各类事件通知，包括订单状态变更、充值到账、资金转出完成等。
+- [Webhook 介绍](/payments/cn/developer-tools/webhook)：了解 Webhook 机制和验签方法
+- [事件和状态](/payments/cn/guides/status-and-events)：查看完整的事件列表和状态说明
+
+## 运营管理
+
+### 角色与权限
+
+Cobo 支付解决方案提供精细化的角色权限管理，支持为不同成员分配不同的角色，实现权限分离和审批流程控制。详情见[角色与权限](/payments/cn/guides/roles-and-permissions)。
+
+
+### 费用管理
+在您日常开展业务过程中，您需要通过 Fee Station 管理在 Cobo 产生的各类费用。具体的充值操作步骤，请参考[向 Fee Station 充值](https://manuals.cobo.com/cn/portal/fee-station/deposit)文档。
+
+### 报表与分析
+
+您可以通过 Cobo Portal 导出包括入账、出账、手续费、余额变动和对账汇总等各类报表，帮助您完成财务对账和业务分析。
 
 
 <Tip>欢迎您[提交反馈](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI)来帮助改进我们的文档！</Tip>
