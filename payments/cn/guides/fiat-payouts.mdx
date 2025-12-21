@@ -1,5 +1,5 @@
 ---
-title: "法币出金"
+title: "Off-Ramp 对接"
 lang: "zh-hans"
 ---
 
@@ -13,25 +13,25 @@ lang: "zh-hans"
 
 ## 操作步骤
 
-### 1. 创建法币出金请求
+### 1. 创建 Off-Ramp 对接请求
 
-您可以通过 Payments App 或 Payments API 创建法币出金请求。
+您可以通过 Payments App 或 Payments API 创建 Off-Ramp 对接请求。
 
 <Tabs>
   <Tab title="Payments App" icon="pager">
 
-<Note>在开发环境中，您可以通过 Payments App 体验法币出金的完整操作流程，但不支持实际的法币兑换和转账操作。</Note>
+<Note>在开发环境中，您可以通过 Payments App 体验 Off-Ramp 对接的完整操作流程，但不支持实际的法币兑换和转账操作。</Note>
 1. 登录 Cobo Portal [开发环境](https://portal.dev.cobo.com/login)或[生产环境](https://portal.cobo.com/login)。
 2. 在左侧导航栏中点击 **Apps**，然后点击 **Payments** 卡片，启动 App。
 3. 在 App 的左侧导航栏中点击**资金管理** > **资金转出**。
 4. 您可以选择提取**商户余额**或**开发者余额**。在本例中，我们选择提取商户余额。点击**商户余额**卡片上的**转出**按钮。
 5. 在弹窗中，选择**法币出金**。
-   <img src="/payments/cn/images/payments/fiat-payout.png" className="screenshot_full_screen" alt="法币出金入口" />
+   <img src="/payments/cn/images/payments/fiat-payout.png" className="screenshot_full_screen" alt=" Off-Ramp 对接入口" />
 6. 填写出金信息，包括代币、商户名称、转出金额、以及接收银行账户。如需添加新的银行账户，请参考[转出目的地](/payments/cn/guides/destinations)。
 <Note>
 在法币出金页面，您可以查看本次出金涉及的各项费用明细和预计到账金额：
 
-- **跨链费用**：由于 Cobo 目前仅支持在特定链上进行法币出金，如果您要出金的加密货币在其他链上，系统需要先将其转移到支持的链上。该操作会产生跨链费用，该费用将从出金金额中扣除。例如，如果您要出金的 USDT 在 Polygon 链上，而系统不支持 Polygon 链的 USDT 出金，则需要先将 USDT 从 Polygon 转移到支持的链上（如 TRON），并支付相应的跨链费用。
+- **跨链费用**：由于 Cobo 目前仅支持在特定链上进行 Off-Ramp 对接，如果您要出金的加密货币在其他链上，系统需要先将其转移到支持的链上。该操作会产生跨链费用，该费用将从出金金额中扣除。例如，如果您要出金的 USDT 在 Polygon 链上，而系统不支持 Polygon 链的 USDT 出金，则需要先将 USDT 从 Polygon 转移到支持的链上（如 TRON），并支付相应的跨链费用。
 
 - **手续费**：基于出金金额按比例收取的手续费。该费用从您的 Fee Station 账户中扣除，不会影响实际出金金额。
 
@@ -50,7 +50,7 @@ lang: "zh-hans"
 * `request_id`：您提供的唯一请求 ID，用于跟踪出金请求
 * `acquiring_type`：收款模式。可以设置为 `Order` 或 `TopUp`，分别对应订单模式和充值模式收取的款项余额
 * `settlement_type`：设置为 `Merchant` 或 `Psp`，分别对应商户余额和开发者余额
-* `payout_channel`：设置为 `OffRamp`，法币出金
+* `payout_channel`：设置为 `OffRamp`， Off-Ramp 对接
 
 **详情参数（`settlements` 数组）**
 
@@ -75,13 +75,13 @@ lang: "zh-hans"
 
 在创建出金请求后，基于您的提交方式、风控设置等因素，需要完成以下操作：
 
-- 二次确认：如您通过 Payments App 进行法币出金，则需要在 Cobo Guard 上确认该出金请求。
+- 二次确认：如您通过 Payments App 进行 Off-Ramp 对接，则需要在 Cobo Guard 上确认该出金请求。
 - 风控审核：如果您设置了交易风控，则可能需要审核人在 Cobo Guard 上批准该出金请求。
 - 交易签名：如果您使用的是 MPC 钱包，则需要移动端签名人或服务端签名人签名，方可最终完成出金操作。
 
 
 ### 3. 跟进出金状态
-您可以订阅 `payment.settlement.status.updated` 事件，获取法币出金状态的实时更新。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的详细触发条件和返回的数据结构。
+您可以订阅 `payment.settlement.status.updated` 事件，获取 Off-Ramp 对接状态的实时更新。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的详细触发条件和返回的数据结构。
 
 您也可以通过 Payments App 或 Payments API 主动查询出金请求状态。
 

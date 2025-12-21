@@ -176,7 +176,7 @@
 | Manual review                    | 人工审核           | |
 
 # Fiat Conversion
-| Fiat off-ramp                         | 法币出金           | Convert crypto to fiat and transfer to bank |
+| Fiat off-ramp                         |  Off-Ramp 对接           | Convert crypto to fiat and transfer to bank |
 | On-ramp                          | 法币入金               | Convert fiat to crypto |
 | payout                           | 资金转出           ｜ ｜
 | Stablecoin                       | 稳定币             | |
