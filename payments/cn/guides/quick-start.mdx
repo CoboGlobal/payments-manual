@@ -24,7 +24,7 @@ lang: "cn"
     <tr>
       <td rowspan="2"><strong>平台服务商</strong></td>
       <td><strong>支付服务提供商（PSP）或电商平台</strong><br/>为多个商户提供服务，需要对商户分别结算和进行收入分成</td>
-      <td><a href="/payments/cn/guides/merchants">商户管理</a> + <a href="/payments/cn/guides/create-orders">订单</a>/<a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/allocate-funds">划转资金</a> + <a href="/payments/cn/guides/fiat-payouts">法币出金</a></td>
+      <td><a href="/payments/cn/guides/merchants">商户管理</a> + <a href="/payments/cn/guides/create-orders">订单</a>/<a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/allocate-funds">划转资金</a> + <a href="/payments/cn/guides/fiat-payouts">Off-Ramp 对接</a></td>
     </tr>
     <tr>
       <td><strong>广告投流平台</strong><br/>为商户提供收款服务。商户收到终端用户充值后，部分资金用于平台广告投放，剩余资金可提现</td>
@@ -33,7 +33,7 @@ lang: "cn"
     <tr>
       <td rowspan="4"><strong>商户</strong></td>
       <td><strong>独立站</strong><br/>客户浏览产品，添加到购物车结账</td>
-      <td><a href="/payments/cn/guides/create-orders">订单模式</a> + <a href="/payments/cn/guides/payment-link">支付链接</a>（可选） + <a href="/payments/cn/guides/fiat-payouts">法币出金</a></td>
+      <td><a href="/payments/cn/guides/create-orders">订单模式</a> + <a href="/payments/cn/guides/payment-link">支付链接</a>（可选） + <a href="/payments/cn/guides/fiat-payouts">Off-Ramp 对接</a></td>
     </tr>
     <tr>
       <td><strong>游戏/娱乐平台</strong><br/>用户购买游戏内积分和物品</td>
@@ -41,19 +41,19 @@ lang: "cn"
     </tr>
     <tr>
       <td><strong>SaaS 订阅服务</strong><br/>用户每月/每年支付服务费用</td>
-      <td><a href="/payments/cn/guides/create-subscriptions">订阅模式</a>或<a href="/payments/cn/guides/create-orders">订单模式</a> + <a href="/payments/cn/guides/fiat-payouts">法币出金</a></td>
+      <td><a href="/payments/cn/guides/create-subscriptions">订阅模式</a>或<a href="/payments/cn/guides/create-orders">订单模式</a> + <a href="/payments/cn/guides/fiat-payouts">Off-Ramp 对接</a></td>
     </tr>
     <tr>
       <td><strong>B2B 收款业务</strong><br/>接收下游企业的大额付款</td>
-      <td><a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/fiat-payouts">法币出金</a></td>
+      <td><a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/fiat-payouts">Off-Ramp 对接</a></td>
     </tr>
     <tr>
-      <td rowspan="2"><strong>金融服务</strong></td>
-      <td><strong>OTC 承兑业务</strong><br/>为客户开通独立充值地址，充值后进行 OTC 兑换</td>
-      <td><a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/counterparties">对手方管理</a> + <a href="/payments/cn/guides/fiat-payouts">法币出金</a></td>
+      <td rowspan="2"><strong>资金服务</strong></td>
+      <td><strong>OTC 结算场景</strong><br/>为客户开通独立充值地址，充值后进行 OTC 结算</td>
+      <td><a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/counterparties">对手方管理</a> + <a href="/payments/cn/guides/fiat-payouts">Off-Ramp 对接</a></td>
     </tr>
     <tr>
-      <td><strong>U 卡</strong><br/>为客户开通独立充值地址，资金在消费后汇总结算</td>
+      <td><strong>卡消费资金结算场景</strong><br/>为客户开通独立充值地址，资金在消费后汇总结算</td>
       <td><a href="/payments/cn/guides/get-topup-addresses">充值模式</a> + <a href="/payments/cn/guides/crypto-payouts">加密货币转账</a></td>
     </tr>
   </tbody>
@@ -76,7 +76,7 @@ lang: "cn"
  
   4. 资金管理：使用[划转资金](/payments/cn/guides/allocate-funds)功能在账户间调整分配（如补收开发者费用或处理多付、少付、晚付等异常情况）。
 
-  5. 资金转出：支持[法币出金](/payments/cn/guides/fiat-payouts)和[加密货币转账](/payments/cn/guides/crypto-payouts)。法币出金需要预先在[转出目的地](/payments/cn/guides/destinations)中配置银行账户。
+  5. 资金转出：支持[Off-Ramp 对接](/payments/cn/guides/fiat-payouts)和[加密货币转账](/payments/cn/guides/crypto-payouts)。Off-Ramp 对接需要预先在[转出目的地](/payments/cn/guides/destinations)中配置银行账户。
 
   6. 生产环境上线：测试完成后，参考[生产环境准备](/payments/cn/guides/preparation-prod)完成配置并上线
 
@@ -94,7 +94,7 @@ lang: "cn"
      - 玩家使用固定地址进行充值，系统自动将充值记录关联到对应收款人
      - 通过 Payments App 或 API 查询每个收款人的充值明细
 
-  4. 资金转出：支持[法币出金](/payments/cn/guides/fiat-payouts)和[加密货币转账](/payments/cn/guides/crypto-payouts)。法币出金需要预先在[转出目的地](/payments/cn/guides/destinations)中配置银行账户。
+  4. 资金转出：支持[Off-Ramp 对接](/payments/cn/guides/fiat-payouts)和[加密货币转账](/payments/cn/guides/crypto-payouts)。Off-Ramp 对接需要预先在[转出目的地](/payments/cn/guides/destinations)中配置银行账户。
 
   5. 生产环境上线：测试完成后，参考[生产环境准备](/payments/cn/guides/preparation-prod)完成配置并上线
 
