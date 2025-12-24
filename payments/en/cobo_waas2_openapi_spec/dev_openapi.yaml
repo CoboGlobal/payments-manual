@@ -14820,6 +14820,7 @@ components:
           description: |
             The exchange rate between `payable_currency` and `pricing_currency`, calculated as (`pricing_amount` + `fee_amount`) / `payable_amount`. 
 
+
             <Note>This field is only returned when `payable_amount` was not provided in the order creation request. </Note>
           example: '0.99'
         amount_tolerance:
@@ -15621,8 +15622,6 @@ components:
 
             The current balance of this token available to the merchant for payouts or refunds.
 
-            `total_balance` = `total_received_amount` - `payout_amount` - `refunded_amount` - `locked_balance`
-
             For more information, please refer to [Accounts and fund allocation](https://www.cobo.com/payments/en/guides/amounts-and-balances)
           example: '1.23'
         available_balance:
@@ -15663,8 +15662,6 @@ components:
           description: |
 
             The total balance of the token available for payout or refund for the developer.
-
-            `total_balance` = `developer_fee_amount` - `payout_amount` - `refunded_amount` - `locked_balance`
 
             For more information, please refer to [Accounts and fund allocation](https://www.cobo.com/payments/en/guides/amounts-and-balances)
           example: '1.23'
@@ -16692,7 +16689,7 @@ components:
             The source account.
 
             - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-            - If the source account is the developer account, use the string "developer".
+            - If the source account is the developer account, use the string `"developer"`.
           example: M1001
         destination_account:
           type: string
@@ -16700,7 +16697,7 @@ components:
             The destination account.
 
             - If the destination account is a merchant account, provide the merchant's ID (e.g., "M1001").
-            - If the destination account is the developer account, use the string "developer".
+            - If the destination account is the developer account, use the string `"developer"`.
           example: M1001
         description:
           type: string
@@ -16910,7 +16907,7 @@ components:
           description: |
             The source account from which the payout was made.
             - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-            - If the source account is the developer account, use the string "developer".
+            - If the source account is the developer account, use the string `"developer"`.
           example: M1001
         transactions:
           type: array
@@ -16967,7 +16964,7 @@ components:
           description: |
             The source account from which the payout was made.
             - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-            - If the source account is the developer account, use the string "developer".
+            - If the source account is the developer account, use the string `"developer"`.
           example: M1001
         amount:
           type: string
@@ -17029,7 +17026,7 @@ components:
           description: |
             The source account from which the payout will be made.
             - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-            - If the source account is the developer account, use the string "developer".
+            - If the source account is the developer account, use the string `"developer"`.
           example: M1001
         token_id:
           type: string
@@ -21305,7 +21302,7 @@ components:
         The source account.
 
         - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-        - If the source account is the developer account, use the string "developer".
+        - If the source account is the developer account, use the string `"developer"`.
       schema:
         type: string
     PaymentDestinationAccountOptionalParam:
@@ -21316,7 +21313,7 @@ components:
         The destination account.
 
         - If the destination account is a merchant account, provide the merchant's ID (e.g., "M1001").
-        - If the destination account is the developer account, use the string "developer".
+        - If the destination account is the developer account, use the string `"developer"`.
       schema:
         type: string
     PaymentSourceAccountRequiredParam:
@@ -21327,7 +21324,7 @@ components:
         The source account.
 
         - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
-        - If the source account is the developer account, use the string "developer".
+        - If the source account is the developer account, use the string `"developer"`.
       schema:
         type: string
     PaymentDestinationAccountRequiredParam:
@@ -21338,7 +21335,7 @@ components:
         The destination account.
 
         - If the destination account is a merchant account, provide the merchant's ID (e.g., "M1001").
-        - If the destination account is the developer account, use the string "developer".
+        - If the destination account is the developer account, use the string `"developer"`.
       schema:
         type: string
     tokenizationActivityIdPathParam:
