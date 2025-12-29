@@ -7,32 +7,69 @@ lang: "en"
 
 This document introduces the core features of the Cobo payments solution.
 
-## Pay-ins
+## Overview
+The following diagram shows the main functional modules and their relationships of the payments solution:
 
-- Provides flexible and diverse pay-in types, supporting various scenarios such as fixed/unfixed amounts, timed/untimed payments, and one-time/recurring deductions:
-  - **Top-up mode**: Cobo generates a dedicated top-up address for each payer, and payers can top up any amount to that address at any time. For details, see [Payment collection in top-up mode](/payments/en/guides/get-topup-addresses).
-  - **Order mode**: Cobo creates payment orders with a specified amount and validity period, and payers need to complete payment within the specified time. Supports order cancellation, refunds, and handling abnormal situations such as overpayment, underpayment, and late payment. For details, see [Payment collection in order mode](/payments/en/guides/create-orders).
-  - **Subscription mode**: Periodic, automatic deductions through smart contracts and other methods. For details, see [Payment collection in subscription mode](/payments/en/guides/create-subscriptions).
-- Chain and token support: Supports two mainstream stablecoins, USDC and USDT, which can be used on multiple mainstream chains. For details, see [Supported tokens and chains](/payments/en/guides/supported-chains-and-tokens).
+<img src="/payments/en/images/payments/feature-overview.svg" className="diagram" alt="Cobo payments solution feature overview"></img>
 
-## Fund management
-- AML/KYT screening: According to the wallet type you select, Cobo provides different compliance screening solutions:
-  - Custodial Wallets: Mandatory use of Cobo KYT for fund compliance screening to ensure transaction security and compliance
-  - MPC Wallets: You can flexibly choose to use Cobo KYT or [Screening App](https://manuals.cobo.com/en/apps/screening/introduction) for compliance screening to meet different compliance needs
-- Exchange and cross-chain: You can use [Token Swap App](https://manuals.cobo.com/en/apps/token-swap/introduction) to exchange one cryptocurrency for another or transfer it to a different chain.
-- Earn/DeFi: If you want to invest idle funds to generate returns, you can use Cobo's [Earn App](https://manuals.cobo.com/en/apps/earn/introduction) to purchase stable financial products or invest idle funds into different DeFi protocols.
+## Core business features
 
-## Payouts
+### Pay-ins
+- Provides flexible and diverse pay-in modes, supporting various scenarios such as fixed/unfixed amounts, timed/untimed payments, and one-time/recurring deductions:
+  - [Top-up mode](/payments/en/guides/get-topup-addresses): Generate dedicated top-up addresses for each payer, allowing them to top up any amount at any time.
+    - [Counterparties management](/payments/en/guides/counterparties): When using top-up mode for payment collection, you can register commonly used payers' wallet addresses. After registration, top-up transaction records will display the payer names corresponding to the source addresses, helping you quickly identify fund sources.
+  - [Order mode](/payments/en/guides/create-orders): Create payment orders with a specified amount and validity period, requiring payers to complete payment within the specified time. Supports order cancellation, refunds, and handling abnormal situations such as overpayment, underpayment, and late payment.
+    - [Payment links](/payments/en/guides/payment-link): When using order mode for payment collection, if you want to save development time for building custom payment pages, you can directly use Cobo's payment links as payment pages or embed them into your website or application via iFrame.
+  - [Subscription mode](/payments/en/guides/create-subscriptions): Periodic, automatic deductions through smart contracts and other methods.
+- [Refund links](/payments/en/guides/create-refund-link): When end users need refunds for various reasons, you can generate a refund link for them to fill in their refund addresses, and Cobo will automatically complete the refund process.
+- [Supported chains and tokens](/payments/en/guides/supported-chains-and-tokens): Cobo payments solution supports multiple mainstream stablecoins such as USDC and USDT, and can be used on multiple mainstream chains.
 
-- **Off-ramp**: Convert cryptocurrency to fiat currency and transfer it to your bank account through OTC vendors. For details, see [Off-ramp](/payments/en/guides/fiat-payouts).
-- **Crypto payouts**: Transfer cryptocurrency to external wallet addresses through on-chain transfers. For details, see [Crypto payouts](/payments/en/guides/crypto-payouts).
+### Merchant management
+If you are a payment service provider (PSP), e-commerce platform, or other institution that needs to provide services for multiple downstream merchants, you can use the merchant management module to independently settle revenue for each merchant and configure developer fee rates to achieve automated revenue sharing with merchants. For details, see [Merchant management](/payments/en/guides/merchants) and [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
+
+### Fund management
+
+- Accounts and fund allocation: The system maintains **developer accounts** and **merchant accounts** for you to record and manage fund ownership for each party. After payment is completed, the system automatically allocates funds to corresponding accounts based on the developer fee rates you configured; you can also manually transfer funds between accounts as needed. For details, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances) and [Allocate funds](/payments/en/guides/allocate-funds).
+- Earn/DeFi: If you want to invest idle funds to generate returns, you can use Cobo's [Earn App](https://manuals.cobo.com/en/apps/earn/introduction) to purchase stable funds management products or invest idle funds into different DeFi protocols.
+
+### Payouts
+
+- [Off-ramp](/payments/en/guides/fiat-payouts): Convert cryptocurrency to fiat currency and transfer it to your bank account through OTC vendors.
+- [Crypto payouts](/payments/en/guides/crypto-payouts): Transfer cryptocurrency to external wallet addresses through on-chain transfers.
+- Automatic bridging: Automatic bridging is supported when you initiate off-ramp or crypto payouts. For example, you can simultaneously transfer USDT on both TRON and Ethereum chains to a TRON wallet address, and the system will automatically bridge the Ethereum USDT to TRON and transfer it to the target wallet address.
+- [Destination management](/payments/en/guides/destinations): Centrally manage payout destination information, including cryptocurrency wallet addresses and bank accounts. Supports setting the destination list as a whitelist to flexibly control the range of transferable addresses, improving security and operational efficiency.
 
 
-## Collection-on-behalf-of
+### Compliance and risk control
 
-If you are an institution such as a payment service provider (PSP) or e-commerce platform that needs to provide services for downstream merchants, you can collect payments on behalf of merchants and perform fund settlement through the merchant management module. For details, see [Merchant management](/payments/en/guides/merchants).
+You can use the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction) to perform compliance screening on received funds to ensure transaction security and compliance.
 
 
+## Developer integration
+
+### API integration
+Through Payments API, you can fully integrate payment collection, fund management, payouts, and other features into your system. We provide SDKs in multiple programming languages to simplify the development process:
+- [Send your first API request](/payments/en/developer-tools/get-started-with-api): Learn about API authentication mechanisms and basic usage
+- SDK quick start guides: [Python](/payments/en/developer-tools/quickstart-python) | [JavaScript](/payments/en/developer-tools/quickstart-javascript) | [Java](/payments/en/developer-tools/quickstart-java) | [Go](/payments/en/developer-tools/quickstart-go)
+
+### Event notifications
+By configuring Webhook endpoints, you can receive real-time event notifications, including order status changes, top-up arrivals, payout completions, and more.
+- [Webhook introduction](/payments/en/developer-tools/webhook): Learn about webhook mechanisms and signature verification
+- [Events and statuses](/payments/en/guides/status-and-events): View the complete list of events and status descriptions
+
+## Operations management
+
+### Roles and permissions
+
+Cobo payments solution provides fine-grained role and permission management, supporting assignment of different roles to different members to achieve separation of permissions and approval process control. For details, see [Roles and permissions](/payments/en/guides/roles-and-permissions).
+
+
+### Fee management
+In your daily business operations, you need to manage various fees incurred on Cobo through Fee Station. For specific deposit procedures, please refer to the [Deposit to Fee Station](https://manuals.cobo.com/en/portal/fee-station/deposit) documentation.
+
+### Reports and analytics
+
+You can export various reports through Cobo Portal, including incoming transactions, outgoing transactions, fees, balance changes, and reconciliation summaries, to help you complete financial reconciliation and business analysis.
 
 
 <Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>

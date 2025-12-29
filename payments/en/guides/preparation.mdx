@@ -30,10 +30,10 @@ As the first admin of your team, please use the activation link provided by our 
 
 ### Invite members
 1. Log in to Cobo Portal [development environment](https://portal.dev.cobo.com/login).
-2. Click the profile icon in the lower left corner, then click **Organization**.
+2. Click the profile icon in the lower left corner, then click **Team**.
 3. Click **Members**. On the **Members** page, click **Invite Member**.
 4. Enter the member's email address and name, then select the appropriate [user role](/payments/en/guides/roles-and-permissions).
-<Note>Please confirm on Cobo Guard that this invitation was initiated by you. Additionally, according to the default governance policies, at least half of the team admins need to approve the invitation request on Cobo Guard.</Note>
+<Note>Please confirm on Cobo Guard that this invitation was initiated by you. Additionally, according to the default business risk control rules, at least half of the team admins need to approve the invitation request on Cobo Guard.</Note>
 
    After receiving the invitation, new members should create their own accounts and set up Cobo Guard as described in the previous section.
 
@@ -78,46 +78,6 @@ If you need to receive real-time notifications of payment-related events, you ca
 ## Business configuration
 
 
-<a id="merchants"></a>
-### Create merchant
-
-
-You can create merchants using either the Payments App or Payments API.
-
-- If you directly serve payers, you can use the **default merchant** automatically created by the system (with the same name as your organization). If you want to manage funds separately for different business lines, you can also create multiple merchants.
-- If you are a platform serving multiple downstream merchants, it is recommended to create multiple merchants and configure dedicated developer fee rates for each merchant to achieve automatic fund splitting and settlement.
-- For more information about merchant management use cases and descriptions, please refer to [Merchant management](/payments/en/guides/merchants).
-
-
-<Tabs>
-  <Tab title="Payments App" icon="pager">
-  1. Log in to Cobo Portal [development environment](https://portal.dev.cobo.com/login).
-  2. In the left navigation bar, click **Apps**, then click the **Payments** card to launch the App.
-  3. In the App's left navigation bar, click **Merchants**.
-  4. Click the **Create Merchant** button.
-  5. Complete the following configurations in the popup:
-     - Enter the merchant name.
-     - If you choose to use top-up or subscription mode, you can also set a **Developer fee rate**. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
-
-If your subsequent operations involve API calls, you can click the **View Detail** button after creation to obtain and save the merchant ID. You will need to use the merchant ID to identify this merchant in subsequent API calls.
-
-  </Tab>
-  <Tab title="Payments API" icon="code">
-
-1. Call [Create merchant](/payments/en/api-references/payment/create-merchant) to create a merchant, passing the following information in the request:  
-   * `name`: Merchant name
-   * `wallet_setup`: (Optional) Wallet setup. Each wallet contains multiple cryptocurrency addresses that serve as the merchant's receiving addresses. Based on your business needs, you can choose from the following two wallet setups:
-       - **Shared** (default): Multiple merchants share the same wallet. The wallet's addresses may be used to receive payments for multiple merchants simultaneously.
-       - **Separate**: Create a dedicated wallet for the merchant to achieve complete fund isolation. All addresses in this wallet are only used to receive payments for this merchant.
-   * `developer_fee_rate`: (Optional) If you choose to use top-up or subscription mode, you can also set a developer fee rate. The developer fee rate determines the percentage of each payment you receive as a developer. For example, setting it to 1% means 1% of each payment will be allocated to you as a developer fee. You can adjust the developer fee rate at any time after creating the merchant. For more details about developer fee rates and fund allocation, please refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
-
-
-   After the call, you will receive a merchant ID (`merchant_id`), which serves as the unique identifier for this merchant in the Cobo system and is used to identify the merchant in subsequent API calls.
-
-  </Tab>
-</Tabs>
-
-
 ### Top up Fee Station
 
 During your daily business operations, you need to manage various fees incurred on Cobo through [Fee Station](https://manuals.cobo.com/en/portal/fee-station/introduction). Before you start integration, please ensure that you have sufficient funds in your Fee Station to pay for fees generated during payouts, refunds, and other processes:
@@ -129,7 +89,7 @@ For specific top-up operation steps, refer to the [Top up Fee Station](https://m
 
 ## Next steps
 
-Refer to the [Feature list](/payments/en/guides/features#payment-collection) to select the pay-in type suitable for you and refer to the documentation to complete payment collection feature integration.
+Refer to the [Feature list](/payments/en/guides/features#pay-ins) to select the pay-in mode suitable for you and refer to the documentation to complete payment collection feature integration.
 
 <Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>
 

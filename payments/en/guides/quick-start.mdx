@@ -1,0 +1,103 @@
+---
+title: "Integration guide"
+sidebarTitle: "Integration guide"
+lang: "en"
+---
+
+This guide helps you quickly select the appropriate feature combinations based on your business type and begin integrating the Cobo payments solution.
+
+## Common use cases
+
+The following table lists typical requirements for different business types and recommended features:
+
+<Note>The following recommendations are for reference only. You can refer to [Feature list](/payments/en/guides/features) for a complete feature list and flexibly combine them according to your actual needs.</Note>
+
+<table>
+  <thead>
+    <tr>
+      <th>Business type</th>
+      <th>Typical requirements</th>
+      <th>Recommended features</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="2"><strong>Platform service providers</strong></td>
+      <td><strong>Payment service providers (PSP) or e-commerce platforms</strong><br/>Provide services for multiple merchants, need to settle separately and share revenue with merchants</td>
+      <td><a href="/payments/en/guides/merchants">Merchant management</a> + <a href="/payments/en/guides/create-orders">Order</a>/<a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/allocate-funds">Allocate funds</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+    </tr>
+    <tr>
+      <td><strong>Advertising platforms</strong><br/>Provide payment collection services for merchants. After merchants receive top-ups from end users, part of the funds is used for platform advertising, and the remaining funds can be withdrawn</td>
+      <td><a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/merchants">Merchant management</a> (optional) + <a href="/payments/en/guides/allocate-funds">Allocate funds</a> + <a href="/payments/en/guides/crypto-payouts">Crypto payouts</a></td>
+    </tr>
+    <tr>
+      <td rowspan="4"><strong>Merchants</strong></td>
+      <td><strong>Independent online stores</strong><br/>Customers browse products, add to cart, and checkout</td>
+      <td><a href="/payments/en/guides/create-orders">Order mode</a> + <a href="/payments/en/guides/payment-link">Payment link</a> (optional) + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+    </tr>
+    <tr>
+      <td><strong>Gaming/entertainment platforms</strong><br/>Users purchase in-game points and items</td>
+      <td><a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> (points) + <a href="/payments/en/guides/create-orders">Order mode</a> (items) + <a href="/payments/en/guides/crypto-payouts">Crypto payouts</a></td>
+    </tr>
+    <tr>
+      <td><strong>SaaS subscription services</strong><br/>Users pay monthly/yearly service fees</td>
+      <td><a href="/payments/en/guides/create-subscriptions">Subscription mode</a> or <a href="/payments/en/guides/create-orders">Order mode</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+    </tr>
+    <tr>
+      <td><strong>B2B payment business</strong><br/>Receive large payments from downstream enterprises</td>
+      <td><a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>Funds services</strong></td>
+      <td><strong>OTC settlement scenarios</strong><br/>Open independent top-up addresses for customers, perform OTC settlement after top-up</td>
+      <td><a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/counterparties">Counterparty management</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+    </tr>
+    <tr>
+      <td><strong>Card consumption fund settlement scenarios</strong><br/>Open independent top-up addresses for customers, settle funds after consumption</td>
+      <td><a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/crypto-payouts">Crypto payouts</a></td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+## PSP integration example
+
+As a payment service provider (PSP), you need to provide payment collection services for multiple merchants and achieve automated revenue sharing. A typical integration process is as follows:
+
+  1. Development environment setup: Complete [Prerequisites](/payments/en/guides/preparation) (create account, configure API Key and Webhook Endpoint, deposit to Fee Station)
+
+  2. Merchant management and fund configuration: [Create merchants](/payments/en/guides/merchants) for each downstream merchant to achieve independent revenue and expense management.
+
+  3. Integrate payment collection: Collect payments through [Order mode](/payments/en/guides/create-orders).
+  
+     - When creating orders, set developer fees to achieve automated revenue sharing with merchants.
+     - (Optional) Use [Payment links](/payments/en/guides/payment-link) to quickly build payment pages for merchants.
+ 
+  4. Fund management: Use the [Allocate funds](/payments/en/guides/allocate-funds) feature to adjust allocation between accounts (such as collecting developer fees or handling overpayment, underpayment, late payment, and other abnormal situations).
+
+  5. Payouts: Supports [Off-ramp](/payments/en/guides/fiat-payouts) and [Crypto payouts](/payments/en/guides/crypto-payouts). Off-ramp requires pre-configuring bank accounts in [Destinations](/payments/en/guides/destinations).
+
+  6. Production environment launch: After testing is complete, refer to [Production environment preparation](/payments/en/guides/preparation-prod) to complete configuration and go live
+
+## Gaming platform integration example
+
+As a gaming platform, you directly serve end-user players, with the main revenue source being player top-ups. A typical integration process is as follows:
+
+  1. Development environment setup: Complete [Prerequisites](/payments/en/guides/preparation) (create account, configure API Key and Webhook Endpoint, deposit to Fee Station)
+
+  2. Merchant configuration: **No need to create new merchants**, just use the default merchant automatically created by the system (same name as your Cobo Portal team).
+
+  3. Integrate payment collection: Collect payments through [Top-up mode](/payments/en/guides/get-topup-addresses)
+  
+     - Create a dedicated top-up address for each player
+     - Players use fixed addresses to top up, and the system automatically associates top-up records with the corresponding payer
+     - Query each payer's top-up details through Payments App or API
+
+  4. Payouts: Supports [Off-ramp](/payments/en/guides/fiat-payouts) and [Crypto payouts](/payments/en/guides/crypto-payouts). Off-ramp requires pre-configuring bank accounts in [Destinations](/payments/en/guides/destinations).
+
+  5. Production environment launch: After testing is complete, refer to [Production environment preparation](/payments/en/guides/preparation-prod) to complete configuration and go live
+
+
+<Tip>Feel free to [share your feedback](https://forms.zohopublic.com/cobo/form/DocumentFeedbackForm/formperma/QvLOhxJv1_JMsJ-1dleZ8Itb_7rzN-LtgvsDdxosoVI) to improve our documentation!</Tip>
+
