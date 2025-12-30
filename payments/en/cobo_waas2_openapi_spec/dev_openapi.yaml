@@ -4553,6 +4553,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/CounterpartyIdPathParam'
       responses:
+        '200':
+          $ref: '#/components/responses/deleteCounterpartyByIdResponse'
         '400':
           $ref: '#/components/responses/badRequestError'
         '401':
@@ -4648,6 +4650,8 @@ paths:
         - $ref: '#/components/parameters/CounterpartyIdRequiredParam'
         - $ref: '#/components/parameters/EntryTypeOptionalParam'
       responses:
+        '200':
+          $ref: '#/components/responses/deleteCounterpartyEntryResponse'
         '400':
           $ref: '#/components/responses/badRequestError'
         '401':
@@ -4897,6 +4901,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/DestinationIdPathParam'
       responses:
+        '200':
+          $ref: '#/components/responses/deleteDestinationByIdResponse'
         '400':
           $ref: '#/components/responses/badRequestError'
         '401':
@@ -5014,6 +5020,8 @@ paths:
         - $ref: '#/components/parameters/DestinationIdRequiredParam'
         - $ref: '#/components/parameters/EntryTypeRequiredParam'
       responses:
+        '200':
+          $ref: '#/components/responses/deleteDestinationEntryResponse'
         '400':
           $ref: '#/components/responses/badRequestError'
         '401':
@@ -6361,9 +6369,9 @@ paths:
       tags:
         - Compliance
       operationId: create_kya_screenings
-      summary: Batch create KYA address screening requests
+      summary: Create KYA address screening requests
       description: |
-        This operation submits batch address screening requests to detect address compliance and risk levels. Up to 50 addresses can be submitted in a single request.
+        This operation submits up to 50 address screening requests in one call to assess address compliance and risk levels.
 
         <Note>This endpoint supports cross-chain address screening with independent idempotency for each address, enabling flexible error handling and partial retries.</Note>
       security:
@@ -6383,11 +6391,11 @@ paths:
       tags:
         - Compliance
       operationId: list_kya_screenings
-      summary: Query KYA address screening results
+      summary: List KYA address screening results
       description: |
-        This operation queries the results of specified screening requests with pagination support. You can filter specific screening requests using screening_ids (up to 50 IDs).
+        This operation retrieves the results of specified screening requests with pagination support. You can filter specific screening requests using screening_ids (up to 50 IDs).
 
-        <Note>For large-scale queries exceeding 50 screening results, use pagination parameters (limit, before, after) for multiple queries.</Note>
+        <Note>For larger result sets (exceeding 50 screening results), use pagination parameters (limit, before, after) to page through results.</Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6409,11 +6417,11 @@ paths:
       tags:
         - Compliance
       operationId: get_kya_screening
-      summary: Retrieve single KYA address screening result
+      summary: Get KYA address screening result
       description: |
-        This operation retrieves a specific address screening result by screening_id, including complete risk assessment information.
+        This operation retrieves a specific address screening result by `screening_id`, including risk assessment information.
 
-        <Note>This endpoint returns the full screening details including risk level, summary, and detailed risk category exposures.</Note>
+        <Info>This endpoint returns the full screening details including risk level, summary, and detailed risk category exposures.</Info>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -12251,7 +12259,7 @@ components:
         - $ref: '#/components/schemas/WebhookEventDataType'
         - $ref: '#/components/schemas/KytScreeningsEventData'
     ComplianceKyaScreeningsUpdateEventData:
-      title: Compliance KYA screenings update Event Data
+      title: Compliance KYA screenings update event data
       allOf:
         - $ref: '#/components/schemas/WebhookEventDataType'
         - $ref: '#/components/schemas/KyaScreeningsEventData'
@@ -18107,13 +18115,13 @@ components:
           example: High-value deposit address
     CreateKyaScreeningsBody:
       type: object
-      description: Request body for batch creating address screening requests.
+      description: Information about address screening requests.
       required:
         - screenings
       properties:
         screenings:
           type: array
-          description: List of address screening requests. Maximum 50 addresses per request.
+          description: List of address screening requests. Maximum 50 addresses per call.
           minItems: 1
           maxItems: 50
           items:
@@ -23955,7 +23963,7 @@ components:
           schema:
             $ref: '#/components/schemas/SubmitKytScreeningsReviewBody'
     createKyaScreeningsBody:
-      description: The request body to batch create KYA address screening requests
+      description: The request body to create KYA address screening requests.
       content:
         application/json:
           schema:
@@ -26156,6 +26164,58 @@ components:
             properties:
               bank_account:
                 $ref: '#/components/schemas/DestinationBankAccount'
+    deleteCounterpartyEntryResponse:
+      description: The request was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - deleted_counterparty_entry_id
+            properties:
+              deleted_counterparty_entry_id:
+                type: string
+                description: The deleted counterparty entry ID.
+                example: 46beeab4-6a8e-476e-bc69-99b89aacbc6f
+    deleteDestinationEntryResponse:
+      description: The request was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - deleted_destination_entry_id
+            properties:
+              deleted_destination_entry_id:
+                type: string
+                description: The deleted destination entry ID.
+                example: 46beeab4-6a8e-476e-bc69-99b89aacbc6f
+    deleteDestinationByIdResponse:
+      description: The request was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - deleted_destination_id
+            properties:
+              deleted_destination_id:
+                type: string
+                description: The deleted destination ID.
+                example: 46beeab4-6a8e-476e-bc69-99b89aacbc6f
+    deleteCounterpartyByIdResponse:
+      description: The request was successful.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - deleted_counterparty_id
+            properties:
+              deleted_counterparty_id:
+                type: string
+                description: The deleted counterparty ID.
+                example: 46beeab4-6a8e-476e-bc69-99b89aacbc6f
     createDispositionResponse:
       description: Successfully created a disposition request.
       content:
@@ -26205,7 +26265,7 @@ components:
             transaction_id: f47ac10b-58cc-4372-a567-0e02b2c3d479
             submitted: true
     createKyaScreeningsResponse:
-      description: Successfully created address screening requests
+      description: Successfully created address screening requests.
       content:
         application/json:
           schema:
@@ -26243,7 +26303,7 @@ components:
               requested_by: user_abc123def456
               risk_assessment: null
     listKyaScreeningsResponse:
-      description: Successfully retrieved address screening results with pagination
+      description: Successfully retrieved address screening results with pagination.
       content:
         application/json:
           schema:
@@ -26287,7 +26347,7 @@ components:
               after: cursor_next_def456
               total_count: 125
     getKyaScreeningResponse:
-      description: Successfully retrieved address screening result
+      description: Successfully retrieved address screening result.
       content:
         application/json:
           schema:
