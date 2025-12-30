@@ -22,11 +22,7 @@ with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
     create_payment_order_request = cobo_waas2.CreatePaymentOrderRequest(
-        merchant_id="1001",
-        token_id="ETH_USDT",
-        order_amount="100.00",
-        fee_amount="2.00",
-        psp_order_code="P20240201001",
+        merchant_id="1001", psp_order_code="P20240201001", fee_amount="2.00"
     )
 
     try:
@@ -62,10 +58,8 @@ public class Example {
     CreatePaymentOrderRequest createPaymentOrderRequest =
         new CreatePaymentOrderRequest()
             .merchantId("1001")
-            .tokenId("ETH_USDT")
-            .orderAmount("100.00")
-            .feeAmount("2.00")
-            .pspOrderCode("P20240201001");
+            .pspOrderCode("P20240201001")
+            .feeAmount("2.00");
     try {
       Order result = apiInstance.createPaymentOrder(createPaymentOrderRequest);
       System.out.println(result);
@@ -92,7 +86,7 @@ import (
 )
 
 func main() {
-	createPaymentOrderRequest := *coboWaas2.NewCreatePaymentOrderRequest("1001", "ETH_USDT", "100.00", "2.00", "P20240201001")
+	createPaymentOrderRequest := *coboWaas2.NewCreatePaymentOrderRequest("1001", "P20240201001", "2.00")
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -131,12 +125,9 @@ const opts = {
   CreatePaymentOrderRequest:
     CoboWaas2.CreatePaymentOrderRequest.constructFromObject({
       merchant_id: "1001",
-      token_id: "ETH_USDT",
-      currency: "USD",
-      order_amount: "100.00",
-      fee_amount: "2.00",
       psp_order_code: "P20240201001",
-      expired_in: 1800,
+      fee_amount: "2.00",
+      currency: "USD",
     }),
 };
 apiInstance.createPaymentOrder(opts).then(

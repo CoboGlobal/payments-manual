@@ -1,11 +1,12 @@
 ---
-openapi: get /payments/batch_allocations/{batch_allocation_id}
+openapi: get /payments/destination
 ---
 
 <RequestExample>
 ```python Python
 import cobo_waas2
-from cobo_waas2.models.batch_allocation_detail import BatchAllocationDetail
+from cobo_waas2.models.destination_type import DestinationType
+from cobo_waas2.models.list_destinations200_response import ListDestinations200Response
 from cobo_waas2.rest import ApiException
 from pprint import pprint
 
@@ -20,15 +21,29 @@ configuration = cobo_waas2.Configuration(
 with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
-    batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+    limit = 10
+    before = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1"
+    after = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk"
+    keyword = "keyword"
+    destination_type = cobo_waas2.DestinationType()
+    country = "USA"
+    merchant_ids = "M1001,M1002,M1003"
 
     try:
-        # Get batch allocation information
-        api_response = api_instance.get_batch_allocation_by_id(batch_allocation_id)
-        print("The response of PaymentApi->get_batch_allocation_by_id:\n")
+        # List all destinations
+        api_response = api_instance.list_destinations(
+            limit=limit,
+            before=before,
+            after=after,
+            keyword=keyword,
+            destination_type=destination_type,
+            country=country,
+            merchant_ids=merchant_ids,
+        )
+        print("The response of PaymentApi->list_destinations:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling PaymentApi->get_batch_allocation_by_id: %s\n" % e)
+        print("Exception when calling PaymentApi->list_destinations: %s\n" % e)
 
 ```
 ```java Java
@@ -50,12 +65,20 @@ public class Example {
     // Replace `<YOUR_PRIVATE_KEY>` with your private key
     defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
     PaymentApi apiInstance = new PaymentApi();
-    String batchAllocationId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+    Integer limit = 10;
+    String before = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1";
+    String after = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk";
+    String keyword = "keyword";
+    DestinationType destinationType = DestinationType.fromValue("Individual");
+    String country = "USA";
+    String merchantIds = "M1001,M1002,M1003";
     try {
-      BatchAllocationDetail result = apiInstance.getBatchAllocationById(batchAllocationId);
+      ListDestinations200Response result =
+          apiInstance.listDestinations(
+              limit, before, after, keyword, destinationType, country, merchantIds);
       System.out.println(result);
     } catch (ApiException e) {
-      System.err.println("Exception when calling PaymentApi#getBatchAllocationById");
+      System.err.println("Exception when calling PaymentApi#listDestinations");
       System.err.println("Status code: " + e.getCode());
       System.err.println("Reason: " + e.getResponseBody());
       System.err.println("Response headers: " + e.getResponseHeaders());
@@ -77,7 +100,13 @@ import (
 )
 
 func main() {
-	batchAllocationId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+	limit := int32(10)
+	before := "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1"
+	after := "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk"
+	keyword := "keyword"
+	destinationType := coboWaas2.DestinationType("Individual")
+	country := "USA"
+	merchantIds := "M1001,M1002,M1003"
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -90,13 +119,21 @@ func main() {
 	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
 		Secret: "<YOUR_PRIVATE_KEY>",
 	})
-	resp, r, err := apiClient.PaymentAPI.GetBatchAllocationById(ctx, batchAllocationId).Execute()
+	resp, r, err := apiClient.PaymentAPI.ListDestinations(ctx).
+		Limit(limit).
+		Before(before).
+		After(after).
+		Keyword(keyword).
+		DestinationType(destinationType).
+		Country(country).
+		MerchantIds(merchantIds).
+		Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetBatchAllocationById``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.ListDestinations``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetBatchAllocationById`: BatchAllocationDetail
-	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetBatchAllocationById`: %v\n", resp)
+	// response from `ListDestinations`: ListDestinations200Response
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.ListDestinations`: %v\n", resp)
 }
 
 ```
@@ -110,8 +147,16 @@ apiClient.setEnv(CoboWaas2.Env.DEV);
 apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
 // Call the API
 const apiInstance = new CoboWaas2.PaymentApi();
-const batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
-apiInstance.getBatchAllocationById(batch_allocation_id).then(
+const opts = {
+  limit: 10,
+  before: "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1",
+  after: "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk",
+  keyword: "keyword",
+  destination_type: new CoboWaas2.DestinationType(),
+  country: "USA",
+  merchant_ids: "M1001,M1002,M1003",
+};
+apiInstance.listDestinations(opts).then(
   (data) => {
     console.log("API called successfully. Returned data: " + data);
   },

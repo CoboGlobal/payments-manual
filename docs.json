@@ -124,6 +124,20 @@
                       "payments/en/api-references/payment/get-refund-order-information",
                       "payments/en/api-references/payment/list-all-refund-orders"
                     ]
+                  },
+                  {
+                    "group": "Counterparties",
+                    "pages": [
+                      "payments/en/api-references/payment/create-counterparty",
+                      "payments/en/api-references/payment/list-all-counterparties",
+                      "payments/en/api-references/payment/get-counterparty-information",
+                      "payments/en/api-references/payment/update-counterparty",
+                      "payments/en/api-references/payment/delete-counterparty",
+                      "payments/en/api-references/payment/create-counterparty-entry",
+                      "payments/en/api-references/payment/list-counterparty-entries",
+                      "payments/en/api-references/payment/get-counterparty-entry-information",
+                      "payments/en/api-references/payment/delete-counterparty-entry"
+                    ]
                   }
                 ]
               },
@@ -159,12 +173,18 @@
                     ]
                   },
                   {
-                    "group": "Payout Destinations",
+                    "group": "Destinations",
                     "pages": [
-                      "payments/en/api-references/payment/list-all-bank-accounts",
-                      "payments/en/api-references/payment/create-crypto-address",
-                      "payments/en/api-references/payment/delete-crypto-address",
-                      "payments/en/api-references/payment/list-crypto-addresses"
+                      "payments/en/api-references/payment/create-destination",
+                      "payments/en/api-references/payment/list-all-destinations",
+                      "payments/en/api-references/payment/get-destination-information",
+                      "payments/en/api-references/payment/update-destination",
+                      "payments/en/api-references/payment/delete-destination",
+                      "payments/en/api-references/payment/create-destination-entry",
+                      "payments/en/api-references/payment/list-destination-entries",
+                      "payments/en/api-references/payment/get-destination-entry-information",
+                      "payments/en/api-references/payment/update-destination-entry",
+                      "payments/en/api-references/payment/delete-destination-entry"
                     ]
                   },
                   {
@@ -173,6 +193,15 @@
                       "payments/en/api-references/payment/get-exchange-rate",
                       "payments/en/api-references/payment/batch-get-exchange-rates",
                       "payments/en/api-references/payment/estimate-fees"
+                    ]
+                  },
+                  {
+                    "group": "Bank accounts and addresses",
+                    "pages": [
+                      "payments/en/api-references/payment/list-all-bank-accounts",
+                      "payments/en/api-references/payment/create-crypto-address",
+                      "payments/en/api-references/payment/delete-crypto-address",
+                      "payments/en/api-references/payment/list-crypto-addresses"
                     ]
                   },
                   {
@@ -185,11 +214,18 @@
                 ]
               },
               {
-                "group": "Merchant Operations",
+                "group": "Merchants",
                 "pages": [
                   "payments/en/api-references/payment/create-merchant",
                   "payments/en/api-references/payment/update-merchant",
                   "payments/en/api-references/payment/list-all-merchants"
+                ]
+              },
+              {
+                "group": "Reports",
+                "pages": [
+                  "payments/en/api-references/payment/generate-reports",
+                  "payments/en/api-references/payment/list-all-reports"
                 ]
               }
             ]

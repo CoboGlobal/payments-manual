@@ -1,11 +1,11 @@
 ---
-openapi: get /payments/batch_allocations/{batch_allocation_id}
+openapi: get /payments/supported_tokens
 ---
 
 <RequestExample>
 ```python Python
 import cobo_waas2
-from cobo_waas2.models.batch_allocation_detail import BatchAllocationDetail
+from cobo_waas2.models.supported_token import SupportedToken
 from cobo_waas2.rest import ApiException
 from pprint import pprint
 
@@ -20,15 +20,16 @@ configuration = cobo_waas2.Configuration(
 with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
-    batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
 
     try:
-        # Get batch allocation information
-        api_response = api_instance.get_batch_allocation_by_id(batch_allocation_id)
-        print("The response of PaymentApi->get_batch_allocation_by_id:\n")
+        # List all supported tokens
+        api_response = api_instance.list_payment_supported_tokens()
+        print("The response of PaymentApi->list_payment_supported_tokens:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling PaymentApi->get_batch_allocation_by_id: %s\n" % e)
+        print(
+            "Exception when calling PaymentApi->list_payment_supported_tokens: %s\n" % e
+        )
 
 ```
 ```java Java
@@ -50,12 +51,11 @@ public class Example {
     // Replace `<YOUR_PRIVATE_KEY>` with your private key
     defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
     PaymentApi apiInstance = new PaymentApi();
-    String batchAllocationId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
     try {
-      BatchAllocationDetail result = apiInstance.getBatchAllocationById(batchAllocationId);
+      List<SupportedToken> result = apiInstance.listPaymentSupportedTokens();
       System.out.println(result);
     } catch (ApiException e) {
-      System.err.println("Exception when calling PaymentApi#getBatchAllocationById");
+      System.err.println("Exception when calling PaymentApi#listPaymentSupportedTokens");
       System.err.println("Status code: " + e.getCode());
       System.err.println("Reason: " + e.getResponseBody());
       System.err.println("Response headers: " + e.getResponseHeaders());
@@ -77,7 +77,6 @@ import (
 )
 
 func main() {
-	batchAllocationId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -90,13 +89,17 @@ func main() {
 	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
 		Secret: "<YOUR_PRIVATE_KEY>",
 	})
-	resp, r, err := apiClient.PaymentAPI.GetBatchAllocationById(ctx, batchAllocationId).Execute()
+	resp, r, err := apiClient.PaymentAPI.ListPaymentSupportedTokens(ctx).Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetBatchAllocationById``: %v\n", err)
+		fmt.Fprintf(
+			os.Stderr,
+			"Error when calling `PaymentAPI.ListPaymentSupportedTokens``: %v\n",
+			err,
+		)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetBatchAllocationById`: BatchAllocationDetail
-	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetBatchAllocationById`: %v\n", resp)
+	// response from `ListPaymentSupportedTokens`: []SupportedToken
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.ListPaymentSupportedTokens`: %v\n", resp)
 }
 
 ```
@@ -110,8 +113,7 @@ apiClient.setEnv(CoboWaas2.Env.DEV);
 apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
 // Call the API
 const apiInstance = new CoboWaas2.PaymentApi();
-const batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
-apiInstance.getBatchAllocationById(batch_allocation_id).then(
+apiInstance.listPaymentSupportedTokens().then(
   (data) => {
     console.log("API called successfully. Returned data: " + data);
   },

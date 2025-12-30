@@ -1,11 +1,12 @@
 ---
-openapi: get /payments/batch_allocations/{batch_allocation_id}
+openapi: put /payments/counterparty/{counterparty_id}
 ---
 
 <RequestExample>
 ```python Python
 import cobo_waas2
-from cobo_waas2.models.batch_allocation_detail import BatchAllocationDetail
+from cobo_waas2.models.counterparty import Counterparty
+from cobo_waas2.models.update_counterparty_request import UpdateCounterpartyRequest
 from cobo_waas2.rest import ApiException
 from pprint import pprint
 
@@ -20,15 +21,21 @@ configuration = cobo_waas2.Configuration(
 with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
-    batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+    counterparty_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+    update_counterparty_request = cobo_waas2.UpdateCounterpartyRequest(
+        updated_counterparty_name="Counterparty A",
+        updated_counterparty_type="Individual",
+    )
 
     try:
-        # Get batch allocation information
-        api_response = api_instance.get_batch_allocation_by_id(batch_allocation_id)
-        print("The response of PaymentApi->get_batch_allocation_by_id:\n")
+        # Update counterparty
+        api_response = api_instance.update_counterparty(
+            counterparty_id, update_counterparty_request=update_counterparty_request
+        )
+        print("The response of PaymentApi->update_counterparty:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling PaymentApi->get_batch_allocation_by_id: %s\n" % e)
+        print("Exception when calling PaymentApi->update_counterparty: %s\n" % e)
 
 ```
 ```java Java
@@ -50,12 +57,17 @@ public class Example {
     // Replace `<YOUR_PRIVATE_KEY>` with your private key
     defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
     PaymentApi apiInstance = new PaymentApi();
-    String batchAllocationId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+    String counterpartyId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+    UpdateCounterpartyRequest updateCounterpartyRequest =
+        new UpdateCounterpartyRequest()
+            .updatedCounterpartyName("Counterparty A")
+            .updatedCounterpartyType(CounterpartyType.INDIVIDUAL);
     try {
-      BatchAllocationDetail result = apiInstance.getBatchAllocationById(batchAllocationId);
+      Counterparty result =
+          apiInstance.updateCounterparty(counterpartyId, updateCounterpartyRequest);
       System.out.println(result);
     } catch (ApiException e) {
-      System.err.println("Exception when calling PaymentApi#getBatchAllocationById");
+      System.err.println("Exception when calling PaymentApi#updateCounterparty");
       System.err.println("Status code: " + e.getCode());
       System.err.println("Reason: " + e.getResponseBody());
       System.err.println("Response headers: " + e.getResponseHeaders());
@@ -77,7 +89,8 @@ import (
 )
 
 func main() {
-	batchAllocationId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+	counterpartyId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+	updateCounterpartyRequest := *coboWaas2.NewUpdateCounterpartyRequest("Counterparty A", coboWaas2.CounterpartyType("Individual"))
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -90,13 +103,15 @@ func main() {
 	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
 		Secret: "<YOUR_PRIVATE_KEY>",
 	})
-	resp, r, err := apiClient.PaymentAPI.GetBatchAllocationById(ctx, batchAllocationId).Execute()
+	resp, r, err := apiClient.PaymentAPI.UpdateCounterparty(ctx, counterpartyId).
+		UpdateCounterpartyRequest(updateCounterpartyRequest).
+		Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetBatchAllocationById``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.UpdateCounterparty``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetBatchAllocationById`: BatchAllocationDetail
-	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetBatchAllocationById`: %v\n", resp)
+	// response from `UpdateCounterparty`: Counterparty
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.UpdateCounterparty`: %v\n", resp)
 }
 
 ```
@@ -110,8 +125,15 @@ apiClient.setEnv(CoboWaas2.Env.DEV);
 apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
 // Call the API
 const apiInstance = new CoboWaas2.PaymentApi();
-const batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
-apiInstance.getBatchAllocationById(batch_allocation_id).then(
+const counterparty_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+const opts = {
+  UpdateCounterpartyRequest:
+    CoboWaas2.UpdateCounterpartyRequest.constructFromObject({
+      updated_counterparty_name: "Counterparty A",
+      updated_counterparty_type: "Individual",
+    }),
+};
+apiInstance.updateCounterparty(counterparty_id, opts).then(
   (data) => {
     console.log("API called successfully. Returned data: " + data);
   },

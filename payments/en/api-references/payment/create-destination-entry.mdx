@@ -1,11 +1,16 @@
 ---
-openapi: get /payments/batch_allocations/{batch_allocation_id}
+openapi: post /payments/destination_entry
 ---
 
 <RequestExample>
 ```python Python
 import cobo_waas2
-from cobo_waas2.models.batch_allocation_detail import BatchAllocationDetail
+from cobo_waas2.models.create_destination_entry201_response import (
+    CreateDestinationEntry201Response,
+)
+from cobo_waas2.models.create_destination_entry_request import (
+    CreateDestinationEntryRequest,
+)
 from cobo_waas2.rest import ApiException
 from pprint import pprint
 
@@ -20,15 +25,19 @@ configuration = cobo_waas2.Configuration(
 with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
-    batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+    create_destination_entry_request = cobo_waas2.CreateDestinationEntryRequest(
+        destination_id="123e4567-e89b-12d3-a456-426614174003"
+    )
 
     try:
-        # Get batch allocation information
-        api_response = api_instance.get_batch_allocation_by_id(batch_allocation_id)
-        print("The response of PaymentApi->get_batch_allocation_by_id:\n")
+        # Create destination entry
+        api_response = api_instance.create_destination_entry(
+            create_destination_entry_request=create_destination_entry_request
+        )
+        print("The response of PaymentApi->create_destination_entry:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling PaymentApi->get_batch_allocation_by_id: %s\n" % e)
+        print("Exception when calling PaymentApi->create_destination_entry: %s\n" % e)
 
 ```
 ```java Java
@@ -39,6 +48,7 @@ import com.cobo.waas2.Configuration;
 import com.cobo.waas2.Env;
 import com.cobo.waas2.api.PaymentApi;
 import com.cobo.waas2.model.*;
+import java.util.UUID;
 
 public class Example {
   public static void main(String[] args) {
@@ -50,12 +60,15 @@ public class Example {
     // Replace `<YOUR_PRIVATE_KEY>` with your private key
     defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
     PaymentApi apiInstance = new PaymentApi();
-    String batchAllocationId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+    CreateDestinationEntryRequest createDestinationEntryRequest =
+        new CreateDestinationEntryRequest()
+            .destinationId(UUID.fromString("123e4567-e89b-12d3-a456-426614174003"));
     try {
-      BatchAllocationDetail result = apiInstance.getBatchAllocationById(batchAllocationId);
+      CreateDestinationEntry201Response result =
+          apiInstance.createDestinationEntry(createDestinationEntryRequest);
       System.out.println(result);
     } catch (ApiException e) {
-      System.err.println("Exception when calling PaymentApi#getBatchAllocationById");
+      System.err.println("Exception when calling PaymentApi#createDestinationEntry");
       System.err.println("Status code: " + e.getCode());
       System.err.println("Reason: " + e.getResponseBody());
       System.err.println("Response headers: " + e.getResponseHeaders());
@@ -77,7 +90,7 @@ import (
 )
 
 func main() {
-	batchAllocationId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+	createDestinationEntryRequest := *coboWaas2.NewCreateDestinationEntryRequest("123e4567-e89b-12d3-a456-426614174003")
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -90,13 +103,15 @@ func main() {
 	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
 		Secret: "<YOUR_PRIVATE_KEY>",
 	})
-	resp, r, err := apiClient.PaymentAPI.GetBatchAllocationById(ctx, batchAllocationId).Execute()
+	resp, r, err := apiClient.PaymentAPI.CreateDestinationEntry(ctx).
+		CreateDestinationEntryRequest(createDestinationEntryRequest).
+		Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetBatchAllocationById``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.CreateDestinationEntry``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetBatchAllocationById`: BatchAllocationDetail
-	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetBatchAllocationById`: %v\n", resp)
+	// response from `CreateDestinationEntry`: CreateDestinationEntry201Response
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.CreateDestinationEntry`: %v\n", resp)
 }
 
 ```
@@ -110,8 +125,13 @@ apiClient.setEnv(CoboWaas2.Env.DEV);
 apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
 // Call the API
 const apiInstance = new CoboWaas2.PaymentApi();
-const batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
-apiInstance.getBatchAllocationById(batch_allocation_id).then(
+const opts = {
+  CreateDestinationEntryRequest:
+    CoboWaas2.CreateDestinationEntryRequest.constructFromObject({
+      destination_id: "123e4567-e89b-12d3-a456-426614174003",
+    }),
+};
+apiInstance.createDestinationEntry(opts).then(
   (data) => {
     console.log("API called successfully. Returned data: " + data);
   },

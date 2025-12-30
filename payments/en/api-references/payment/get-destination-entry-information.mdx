@@ -1,11 +1,14 @@
 ---
-openapi: get /payments/batch_allocations/{batch_allocation_id}
+openapi: get /payments/destination_entry/{destination_entry_id}
 ---
 
 <RequestExample>
 ```python Python
 import cobo_waas2
-from cobo_waas2.models.batch_allocation_detail import BatchAllocationDetail
+from cobo_waas2.models.entry_type import EntryType
+from cobo_waas2.models.get_destination_entry200_response import (
+    GetDestinationEntry200Response,
+)
 from cobo_waas2.rest import ApiException
 from pprint import pprint
 
@@ -20,15 +23,18 @@ configuration = cobo_waas2.Configuration(
 with cobo_waas2.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = cobo_waas2.PaymentApi(api_client)
-    batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+    destination_entry_id = "123e4567-e89b-12d3-a456-426614174003"
+    entry_type = "Address"
 
     try:
-        # Get batch allocation information
-        api_response = api_instance.get_batch_allocation_by_id(batch_allocation_id)
-        print("The response of PaymentApi->get_batch_allocation_by_id:\n")
+        # Get destination entry information
+        api_response = api_instance.get_destination_entry(
+            destination_entry_id, entry_type
+        )
+        print("The response of PaymentApi->get_destination_entry:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling PaymentApi->get_batch_allocation_by_id: %s\n" % e)
+        print("Exception when calling PaymentApi->get_destination_entry: %s\n" % e)
 
 ```
 ```java Java
@@ -50,12 +56,14 @@ public class Example {
     // Replace `<YOUR_PRIVATE_KEY>` with your private key
     defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
     PaymentApi apiInstance = new PaymentApi();
-    String batchAllocationId = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
+    String destinationEntryId = "123e4567-e89b-12d3-a456-426614174003";
+    EntryType entryType = EntryType.fromValue("Address");
     try {
-      BatchAllocationDetail result = apiInstance.getBatchAllocationById(batchAllocationId);
+      GetDestinationEntry200Response result =
+          apiInstance.getDestinationEntry(destinationEntryId, entryType);
       System.out.println(result);
     } catch (ApiException e) {
-      System.err.println("Exception when calling PaymentApi#getBatchAllocationById");
+      System.err.println("Exception when calling PaymentApi#getDestinationEntry");
       System.err.println("Status code: " + e.getCode());
       System.err.println("Reason: " + e.getResponseBody());
       System.err.println("Response headers: " + e.getResponseHeaders());
@@ -77,7 +85,8 @@ import (
 )
 
 func main() {
-	batchAllocationId := "5b0ed293-f728-40b4-b1f6-86b88cd51384"
+	destinationEntryId := "123e4567-e89b-12d3-a456-426614174003"
+	entryType := coboWaas2.EntryType("Address")
 
 	configuration := coboWaas2.NewConfiguration()
 	// Initialize the API client
@@ -90,13 +99,15 @@ func main() {
 	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
 		Secret: "<YOUR_PRIVATE_KEY>",
 	})
-	resp, r, err := apiClient.PaymentAPI.GetBatchAllocationById(ctx, batchAllocationId).Execute()
+	resp, r, err := apiClient.PaymentAPI.GetDestinationEntry(ctx, destinationEntryId).
+		EntryType(entryType).
+		Execute()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetBatchAllocationById``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.GetDestinationEntry``: %v\n", err)
 		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
 	}
-	// response from `GetBatchAllocationById`: BatchAllocationDetail
-	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetBatchAllocationById`: %v\n", resp)
+	// response from `GetDestinationEntry`: GetDestinationEntry200Response
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.GetDestinationEntry`: %v\n", resp)
 }
 
 ```
@@ -110,8 +121,9 @@ apiClient.setEnv(CoboWaas2.Env.DEV);
 apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
 // Call the API
 const apiInstance = new CoboWaas2.PaymentApi();
-const batch_allocation_id = "5b0ed293-f728-40b4-b1f6-86b88cd51384";
-apiInstance.getBatchAllocationById(batch_allocation_id).then(
+const destination_entry_id = "123e4567-e89b-12d3-a456-426614174003";
+const entry_type = "Address";
+apiInstance.getDestinationEntry(destination_entry_id, entry_type).then(
   (data) => {
     console.log("API called successfully. Returned data: " + data);
   },
