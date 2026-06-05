@@ -8,11 +8,24 @@ Webhook events are crucial for ensuring seamless data integration and communicat
 
 ## Create an endpoint
 
-First, choose a server environment, such as a cloud service like AWS, Google Cloud, or a self-hosted server, that supports receiving and processing webhook events. Then, define an endpoint URL on your server where the webhook events will be sent.
+First, choose a server environment, such as a cloud service like AWS, Google Cloud, or a self-hosted server, that supports receiving and processing webhook events. Then, define an endpoint URL on your server where the webhook events will be sent. The endpoint URL must use HTTPS to protect webhook payloads in transit.
 
 ## Implement handling logic
 
 After you create the endpoint, you need to implement the logic on the server to handle the webhook events, including parsing the API request, verifying the signature, responding to the request and adding other handling logic if necessary.
+
+### Parse the request
+
+The webhook request body is a JSON object. Read the `type` field to determine the event type and route your handling logic accordingly. The `data` field contains the event-specific payload.
+
+```python
+import json
+
+event = json.loads(raw_body)
+event_type = event.get('type')
+```
+
+> **Note:** The top-level field name is `type`, not `event_type`.
 
 ### Verify the signature
 
@@ -22,11 +35,11 @@ The verification steps are as follows:
 
 1. Retrieve raw body and timestamp. 
 
-    Extract the original body string from the request payload and the timestamp from the request headers.
+    Extract the original body string from the request payload and the timestamp (`biz_timestamp`) from the request headers.
 
     ```python
     raw_body = request.body().decode('utf8')
-    timestamp = request.headers.get("BIZ_TIMESTAMP")
+    biz_timestamp = request.headers.get("BIZ_TIMESTAMP")
     ```
 
 2. Retrieve the signature. 
@@ -43,7 +56,7 @@ The verification steps are as follows:
     import hashlib
 
     # Concatenate raw body and timestamp to form the message.
-    message = "raw_body|timestamp"
+    message = f"{raw_body}|{biz_timestamp}"
 
     # Compute double SHA-256 hash.
     sha256_hash = hashlib.sha256(hashlib.sha256(message.encode()).digest()).digest()
@@ -57,15 +70,20 @@ The verification steps are as follows:
 
 5. Verify the signature using the Ed25519 algorithm.
 
+    <Note>Install the required library before running this code: `pip install pynacl`</Note>
+
     ```python
-    import ed25519
+    # Install required library: pip install pynacl
+    from nacl.signing import VerifyKey
 
     # Obtain the verifying key from Cobo's public key.
-    vk = ed25519.VerifyingKey(bytes.fromhex(public_key)) 
+    vk = VerifyKey(bytes.fromhex(public_key))
 
     # Verify the signature against the computed message hash.
-    vk.verify(bytes.fromhex(signature), sha256_hash)
+    vk.verify(signature=bytes.fromhex(signature), smessage=sha256_hash)
     ```
+
+If signature verification fails, return HTTP 401. Returning `200` or `201` on a failed verification will cause the event to be incorrectly marked as Delivered on Cobo Portal.
 
 ### Respond to the API request
 
@@ -74,11 +92,10 @@ When your webhook endpoint receives a webhook event, it should respond with a st
 
 The default timeout for each webhook event is 2 seconds. If the webhook endpoint does not respond or responds with a status code other than `200` or `201`, the Cobo payments service will continue to retry sending the event. If the number of retry attempts reaches 10 , the Cobo payments service will stop sending the event and the event status will become `Failed`· You can resend the event by clicking **Retry** on **Cobo Portal** > **Developer** > **Webhook Events**.
 
-Cobo does not guarantee that events will be delivered in the order they are generated. For example, creating a transfer will generate the following events:
+Cobo does not guarantee that events will be delivered in the order they are generated. For example, a deposit transaction in Top-up Mode may generate the following events:
 
-- `wallets.transaction.created`
-- `wallets.transaction.updated`
-- `wallets.transaction.succeeded`
+- `payment.transaction.created`
+- `payment.transaction.completed`
 
 Your endpoint should not assume that events will arrive in this sequence and must handle delivery appropriately.
 
@@ -91,6 +108,7 @@ To see examples of how to implement the handling logic, refer to the following f
 - JavaScript: [ServerDemo.js](https://github.com/CoboGlobal/cobo-waas2-js-sdk/blob/master/src/ServerDemo.js)
 - Go: [server_demo.go](https://github.com/CoboGlobal/cobo-waas2-go-sdk/blob/master/cobo_waas2/demo/server_demo.go)
 
+<Tip>To test your endpoint without creating real transactions, use the Webhook Trigger API (`POST /payments/webhooks/trigger`), available since SDK v1.32.0 (March 2026). This API lets you manually trigger any Payments webhook event type against your registered endpoint.</Tip>
 
 ## ⚠️⚠️⚠️Important notes
 

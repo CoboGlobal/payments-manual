@@ -8,11 +8,24 @@ Webhook 事件对于确保 Cobo 支付服务与您的 App 之间的无缝数据�
 
 ## 创建 Endpoint
 
-首先，选择一个支持接收和处理 Webhook 事件的服务器环境，例如 AWS、Google Cloud 或自托管服务器。然后，在您的服务器上定义一个 Endpoint URL，以便接收 Webhook 事件。
+首先，选择一个支持接收和处理 Webhook 事件的服务器环境，例如 AWS、Google Cloud 或自托管服务器。然后，在您的服务器上定义一个 Endpoint URL，以便接收 Webhook 事件。Endpoint URL 必须使用 HTTPS，以保护传输中的 Webhook 数据。
 
 ## 实现处理逻辑
 
 创建 Endpoint 后，您需要在服务器上实现逻辑以处理 Webhook 事件，包括解析 API 请求、验证签名、响应请求以及在必要时添加其他处理逻辑。
+
+### 解析请求
+
+Webhook 请求体是一个 JSON 对象。读取 `type` 字段以确定事件类型，并据此路由您的处理逻辑。`data` 字段包含特定事件的 Payload。
+
+```python
+import json
+
+event = json.loads(raw_body)
+event_type = event.get('type')
+```
+
+> **注意：** 顶层字段名称为 `type`，而非 `event_type`。
 
 ### 验证签名
 
@@ -22,11 +35,11 @@ Webhook 事件对于确保 Cobo 支付服务与您的 App 之间的无缝数据�
 
 1. 获取请求包体的原始数据和时间戳。
 
-    从请求 Payload 中提取包体的原始字符串，并从请求头中提取时间戳。
+    从请求 Payload 中提取包体的原始字符串，并从请求头中提取时间戳（`biz_timestamp`）。
 
     ```python
     raw_body = request.body().decode('utf8')
-    timestamp = request.headers.get("BIZ_TIMESTAMP")
+    biz_timestamp = request.headers.get("BIZ_TIMESTAMP")
     ```
 
 2. 获取签名。
@@ -43,7 +56,7 @@ Webhook 事件对于确保 Cobo 支付服务与您的 App 之间的无缝数据�
     import hashlib
     
     # Concatenate raw body and timestamp to form the message.
-    message = "raw_body|timestamp"
+    message = f"{raw_body}|{biz_timestamp}"
     
     # Compute double SHA-256 hash.
     sha256_hash = hashlib.sha256(hashlib.sha256(message.encode()).digest()).digest()
@@ -57,15 +70,20 @@ Webhook 事件对于确保 Cobo 支付服务与您的 App 之间的无缝数据�
 
 5. 使用 Ed25519 算法验证签名。
 
+    <Note>在运行此代码之前，请先安装所需库：`pip install pynacl`</Note>
+
     ```python
-    import ed25519
-    
+    # Install required library: pip install pynacl
+    from nacl.signing import VerifyKey
+
     # Obtain the verifying key from Cobo's public key.
-    vk = ed25519.VerifyingKey(bytes.fromhex(public_key)) 
-    
+    vk = VerifyKey(bytes.fromhex(public_key))
+
     # Verify the signature against the computed message hash.
-    vk.verify(bytes.fromhex(signature), sha256_hash)
+    vk.verify(signature=bytes.fromhex(signature), smessage=sha256_hash)
     ```
+
+如果签名验证失败，请返回 HTTP 401。在验证失败时返回 `200` 或 `201` 将导致事件在 Cobo Portal 上被错误地标记为已送达。
 
 ### 响应 API 请求
 
@@ -74,11 +92,10 @@ Webhook 事件对于确保 Cobo 支付服务与您的 App 之间的无缝数据�
 
 默认情况下，每个 Webhook 事件的超时时间为 2 秒。如果 Webhook Endpoint 没有响应或响应状态码不是 `200` 或 `201`，Cobo 支付服务将继续重试发送事件。如果重试次数达到 10 次，Cobo 支付服务将停止发送事件，事件状态将变为**发送失败**。您可以通过单击 Cobo Portal > 开发者 > Webhook 事件上的**重新发送**来重新发送事件。
 
-Cobo 不保证事件将按生成顺序交付。例如，创建转账将生成以下事件：
+Cobo 不保证事件将按生成顺序交付。例如，在充值模式下，一笔存款交易可能会生成以下事件：
 
-- `wallets.transaction.created`
-- `wallets.transaction.updated`
-- `wallets.transaction.succeeded`
+- `payment.transaction.created`
+- `payment.transaction.completed`
 
 您的 Endpoint 不应假设事件将按此顺序到达。
 
@@ -91,6 +108,7 @@ Cobo 不保证事件将按生成顺序交付。例如，创建转账将生成以
 - JavaScript：[ServerDemo.js](https://github.com/CoboGlobal/cobo-waas2-js-sdk/blob/master/src/ServerDemo.js)
 - Go：[server_demo.go](https://github.com/CoboGlobal/cobo-waas2-go-sdk/blob/master/cobo_waas2/demo/server_demo.go)
 
+<Tip>如需在不创建真实交易的情况下测试您的 Endpoint，请使用 Webhook 触发 API（`POST /payments/webhooks/trigger`），该功能自 SDK v1.32.0（2026 年 3 月）起可用。此 API 可让您手动触发任意 Payments Webhook 事件类型并发送至您的注册 Endpoint。</Tip>
 
 ## ⚠️⚠️⚠️ 注意事项
 <Warning>
