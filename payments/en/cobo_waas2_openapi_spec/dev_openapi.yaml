@@ -23165,7 +23165,7 @@ components:
       name: source_account
       in: query
       required: true
-      description: 'The source account for which to retrieve balance changes. Currently, use `developer`.'
+      description: 'The source account for which to retrieve balance changes. Currently, use `developer` or `merchant`.'
       schema:
         type: string
       example: developer

@@ -7,7 +7,7 @@ lang: "zh-hans"
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
-| **资金管理** | (SDK v1.37.0) 新增 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 操作，支持查询来源账户（当前为 `developer`）的余额变动记录，可按 `token_id`、`flow_direction`、时间范围（`min_created_timestamp` / `max_created_timestamp`）、`source_type`、`source_id` 过滤。<br /><br />Bulk Send 与 Payout 响应增强：<br />・批量下发响应（[Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)、[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends)）新增 `commission_fee` 字段。<br />・[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items) 响应新增 `tx_hash` 字段，表示每条下发项的链上交易哈希。<br />・明确了 Payout 响应中 `commission_fees` 字段及 Refund 响应中 `commission_fee` 字段的含义：未产生费用时不返回；产生费用后返回实际扣费金额；若已退还则为 `0`。 | 2026-06-10 |
+| **资金管理** | (SDK v1.37.0) 新增 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 操作，用于查询来源账户（`developer`、`merchant`）的余额变动记录，可按 `token_id`、`flow_direction`、时间范围（`min_created_timestamp` / `max_created_timestamp`）、`source_type`、`source_id` 过滤。<br /><br />Bulk Send 与 Payout 响应增强：<br />・批量下发响应（[Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)、[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends)）新增 `commission_fee` 字段。<br />・[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items) 响应新增 `tx_hash` 字段，表示每条下发项的链上交易哈希。 | 2026-06-10 |
 
 
 ## 2026 年 05 月
