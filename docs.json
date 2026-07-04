@@ -69,6 +69,7 @@
                 "pages": [
                   "payments/en/guides/amounts-and-balances",
                   "payments/en/guides/allocate-funds",
+                  "payments/en/guides/settlement-network",
                   "payments/en/guides/fiat-payouts",
                   "payments/en/guides/crypto-payouts",
                   "payments/en/guides/bulk-send",
@@ -356,6 +357,7 @@
                 "pages": [
                   "payments/cn/guides/amounts-and-balances",
                   "payments/cn/guides/allocate-funds",
+                  "payments/cn/guides/settlement-network",
                   "payments/cn/guides/fiat-payouts",
                   "payments/cn/guides/crypto-payouts",
                   "payments/cn/guides/bulk-send",
