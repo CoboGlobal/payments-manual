@@ -178,15 +178,37 @@ curl -X GET "https://api.example.com/v1/payments/bulk_sends/{bulk_send_id}/items
 
 每个 item 包含两个关键状态字段：
 
-- status（item 执行状态）
-- validation_status（地址/合规验证状态）
+- `status` — 条目的执行状态。
+- `validation_status` — 地址/合规验证状态。
 
-您提供的规则要求重点关注：
+#### 条目执行状态
 
-- 若 status 为 **Failed** 或 **NotExecuted** → 该条目失败
-- 若 validation_status 为 **ValidationFailed** → 该地址未通过 Cobo 的 KYA 验证
+| `status` | 含义 | 典型场景 |
+|---|---|---|
+| `Pending` | 条目已创建，等待处理。 | 批量下发刚提交。 |
+| `Processing` | 链上转账进行中。 | 链上交易等待确认。 |
+| `Completed` | 资金已成功转出。 | 无需操作。 |
+| `Failed` | 转账已尝试但未成功。 | 链上执行失败。该地址已通过验证，问题出在转账本身。 |
+| `NotExecuted` | 转账未被执行。 | 批量下发被取消，或因其他条目验证失败导致本条目被跳过（参见下方执行模式说明）。 |
 
-对这两类情况，都建议更换地址。
+#### 条目验证状态
+
+| `validation_status` | 含义 |
+|---|---|
+| `Pending` | 尚未验证。 |
+| `Validated` | 已通过验证，可以处理。 |
+| `ValidationFailed` | 验证失败，无法处理。 |
+
+#### `execution_mode` 与条目状态的关系
+
+- **Strict 模式**：若任意条目验证失败，**所有**条目均变为 `status=NotExecuted`（整批不执行）。已通过验证的条目（`validation_status=Validated`）属于连带跳过；验证失败的条目（`validation_status=ValidationFailed`）是根本原因。
+- **Partial 模式**：仅验证失败的条目变为 `status=NotExecuted`（`validation_status=ValidationFailed`）。验证通过的条目继续转账，最终状态为 `Completed` 或 `Failed`。
+
+<Info>
+**关键区别 — `Failed` 与 `NotExecuted`：**
+- `Failed` = 链上转账已尝试但未成功，地址已通过验证。
+- `NotExecuted` = 转账从未被执行。请检查 `validation_status` 以确定原因。
+</Info>
 
 ### **2.3 自动化重试：更换地址后批量补发**
 
@@ -194,25 +216,27 @@ curl -X GET "https://api.example.com/v1/payments/bulk_sends/{bulk_send_id}/items
 
 #### **A) 前一次是 Strict 模式**
 
-- Strict 模式下：只要有一个地址有问题，整单不会发生任何链上转账
-- 因此补发（重新提交）时：**需要包含全部条目**（不是只提交失败条目）
+- Strict 模式下：若任意条目验证失败，**整单不会发生任何链上转账**。所有条目的 `status` 均为 `NotExecuted`。
+- 补发时：**需要包含全部条目**（不仅是导致失败的条目）。
 
 补发步骤：
 
-1. 查询 items，定位 ValidationFailed 或 Failed/NotExecuted 的条目
-2. 更换这些条目的地址（或修正其它导致失败的参数）
-3. **重新提交整单 Bulk Send（包含所有条目）**
+1. 查询 items — 所有条目的 `status` 均为 `NotExecuted`。
+2. 对 `validation_status=ValidationFailed` 的条目，更换地址（或修正其它导致验证失败的参数）。
+3. 对 `validation_status=Validated` 的条目，无需修改 — 地址有效，仅因 Strict 模式整批失败而被跳过。
+4. **重新提交整单 Bulk Send（包含所有条目，含已修正和未修改的）。**
 
 #### **B) 前一次是 Partial 模式**
 
-- Partial 模式下：已成功条目已转账完成
-- 因此补发时：**只需要提交失败条目**（减少重复转账风险）
+- Partial 模式下：`status=Completed` 的条目已转账完成。
+- 补发时：**只需提交未成功的条目**。
 
 补发步骤：
 
-1. 查询 items，筛选失败条目（status=Failed/NotExecuted 或 validation_status=ValidationFailed）
-2. 更换失败条目的地址
-3. 新建一个 Bulk Send，只提交这些失败条目
+1. 查询 items，按 `status` 筛选。
+2. 对 `status=NotExecuted` 且 `validation_status=ValidationFailed` 的条目 — 更换地址。
+3. 对 `status=Failed` 的条目 — 地址已通过验证，可使用相同参数重试。失败原因在链上转账环节，而非地址本身。
+4. 新建一个 Bulk Send，仅包含上述条目。
 
 ---
 
@@ -238,8 +262,14 @@ function isTerminalFailedStatus(bulkStatus) {
     return bulkStatus === "Failed" || bulkStatus === "PartiallyCompleted";
 }
 
-function isItemFailed(item) {
-    return item.status === "Failed" || item.status === "NotExecuted" || item.validation_status === "ValidationFailed";
+// Failed = 转账已尝试但未成功，地址有效。
+// NotExecuted = 转账从未执行，请检查 validation_status。
+function isTransferFailed(item) {
+    return item.status === "Failed";
+}
+
+function isSkipped(item) {
+    return item.status === "NotExecuted";
 }
 
 // 您的业务逻辑：根据用户ID/订单号找到新地址
@@ -267,16 +297,19 @@ app.post("/webhooks/cobo", async (req, res) => {
     });
     const items = await itemsResp.json(); // 假设返回数组
 
-    const failedItems = items.filter(isItemFailed);
-
     // 4) 存在未转账成功条目需要补发
     const itemsToResend = [];
     if (isTerminalFailedStatus(status)) {
         for (const item of items) {
-            if (item.status === 'Failed') {
-                itemsToResend.push(item);  // 发放失败直接重试
-            } else if (item.status === 'NotExecuted' && item.validation_status === 'ValidationFailed') {
-                itemsToResend.push(await replaceAddressForFailedItem(item));  // 校验失败需要更换地址
+            if (isTransferFailed(item)) {
+                // 地址已通过验证 — 使用相同参数重试。
+                itemsToResend.push(item);
+            } else if (isSkipped(item) && item.validation_status === 'ValidationFailed') {
+                // 验证失败 — 更换地址。
+                itemsToResend.push(await replaceAddressForFailedItem(item));
+            } else if (isSkipped(item) && item.validation_status === 'Validated') {
+                // Strict 模式连带跳过 — 地址有效，原样重新提交。
+                itemsToResend.push(item);
             }
         }
     }
@@ -317,5 +350,6 @@ app.listen(3000, () => console.log("Webhook listener on :3000"));
   - Partial：只补发失败条目（避免重复发放）
 - **Webhook 幂等性**：对 bulk_send_id + status + updated_timestamp 做幂等键，避免重复触发补发。
 - **失败分类处理**：
-  - validation_status=ValidationFailed：优先换地址
-  - status=Failed/NotExecuted：建议也换地址（按您给的规则），并保留失败原因用于风控/用户提示
+  - `validation_status=ValidationFailed` — 地址未通过 KYA 验证，需更换地址。
+  - `status=Failed` — 链上转账已尝试但失败，地址已通过验证，使用相同地址重试可能成功。保留失败详情用于风控。
+  - `status=NotExecuted` — 条目未被执行。若 `validation_status=ValidationFailed`，更换地址；若 `validation_status=Validated`（Strict 模式连带跳过），地址有效，可原样重新提交。

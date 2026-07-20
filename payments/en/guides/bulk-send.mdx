@@ -176,15 +176,37 @@ curl -X GET "https://api.example.com/v1/payments/bulk_sends/{bulk_send_id}/items
 
 Each item includes two key status fields:
 
-- status (execution status of the item)
-- validation_status (address/compliance validation status)
+- `status` — the execution status of the item.
+- `validation_status` — the address/compliance validation status.
 
-Rules to focus on:
+#### Item execution status
 
-- If status = **Failed** or  **NotExecuted** → the item failed
-- If validation_status = **ValidationFailed** → the address did not pass Cobo KYA validation
+| `status` | Meaning | Typical cause |
+|---|---|---|
+| `Pending` | The item has been created and is waiting to be processed. | Bulk send was just submitted. |
+| `Processing` | The transfer is in progress. | On-chain transaction is pending confirmation. |
+| `Completed` | The funds have been transferred successfully. | No action required. |
+| `Failed` | The transfer was attempted but did not succeed. | On-chain execution failure. The address passed validation, so the issue is in the transfer itself. |
+| `NotExecuted` | The transfer was never attempted. | The bulk send was cancelled, or an earlier validation failure caused the item to be skipped (see `execution_mode` interaction below). |
 
-For both cases, **replacing the address is recommended.**
+#### Item validation status
+
+| `validation_status` | Meaning |
+|---|---|
+| `Pending` | The item has not yet been validated. |
+| `Validated` | The item has passed validation and is ready to be processed. |
+| `ValidationFailed` | The item has failed validation and cannot be processed. |
+
+#### How `execution_mode` interacts with item statuses
+
+- **Strict mode**: If any item fails validation, **all** items receive `status=NotExecuted` — the entire batch is not executed. Items that passed validation (`validation_status=Validated`) are collateral skips; items that failed validation (`validation_status=ValidationFailed`) are the root cause.
+- **Partial mode**: Only invalid items receive `status=NotExecuted` with `validation_status=ValidationFailed`. Valid items proceed to transfer and can end up as `Completed` or `Failed`.
+
+<Info>
+**Key distinction — `Failed` vs `NotExecuted`:**
+- `Failed` = the on-chain transfer was attempted but did not succeed. The address passed validation.
+- `NotExecuted` = the transfer was never attempted. Check `validation_status` to determine the cause.
+</Info>
 
 ### **2.3 Automated retry: replace addresses and resend in batch**
 
@@ -192,25 +214,27 @@ Resend strategy depends on execution_mode:
 
 #### **A) Previous batch used Strict**
 
-- Under `Strict`, if any address has an issue, **no** on-chain transfer is executed for the entire batch.
-- Therefore, on retry (resubmission), you must include **all** items (not only the failed ones).
+- Under `Strict`, if any item fails validation, **no** on-chain transfer is executed for the entire batch. All items will have `status=NotExecuted`.
+- On retry, you must include **all** items (not only the ones that caused the failure).
 
 Steps:
 
-1. Query items and identify those with ValidationFailed or Failed/NotExecuted
-2. Replace the addresses for those items (or fix other parameters causing failures)
-3. Resubmit a new Bulk Send containing **all** items
+1. Query items — all will have `status=NotExecuted`.
+2. For items with `validation_status=ValidationFailed`, replace the address (or fix other parameters causing the validation failure).
+3. For items with `validation_status=Validated`, no changes are needed — the address is valid and was only skipped because of the Strict mode batch failure.
+4. Resubmit a new Bulk Send containing **all** items (both fixed and unchanged).
 
 #### **`B) Previous batch used Partial`**
 
-- Under `Partial`, successful items have already been transferred.
-- Therefore, on retry, submit **only failed items** (reduces the risk of duplicate transfers).
+- Under `Partial`, items with `status=Completed` have already been transferred.
+- On retry, submit **only** items that did not complete successfully.
 
 Steps:
 
-1. Query items and filter failed items (`status=Failed/NotExecuted` or `validation_status=ValidationFailed`)
-2. Replace the addresses for failed items
-3. Create a new Bulk Send containing only these failed items
+1. Query items and filter by `status`.
+2. For items with `status=NotExecuted` and `validation_status=ValidationFailed` — replace the address.
+3. For items with `status=Failed` — the address passed validation, so you can retry with the same parameters. The failure was in the on-chain transfer, not the address.
+4. Create a new Bulk Send containing only these items.
 
 ## **3. Reference implementation: webhook handling + auto resend (example)**
 
@@ -234,8 +258,14 @@ function isTerminalFailedStatus(bulkStatus) {
     return bulkStatus === "Failed" || bulkStatus === "PartiallyCompleted";
 }
 
-function isItemFailed(item) {
-    return item.status === "Failed" || item.status === "NotExecuted" || item.validation_status === "ValidationFailed";
+// Failed = transfer was attempted but did not succeed. Address was valid.
+// NotExecuted = transfer was never attempted. Check validation_status for the cause.
+function isTransferFailed(item) {
+    return item.status === "Failed";
+}
+
+function isSkipped(item) {
+    return item.status === "NotExecuted";
 }
 
 async function replaceAddressForFailedItem(item) {
@@ -258,15 +288,18 @@ app.post("/webhooks/cobo", async (req, res) => {
     });
     const items = await itemsResp.json(); 
 
-    const failedItems = items.filter(isItemFailed);
-
     const itemsToResend = [];
     if (isTerminalFailedStatus(status)) {
         for (const item of items) {
-            if (item.status === 'Failed') {
-                itemsToResend.push(item);  
-            } else if (item.status === 'NotExecuted' && item.validation_status === 'ValidationFailed') {
-                itemsToResend.push(await replaceAddressForFailedItem(item));  
+            if (isTransferFailed(item)) {
+                // Address passed validation — retry with same parameters.
+                itemsToResend.push(item);
+            } else if (isSkipped(item) && item.validation_status === 'ValidationFailed') {
+                // Validation failed — replace the address.
+                itemsToResend.push(await replaceAddressForFailedItem(item));
+            } else if (isSkipped(item) && item.validation_status === 'Validated') {
+                // Strict mode collateral skip — address is fine, resubmit as-is.
+                itemsToResend.push(item);
             }
         }
     }
@@ -306,5 +339,6 @@ app.listen(3000, () => console.log("Webhook listener on :3000"));
   - Partial：retry **only failed** items (avoid duplicate payouts)
 - **Webhook idempotency**: use `bulk_send_id + status + updated_timestamp` as an idempotency key to avoid duplicated resend triggers.
 - **Failure classification**:
-  - validation_status=ValidationFailed：prioritize replacing the address
-  - status=Failed/NotExecuted： also recommended to replace the address (per your rule), and retain the failure reason for risk control and user messaging
+  - `validation_status=ValidationFailed` — the address did not pass KYA validation. Replace the address.
+  - `status=Failed` — the on-chain transfer was attempted but failed. The address passed validation, so retrying with the same address may succeed. Retain failure details for risk control.
+  - `status=NotExecuted` — the item was never executed. If `validation_status=ValidationFailed`, replace the address. If `validation_status=Validated` (Strict mode collateral skip), the address is valid and can be resubmitted as-is.
