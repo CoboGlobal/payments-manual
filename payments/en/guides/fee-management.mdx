@@ -1,0 +1,48 @@
+---
+title: "Fee Management"
+sidebarTitle: "Fee Management"
+lang: "en"
+---
+
+## Overview
+
+Fee Management is your Payments account for funding the operational fees that Cobo charges for pay-ins, payouts, refunds, and other Payments operations. Fund this account in advance; Cobo deducts fees as they are incurred. For fee calculation and deduction details, see [Billing](/payments/en/guides/billing).
+
+## Key concepts
+
+Your Fee Management balance is separate from your developer and merchant account balances. Developer and merchant accounts hold funds available for payouts and refunds. Fee Management holds funds used for Cobo's operational fees. See [Accounts and fund allocation](/payments/en/guides/amounts-and-balances) for the account model.
+
+API operation names continue to use the legacy **Fee Station** identifier. Keep these operation names and API paths unchanged in your integration.
+
+## Implementation
+
+### Fund your account
+
+Use the Fee Station API operations to retrieve a deposit address and verify the resulting balance:
+
+1. Call [List Fee Station addresses](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-addresses). Filter by chain or address when needed, and use the returned `chain_id`, `address`, and address details to prepare the transfer.
+2. Transfer a supported token to the returned address using its corresponding chain.
+3. Call [List Fee Station token balances](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and verify that the token balance reflects the deposit before initiating fee-bearing operations.
+
+<Warning>Confirm that the token and chain match the returned deposit address before transferring funds.</Warning>
+
+## Common scenarios
+
+### Handle an insufficient balance
+
+When Cobo cannot charge a payout or refund fee, the operation can fail and return a `failed_reason` indicating that the fee balance is insufficient. The affected payout or refund can have a `Failed` or `PartiallyCompleted` status.
+
+Recover the operation as follows:
+
+1. Retrieve a deposit address and fund Fee Management.
+2. Query the token balances until the deposit is reflected.
+3. Retry the failed operation through your integration workflow.
+4. Retrieve the payout or refund and verify its latest status.
+
+To detect low balances before operations fail, poll [List Fee Station token balances](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and trigger an alert in your monitoring system at the threshold required by your transaction volume.
+
+## Related guides
+
+- [Billing](/payments/en/guides/billing)
+- [Choose your fee model](/payments/en/guides/choose-your-fee-model)
+- [Accounts and fund allocation](/payments/en/guides/amounts-and-balances)

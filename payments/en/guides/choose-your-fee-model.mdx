@@ -1,0 +1,115 @@
+---
+title: "Choose your fee model"
+sidebarTitle: "Choose your fee model"
+lang: "en"
+---
+
+## Overview
+
+Use this guide to identify the Payments fee model for your integration scenario and preview costs with [Estimate fees](/payments/en/api-references/payment/estimate-fees) before you build.
+
+## Pay-in
+
+Pay-in is free on Starter Test and Starter Live. Enterprise pay-in pricing is contract-based.
+
+Keep these two charges separate in your cost model:
+
+- The Cobo commission fee is the amount Cobo charges for the operation.
+- The developer fee, such as `fee_amount` on an order, is the amount you configure and charge your merchant or payer.
+
+Preview an Order fee with a request such as:
+
+```json
+{
+  "fee_type": "Order",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+## Crypto payout
+
+Payout pricing depends on your plan or contract. Preview the commission before creating the payout:
+
+```json
+{
+  "fee_type": "CryptoPayout",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+For example, 120 payouts of 3,000 USDT per day for 30 days produce a monthly payout volume of:
+
+`120 x 3,000 x 30 = 10,800,000 USDT`
+
+At a symbolic contract rate, the commission is:
+
+`10,800,000 x contract_rate`
+
+Compare the result with the monthly minimum spend for your plan. If calculated monthly fees are below the applicable minimum, the minimum is still charged. See [Billing](/payments/en/guides/billing#fee-management-and-monthly-minimum-spend).
+
+## Combined pay-in and payout
+
+The `fee_type` field accepts one value per Estimate fees request. Model a combined month with separate requests:
+
+1. Call Estimate fees with `fee_type: Order` for pay-ins.
+2. Call Estimate fees with `fee_type: CryptoPayout` for payouts.
+3. Add the estimates for your forecast, then compare monthly fees with your plan's minimum spend.
+
+Both operation types use the organization's plan and Fee Management balance.
+
+## Off-Ramp payout
+
+Off-Ramp is available on Enterprise. An `OffRampPayout` estimate returns the Cobo `commission_fee` and the `otc_fee` conversion information for each requested amount:
+
+```json
+{
+  "fee_type": "OffRampPayout",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+See [Off-Ramp fee](/payments/en/guides/billing#off-ramp-fee) for reconciliation behavior.
+
+## Cross-chain payout
+
+Use a cross-chain payout when the recipient token or chain differs from the payout source. This feature is available on Starter Live and Enterprise. Set `recipient_token_id` when `fee_type` is `CryptoPayoutBridge`:
+
+```json
+{
+  "fee_type": "CryptoPayoutBridge",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ],
+  "recipient_token_id": "TRON_USDT"
+}
+```
+
+The response uses `bridging_fee.fee_amount` for the bridge fee, `bridging_fee.received_token_id` for the destination token, and `bridging_fee.received_amount` for the amount after the bridge fee is deducted. See [Bridge fee](/payments/en/guides/billing#bridge-fee).
+
+## Starter or Enterprise
+
+Choose Starter Live for self-service mainnet pay-ins and payouts, including cross-chain payouts, without the Starter Test usage limits. Choose Enterprise when you need Off-Ramp, the development environment, or contract-based pricing. See the complete [plan comparison](/payments/en/guides/packages); for Enterprise activation, use the sales contact linked there.
+
+## Related guides
+
+- [Billing](/payments/en/guides/billing)
+- [Fee Management](/payments/en/guides/fee-management)
+- [Plans](/payments/en/guides/packages)

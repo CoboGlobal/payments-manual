@@ -18,6 +18,12 @@ When you generate a report, you define the report scope with these shared inputs
 
 Use these inputs to define the time range, output format, and report scope. For detailed request and response mechanics, see the related API operations below.
 
+## Where to generate and download reports
+
+Use [Generate reports](/payments/en/api-references/payment/generate-reports) to request a report. The API key requires the `payment_reports.create` scope. Use [List all reports](/payments/en/api-references/payment/list-all-reports) to retrieve generated report records; this operation requires `payment_reports.read`.
+
+List results are paginated. Set `limit` to control the page size and use either `before` or `after` to move through the result set.
+
 ## Report types and when to use them
 
 The current Payments documentation confirms the following report types:
@@ -284,6 +290,8 @@ Each row represents one daily pay-in statement entry across order mode and top-u
 
 Each row represents one crypto payout record.
 
+For the fee and net-amount mechanics behind the `bridge_fee` column, see [Bridge fee](/payments/en/guides/billing#bridge-fee).
+
 This report is always exported as an XLSX file. The first sheet, `payout crypto`, covers standard crypto payouts. When a payout is routed through a cross-chain bridge, the export includes a second sheet, `payout crypto with bridge`, that repeats the first sheet's columns and adds the bridge columns listed after it.
 
 Sheet `payout crypto`:
@@ -320,6 +328,8 @@ Sheet `payout crypto with bridge` additional columns (in addition to all columns
 
 Each row represents one fiat off-ramp payout record.
 
+For the commission and conversion components to reconcile with this report, see [Off-Ramp fee](/payments/en/guides/billing#off-ramp-fee).
+
 | Column | Description |
 | --- | --- |
 | `created_time` | When the payout was created; exported under the `Created Time(UTC+8)` column header. |
@@ -340,6 +350,8 @@ Each row represents one fiat off-ramp payout record.
 ### `Refund`
 
 Each row represents one refund record.
+
+For developer and Cobo commission fee behavior, see [Refund fees](/payments/en/guides/billing#refund-fees).
 
 | Column | Description |
 | --- | --- |
@@ -405,6 +417,8 @@ Each row represents one daily payout statement entry across crypto payouts, off-
 
 Each row represents one commission fee record related to pay-in activity.
 
+For the distinction between Cobo commission fees and developer fees, see [Pay-in](/payments/en/guides/billing#pay-in).
+
 | Column | Description |
 | --- | --- |
 | `merchant_id` | Merchant the fee is attributed to. |
@@ -419,6 +433,8 @@ Each row represents one commission fee record related to pay-in activity.
 ### `PayoutCommissionFee`
 
 Each row represents one commission fee record related to payout activity.
+
+For payout commission calculation, estimation, and charging, see [Payout commission fee](/payments/en/guides/billing#payout-commission-fee).
 
 | Column | Description |
 | --- | --- |

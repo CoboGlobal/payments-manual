@@ -7,9 +7,13 @@ lang: "zh-hans"
 
 ## 费用类型
 
+Cobo 会对收款、资金转出、退款等操作收取佣金费用。这些费用通过 `commission_fee` 或 `commission_fees` 返回，与您自行向商户或付款方收取的开发者费用（如 `fee_amount`、`merchant_fee_amount` 和 `developer_fee_rate`）相互独立。
+
 ### 收款（Pay-In）
 
 Starter Test 套餐和 Starter Live 套餐的收款功能免费。Enterprise 套餐的收款手续费以销售合同为准。
+
+接受付款前，调用 [Estimate fees](/payments/en/api-references/payment/estimate-fees) 并将 `fee_type` 设置为 `Order`，预估 Cobo 佣金费用。在订单中，`fee_amount` 是您添加到基础金额并向付款方收取的开发者费用，并非 Cobo 佣金费用。使用 `PayinCommissionFee` 报表对账 Cobo 的收款佣金费用。
 
 ### 资金转出（Payout）
 
@@ -22,24 +26,59 @@ Starter Test 套餐和 Starter Live 套餐的收款功能免费。Enterprise 套
 |  | Starter Test 套餐 | Starter Live 套餐 | Enterprise |
 |---|---|---|---|
 | **资金转出手续费** | 免费（测试币，无真实价值） | 以产品页面提示为准 | 以销售合同为准 |
-| **月最低消费** | — | 以产品页面提示为准 | 以销售合同为准 |
+| **月最低消费** | - | 以产品页面提示为准 | 以销售合同为准 |
+
+#### 资金转出佣金费用
+
+资金转出佣金是 Cobo 收取的费用，不会从资金转出金额中扣除。按百分比计费时，计算方式如下：
+
+`commission_fee = payout_amount x contract_rate`
+
+适用费率取决于您的套餐或合同。创建资金转出前，调用 [Estimate fees](/payments/en/api-references/payment/estimate-fees) 并将 `fee_type` 设置为 `CryptoPayout`。预估结果表示立即执行操作时适用的费用；实际费用可能随使用量和适用费率变化。
+
+Cobo 从 Fee Management 余额中扣除该佣金。资金转出完成后，Payout 记录的 `commission_fees` 返回实际收取的金额；未产生费用时不返回该字段，费用退回时返回 `0`。如需按周期对账，请生成 [`PayoutCommissionFee` 报表](/payments/cn/guides/reports#payoutcommissionfee)。
 
 ### Off-Ramp 手续费
 
 Off-Ramp 功能仅 Enterprise 套餐支持，具体费率以销售合同为准。
 
-### 跨链手续费
+当 `fee_type` 为 `OffRampPayout` 时，[Estimate fees](/payments/en/api-references/payment/estimate-fees) 会针对请求中的每组 `token_id` 和 `amount` 返回 Cobo `commission_fee`，以及 `otc_fee` 中的兑换信息。对账时需分别核对这两部分。使用 `OffRamp` 报表核对实际资金转出明细，使用 `PayoutCommissionFee` 报表核对 Cobo 佣金费用。
 
-跨链（Bridge）是指将资产从一条区块链网络转移到另一条区块链网络的操作，例如将 USDT 从以太坊链转移至 Tron 链。跨链功能仅 Enterprise 套餐支持，具体费率以销售合同为准。
+### 跨链费用
 
-## Fee Station 与月最低消费
+跨链（Bridge）是指将资产从一条区块链网络转移到另一条区块链网络，例如将 USDT 从以太坊转移到 TRON。Starter Live 和 Enterprise 套餐支持此功能，适用费率取决于您的套餐或合同。
 
-您在 Cobo 产生的所有费用均通过 **Fee Station** 统一结算。Starter Live 套餐和 Enterprise 套餐均设有月最低消费额度：
+在跨链预估结果中，`bridging_fee.fee_amount` 是跨链收取的费用，`bridging_fee.received_token_id` 和 `bridging_fee.received_amount` 分别表示目标代币和扣除跨链费用后的到账金额。以上字段为预估值。完成资金转出后，以 Payout 记录中的 `actual_payout_amount` 作为实际发送给收款方的金额。
 
-- **Starter Live 套餐**：月最低消费额度以产品页面提示为准。Fee Station 采用预充值方式，当月实际产生的费用可抵扣该金额；若当月费用未达最低消费额度，仍按最低消费额度收取。
+有关执行和对账详情，请参考[加密货币转账](/payments/cn/guides/crypto-payouts)以及[报表](/payments/cn/guides/reports#cryptopayout)中的 `payout crypto with bridge` 工作表。
+
+### 退款费用
+
+一笔退款可以包含两笔独立费用：
+
+- 仅当 `charge_merchant_fee` 为 `true` 时收取开发者费用。系统从商户余额中扣除 `merchant_fee_amount`（币种由 `merchant_fee_token_id` 指定），并计入开发者余额。
+- Cobo 佣金费用通过 `commission_fee` 返回。未产生费用时不返回该字段，产生费用后返回实际收取金额，费用退回时返回 `0`。
+
+如果 Fee Management 余额不足以支付 Cobo 佣金费用，退款可能失败。有关退款费用的完整结算机制，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#退款)。
+
+## Fee Management 与月最低消费
+
+您在 Cobo Payments 产生的所有费用均通过您的 **Fee Management** 账户统一结算。Starter Live 套餐和 Enterprise 套餐均设有月最低消费额度：
+
+- **Starter Live 套餐**：月最低消费额度以产品页面提示为准。Fee Management 采用预充值方式，当月实际产生的费用可抵扣该金额；若当月费用未达最低消费额度，仍按最低消费额度收取。
 - **Enterprise**：月最低消费额度及抵扣规则以销售合同为准。
 
-建议定期检查 Fee Station 余额，确保余额充足，避免因余额不足导致资金转出受阻。有关充值操作，请参考[向 Fee Station 充值](https://manuals.cobo.com/cn/portal/fee-station/deposit)。
+请定期检查 Fee Management 余额，以免因余额不足影响资金转出。有关充值与余额查询，请参考 [Fee Management](/payments/cn/guides/fee-management)。
+
+## 对账
+
+| 查询目标 | 使用方式 |
+| --- | --- |
+| 当前开发者余额或商户余额 | [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 或 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) |
+| 余额变动原因 | [List balance changes](/payments/en/api-references/payment/list-balance-changes)，按 `source_type` 或 `source_id` 筛选 |
+| 指定周期内的费用总额 | 生成 `PayinCommissionFee` 或 `PayoutCommissionFee` 报表；详见[报表](/payments/cn/guides/reports) |
+| Off-Ramp 资金转出明细 | 生成 `OffRamp` 报表 |
+| Bulk Send 明细 | 生成 `BulkSend` 报表 |
 
 ## 账户逾期处理
 

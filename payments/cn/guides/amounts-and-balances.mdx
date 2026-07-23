@@ -152,6 +152,9 @@ graph TD
 
 账户余额指某一账户在特定时刻可用于资金转出（Payout）或退款的资金总额。该余额可以通过 Payments App 的**余额**模块或调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 以及 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 进行查询。
 
+<Note>此处的余额是可用于资金转出和退款的开发者余额或商户余额，并非收入或利润。佣金费用等费用扣款属于运营余额承担的成本，不代表业务收入减少。</Note>
+
+如需查询余额变动原因，而非仅查询当前总额，请使用 [List balance changes](/payments/en/api-references/payment/list-balance-changes)，并按 `source_type`（例如 `Payout`、`RefundOut` 或 `OrderIn`）或 `source_id` 筛选。
 
 账户余额的变动主要来源于以下活动：
 
@@ -195,7 +198,6 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
 
 
 

@@ -1,0 +1,115 @@
+---
+title: "选择计费模式"
+sidebarTitle: "选择计费模式"
+lang: "zh-hans"
+---
+
+## 概述
+
+本指南帮助您根据集成场景确定适用的 Payments 计费模式，并在开发前通过 [Estimate fees](/payments/en/api-references/payment/estimate-fees) 预估费用。
+
+## 收款
+
+Starter Test 和 Starter Live 套餐的收款功能免费。Enterprise 套餐的收款价格以合同为准。
+
+在成本模型中，请区分以下两笔费用：
+
+- Cobo 佣金费用是 Cobo 针对操作收取的金额。
+- 开发者费用（例如订单中的 `fee_amount`）是您自行配置并向商户或付款方收取的金额。
+
+使用以下请求预估 `Order` 费用：
+
+```json
+{
+  "fee_type": "Order",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+## 加密货币转账
+
+资金转出价格取决于您的套餐或合同。创建资金转出前，使用以下请求预估佣金费用：
+
+```json
+{
+  "fee_type": "CryptoPayout",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+例如，每天进行 120 笔资金转出，每笔 3,000 USDT，按 30 天计算的月资金转出总额为：
+
+`120 x 3,000 x 30 = 10,800,000 USDT`
+
+使用符号费率计算的佣金费用为：
+
+`10,800,000 x contract_rate`
+
+将计算结果与套餐的月最低消费比较。如果当月计算所得费用低于适用的最低消费，仍按最低消费收取。详见[计费说明](/payments/cn/guides/billing#fee-management-与月最低消费)。
+
+## 收款与资金转出组合
+
+每个 Estimate fees 请求的 `fee_type` 仅接受一个值。请使用两个请求估算组合场景：
+
+1. 针对收款，调用 Estimate fees 并将 `fee_type` 设置为 `Order`。
+2. 针对资金转出，调用 Estimate fees 并将 `fee_type` 设置为 `CryptoPayout`。
+3. 将两项预估相加得出预测值，再与套餐的月最低消费比较。
+
+两类操作共用团队的套餐和 Fee Management 余额。
+
+## Off-Ramp 资金转出
+
+Enterprise 套餐支持 Off-Ramp。针对每组请求金额，`OffRampPayout` 预估结果会返回 Cobo `commission_fee` 和 `otc_fee` 中的兑换信息：
+
+```json
+{
+  "fee_type": "OffRampPayout",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ]
+}
+```
+
+有关对账方式，请参考 [Off-Ramp 手续费](/payments/cn/guides/billing#off-ramp-手续费)。
+
+## 跨链资金转出
+
+当收款方所需的代币或公链与资金转出来源不同时，请使用跨链资金转出。Starter Live 和 Enterprise 套餐支持此功能。当 `fee_type` 为 `CryptoPayoutBridge` 时，请设置 `recipient_token_id`：
+
+```json
+{
+  "fee_type": "CryptoPayoutBridge",
+  "estimate_fees": [
+    {
+      "token_id": "ETH_USDT",
+      "amount": "3000"
+    }
+  ],
+  "recipient_token_id": "TRON_USDT"
+}
+```
+
+响应使用 `bridging_fee.fee_amount` 表示跨链费用，使用 `bridging_fee.received_token_id` 表示目标代币，并使用 `bridging_fee.received_amount` 表示扣除跨链费用后的金额。详见[跨链费用](/payments/cn/guides/billing#跨链费用)。
+
+## 选择 Starter 或 Enterprise
+
+如果您需要自助使用主网收款、资金转出和跨链资金转出，并且不再受 Starter Test 的用量限制，请选择 Starter Live。如果您需要 Off-Ramp、开发环境或合同定价，请选择 Enterprise。请查看完整的[套餐对比](/payments/cn/guides/packages)；如需开通 Enterprise，请使用该页面提供的销售联系入口。
+
+## 相关指南
+
+- [计费说明](/payments/cn/guides/billing)
+- [Fee Management](/payments/cn/guides/fee-management)
+- [套餐方案](/payments/cn/guides/packages)

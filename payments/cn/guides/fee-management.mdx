@@ -1,0 +1,48 @@
+---
+title: "Fee Management"
+sidebarTitle: "Fee Management"
+lang: "zh-hans"
+---
+
+## 概述
+
+Fee Management 是用于支付 Cobo Payments 运营费用的账户。Cobo 对收款、资金转出、退款等 Payments 操作收取费用时，会从您预先充值的此账户中扣款。有关费用计算和扣款详情，请参考[计费说明](/payments/cn/guides/billing)。
+
+## 核心概念
+
+Fee Management 余额与开发者余额和商户余额相互独立。开发者账户和商户账户持有可用于资金转出和退款的资金，Fee Management 则持有用于支付 Cobo 运营费用的资金。有关账户模型，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
+
+API 操作名称仍使用原有的 **Fee Station** 标识符。请勿更改集成中的操作名称和 API 路径。
+
+## 实现
+
+### 为账户充值
+
+使用 Fee Station API 操作获取充值地址并核对充值后的余额：
+
+1. 调用 [List Fee Station addresses](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-addresses)。按需根据公链或地址筛选，并使用返回的 `chain_id`、`address` 和地址详情准备转账。
+2. 通过对应公链，将支持的代币转入返回的地址。
+3. 调用 [List Fee Station token balances](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances)，并在发起会产生费用的操作前，确认代币余额已包含本次充值。
+
+<Warning>转账前，请确认代币和公链与返回的充值地址匹配。</Warning>
+
+## 常见场景
+
+### 处理余额不足
+
+当 Cobo 无法扣除资金转出或退款费用时，操作可能失败，并通过 `failed_reason` 表明费用余额不足。受影响的资金转出或退款状态可能为 `Failed` 或 `PartiallyCompleted`。
+
+按以下步骤恢复操作：
+
+1. 获取充值地址并为 Fee Management 充值。
+2. 查询代币余额，直至余额已包含本次充值。
+3. 通过您的集成流程重试失败的操作。
+4. 查询资金转出或退款记录，并确认最新状态。
+
+如需在操作失败前发现余额不足，请定期调用 [List Fee Station token balances](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances)，并根据交易量在您的监控系统中设置余额阈值提醒。
+
+## 相关指南
+
+- [计费说明](/payments/cn/guides/billing)
+- [选择计费模式](/payments/cn/guides/choose-your-fee-model)
+- [账户与资金分配](/payments/cn/guides/amounts-and-balances)

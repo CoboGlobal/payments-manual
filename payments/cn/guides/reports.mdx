@@ -18,6 +18,12 @@ lang: "zh-hans"
 
 您可以使用这些输入定义时间范围、导出格式和报表范围。有关具体的请求与响应机制，请参见下方相关 API 操作。
 
+## 生成和下载报表
+
+使用 [Generate reports](/payments/en/api-references/payment/generate-reports) 请求生成报表。API Key 需具备 `payment_reports.create` 权限。使用 [List all reports](/payments/en/api-references/payment/list-all-reports) 查询已生成的报表记录；此操作需具备 `payment_reports.read` 权限。
+
+列表结果采用分页方式返回。使用 `limit` 控制每页数量，并使用 `before` 或 `after` 翻页。
+
 ## 报表类型及适用场景
 
 当前 Payments 文档已确认以下报表类型：
@@ -284,6 +290,8 @@ lang: "zh-hans"
 
 每一行代表一笔加密货币转出记录。
 
+有关 `bridge_fee` 列对应的费用和到账金额机制，请参考[跨链费用](/payments/cn/guides/billing#跨链费用)。
+
 该报表始终以 XLSX 文件导出。第一个工作表 `payout crypto` 覆盖标准加密货币转出。当转出经过跨链路由时，导出会包含第二个工作表 `payout crypto with bridge`，它重复第一个工作表的所有列，并新增下方列出的跨链相关列。
 
 工作表 `payout crypto`：
@@ -320,6 +328,8 @@ lang: "zh-hans"
 
 每一行代表一笔法币 Off-Ramp 转出记录。
 
+有关需要与此报表核对的佣金和兑换组成，请参考 [Off-Ramp 手续费](/payments/cn/guides/billing#off-ramp-手续费)。
+
 | 列 | 说明 |
 | --- | --- |
 | `created_time` | 转出创建时间；导出列标题为 `Created Time(UTC+8)`。 |
@@ -340,6 +350,8 @@ lang: "zh-hans"
 ### `Refund`
 
 每一行代表一笔退款记录。
+
+有关开发者费用和 Cobo 佣金费用的处理方式，请参考[退款费用](/payments/cn/guides/billing#退款费用)。
 
 | 列 | 说明 |
 | --- | --- |
@@ -405,6 +417,8 @@ lang: "zh-hans"
 
 每一行代表一条与收款相关的手续费记录。
 
+有关 Cobo 佣金费用与开发者费用的区别，请参考[收款（Pay-In）](/payments/cn/guides/billing#收款pay-in)。
+
 | 列 | 说明 |
 | --- | --- |
 | `merchant_id` | 归属该手续费的商户。 |
@@ -419,6 +433,8 @@ lang: "zh-hans"
 ### `PayoutCommissionFee`
 
 每一行代表一条与转出相关的手续费记录。
+
+有关资金转出佣金费用的计算、预估和扣款，请参考[资金转出佣金费用](/payments/cn/guides/billing#资金转出佣金费用)。
 
 | 列 | 说明 |
 | --- | --- |

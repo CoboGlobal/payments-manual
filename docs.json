@@ -81,7 +81,9 @@
                 "group": "Reference",
                 "pages": [
                   "payments/en/guides/packages",
+                  "payments/en/guides/choose-your-fee-model",
                   "payments/en/guides/billing",
+                  "payments/en/guides/fee-management",
                   "payments/en/guides/supported-chains-and-tokens",
                   "payments/en/guides/status-and-events",
                   "payments/en/guides/roles-and-permissions",
@@ -378,7 +380,9 @@
                 "group": "索引信息",
                 "pages": [
                   "payments/cn/guides/packages",
+                  "payments/cn/guides/choose-your-fee-model",
                   "payments/cn/guides/billing",
+                  "payments/cn/guides/fee-management",
                   "payments/cn/guides/supported-chains-and-tokens",
                   "payments/cn/guides/status-and-events",
                   "payments/cn/guides/roles-and-permissions",

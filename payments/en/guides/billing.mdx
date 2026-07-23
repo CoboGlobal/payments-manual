@@ -5,42 +5,81 @@ lang: "en"
 
 This article describes the billing rules for each Cobo Payments plan. For information on the features supported by each plan, refer to [Plans](/payments/en/guides/packages).
 
-## Fee Types
+## Fee types
 
-### Pay-In
+Cobo charges commission fees for pay-ins, payouts, refunds, and other operations. These charges are returned in `commission_fee` or `commission_fees`. They are separate from developer fees, such as `fee_amount`, `merchant_fee_amount`, and `developer_fee_rate`, that you configure for your own merchants or payers.
+
+### Pay-in
 
 Pay-in is free for the Starter Test and Starter Live plans. For the Enterprise plan, pay-in fees are subject to the sales contract.
+
+Before accepting a payment, call [Estimate fees](/payments/en/api-references/payment/estimate-fees) with `fee_type: Order` to preview the Cobo commission fee. On an order, `fee_amount` is the developer fee that you add to the base amount charged to the payer; it is not Cobo's commission fee. Use a `PayinCommissionFee` report to reconcile Cobo's pay-in commission fees.
 
 ### Payout
 
 Payout fees are tiered by plan.
 
 <Note>
-Payouts involve on-chain operations that incur Gas Fees. These fees are fully covered by Cobo and require no additional payment from you.
+Payouts involve on-chain operations that incur gas fees. These fees are fully covered by Cobo and require no additional payment from you.
 </Note>
 
 |  | Starter Test | Starter Live | Enterprise |
 |---|---|---|---|
-| **Payout Fee** | Free (test tokens, no real value) | As indicated on the product page | Subject to the sales contract |
-| **Monthly Minimum Spend** | — | As indicated on the product page | Subject to the sales contract |
+| **Payout fee** | Free (test tokens, no real value) | As indicated on the product page | Subject to the sales contract |
+| **Monthly minimum spend** | - | As indicated on the product page | Subject to the sales contract |
 
-### Off-Ramp Fee
+#### Payout commission fee
+
+The payout commission is a Cobo fee and is not deducted from the payout amount. For a percentage-based rate, calculate it as:
+
+`commission_fee = payout_amount x contract_rate`
+
+The applicable rate depends on your plan or contract. Before creating a payout, call [Estimate fees](/payments/en/api-references/payment/estimate-fees) with `fee_type: CryptoPayout`. The estimate reflects the fee that would apply if you executed the operation immediately; the actual fee can vary with your usage volume and applicable rate.
+
+Cobo charges the commission against your Fee Management balance. The completed Payout record returns charged amounts in `commission_fees`; the field is absent if no fee was incurred and returns `0` for a refunded fee. For period reconciliation, generate a [`PayoutCommissionFee` report](/payments/en/guides/reports#payoutcommissionfee).
+
+### Off-Ramp fee
 
 The Off-Ramp feature is only available for the Enterprise plan. Specific rates are subject to the sales contract.
 
-### Bridge Fee
+For `fee_type: OffRampPayout`, [Estimate fees](/payments/en/api-references/payment/estimate-fees) returns the Cobo `commission_fee` and the conversion information in `otc_fee` for each requested `token_id` and `amount`. Account for both components when reconciling the payout. Use the `OffRamp` report for actual payout details and the `PayoutCommissionFee` report for Cobo commission fees.
 
-Bridge refers to the transfer of assets from one blockchain network to another — for example, moving USDT from Ethereum to the Tron network. The Bridge feature is only available for the Enterprise plan. Specific rates are subject to the sales contract.
+### Bridge fee
 
-## Fee Station and Monthly Minimum Spend
+Bridge refers to transferring assets from one blockchain network to another, for example, moving USDT from Ethereum to TRON. The feature is available for Starter Live and Enterprise plans, and applicable rates depend on your plan or contract.
 
-All fees incurred on Cobo are settled through **Fee Station**. Both the Starter Live and Enterprise plans have a monthly minimum spend:
+For a cross-chain estimate, `bridging_fee.fee_amount` is the fee charged for bridging, while `bridging_fee.received_token_id` and `bridging_fee.received_amount` identify the destination token and the amount after the bridge fee is deducted. Treat these fields as the quote. After completion, use `actual_payout_amount` on the Payout record as the actual amount sent to the recipient.
 
-- **Starter Live**: The monthly minimum spend is as indicated on the product page. Fee Station uses a prepaid model — fees incurred during the month will offset this amount. If the monthly fees are below the minimum, the minimum amount will still be charged.
+See [Crypto payouts](/payments/en/guides/crypto-payouts) and the `payout crypto with bridge` sheet in [Reports](/payments/en/guides/reports#cryptopayout) for execution and reconciliation details.
+
+### Refund fees
+
+A refund can include two separate fees:
+
+- A developer fee is applied only when `charge_merchant_fee` is `true`. The amount in `merchant_fee_amount`, denominated by `merchant_fee_token_id`, is deducted from the merchant balance and added to the developer balance.
+- Cobo's commission is returned in `commission_fee`. The field is absent when no fee is incurred, contains the charged amount after the fee is incurred, and returns `0` if the fee is refunded.
+
+The refund can fail when the Fee Management balance is insufficient to charge the Cobo commission. For the full settlement mechanics, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#refunds).
+
+## Fee Management and monthly minimum spend
+
+All fees incurred on Cobo Payments are settled through your **Fee Management** account. Both the Starter Live and Enterprise plans have a monthly minimum spend:
+
+- **Starter Live**: The monthly minimum spend is as indicated on the product page. Fee Management uses a prepaid model. Fees incurred during the month offset this amount. If the monthly fees are below the minimum, the minimum amount is still charged.
 - **Enterprise**: The monthly minimum spend and offset rules are subject to the sales contract.
 
-We recommend regularly checking your Fee Station balance to ensure sufficient funds and avoid disruption to payout operations. For top-up instructions, refer to [Top Up Fee Station](https://manuals.cobo.com/en/portal/fee-station/deposit).
+Check your Fee Management balance regularly to avoid disrupting payout operations. For funding and balance checks, see [Fee Management](/payments/en/guides/fee-management).
 
-## Overdue Accounts
+## Reconciliation
+
+| You want to check | Use |
+| --- | --- |
+| Current developer or merchant balance | [Get developer balance](/payments/en/api-references/payment/get-developer-balance) or [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) |
+| Why a balance changed | [List balance changes](/payments/en/api-references/payment/list-balance-changes), filtered by `source_type` or `source_id` |
+| Fee totals over a period | Generate a `PayinCommissionFee` or `PayoutCommissionFee` report; see [Reports](/payments/en/guides/reports) |
+| Off-Ramp payout details | Generate an `OffRamp` report |
+| Bulk Send details | Generate a `BulkSend` report |
+
+## Overdue accounts
 
 If an account becomes overdue (unpaid invoices beyond a certain period), the system will freeze your team. During the freeze, payout operations will be unavailable. Please settle outstanding balances promptly to restore normal access.

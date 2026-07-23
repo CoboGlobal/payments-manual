@@ -154,6 +154,9 @@ In addition to automatic settlement during payment collection, you can also use 
 
 Account balance refers to the total amount of funds in an account that can be used for payouts or refunds at a specific moment. This balance can be queried through the **Balance** module in the Payments App or by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance).
 
+<Note>Balance here means the developer or merchant account balance available for payouts and refunds. It is not a revenue or profit figure. A fee deduction, such as a payout commission fee, is a cost against this operating balance, not a reduction in business revenue.</Note>
+
+To see why a balance changed rather than only its current total, use [List balance changes](/payments/en/api-references/payment/list-balance-changes), filtered by `source_type` (for example, `Payout`, `RefundOut`, or `OrderIn`) or `source_id`.
 
 Balance changes mainly come from the following activities:
 
@@ -197,7 +200,6 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
 
 
 
