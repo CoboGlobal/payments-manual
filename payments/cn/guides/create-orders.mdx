@@ -20,6 +20,8 @@ lang: "zh-hans"
 - 调用 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 直接创建一个支付订单。调用成功后，您将得到应付金额、付款地址等信息。您需要自行搭建前端页面，也可借助 [React SDK / Vue SDK](/payments/cn/guides/payment-toolkit) 引入 Web3 支付能力；
 - 调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。该链接会跳转到由 Cobo 提供的支付页面，付款方可在该页面创建订单并完成支付，无需您自行开发前端交互流程。您还可以通过 iFrame 方式将该支付页面嵌入到您的网站或应用中。
 
+该订单的收款商户为订单创建时指定的商户，且该归属之后不会改变。有关订单与充值两种收款方式的完整资金路由模型，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)。
+
 ### 前提条件
 
 您已完成[前置准备](/payments/cn/guides/preparation)中提到的所有步骤。
@@ -143,7 +145,7 @@ lang: "zh-hans"
 | **少付** | 在订单有效期内，付款方实付金额少于应付金额 | 订单状态为 `Underpaid`（终态）。                                     |
 | **晚付** | 付款方在订单过期后进行首次或再次付款    | 不会改变订单状态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。 |
 
-[账户与资金分配](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下，Cobo 对资金的处理规则。
+[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)中详细介绍了多付、少付和晚付情况下 Cobo 对资金的处理规则，包括：当充币发生在订单已经过期、已达到终态 `Underpaid`，或已处于 `Completed` 状态之后时，该笔资金会被计入开发者账户，而非商户账户。
 
 ### 处理退款申请
 
@@ -256,4 +258,3 @@ sequenceDiagram
 
 为优化您的账户成本，避免因粉尘金额产生的入账手续费高于交易金额，系统设定了最小入账阈值。当单笔交易金额低于 **0.05 USDT**（或等值币种）时，系统将不自动进行入账处理。\
 _注：若您需要对此类低于阈值的累积资金进行手动处理，请联系 Cobo 客服或技术支持，我们将协助您从归集地址提取。_
-

@@ -18,6 +18,19 @@ lang: "zh-hans"
 
 当您执行资金转出（Payout）或退款等操作时，需要选择使用哪个账户作为资金来源。
 
+## 充币归属
+
+每笔充币都需要先归属到某个商户账户，才能进行结算。Cobo 判断目标商户的方式取决于收款模式：
+
+- **充值模式**：Cobo 会先根据收款地址解析出对应的付款方，然后将充币归属到创建该付款方与地址时绑定的商户。更换付款方的充值地址不会改变这一归属关系，详见[地址更换后的影响](/payments/cn/guides/get-topup-addresses#地址更换后的影响)。
+- **订单模式**：Cobo 会将充币归属到订单创建时存储的商户。即使后续有充币交易到达同一订单地址，该归属也不会改变。
+
+为兼顾这两种视角，Cobo 的账务记录会同时保留每笔充币的两个维度：支付归属方（付款方或订单）与实际到账的收款地址。您既可以按付款方/订单关系追溯充币记录，也可以按链上地址追溯。
+
+<Note>
+若充币发生在订单已经达到 `Expired`、终态 `Underpaid`，或 `Completed` 状态之后，该笔充币将被计入开发者账户，而非商户账户，因为该订单已无法再将其作为正常付款接受。
+</Note>
+
 ## 资金结算与划转
 
 资金可以通过两种方式在账户之间分配：
@@ -152,6 +165,8 @@ graph TD
 
 账户余额指某一账户在特定时刻可用于资金转出（Payout）或退款的资金总额。该余额可以通过 Payments App 的**余额**模块或调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 以及 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 进行查询。
 
+资金转出（Payout）的可提交资格基于此账本余额判断，而不是基于链上资金是否已经完成物理归集（Sweep）到可转出地址。即使后台的资金归集仍在进行中，只要账本余额充足，商户或开发者账户就具备发起资金转出的资格。有关 Cobo 如何在转出前准备和归集资金，以及可能产生的时间延迟，请参考[加密货币转账](/payments/cn/guides/crypto-payouts#资金准备与归集)。
+
 
 账户余额的变动主要来源于以下活动：
 
@@ -195,8 +210,6 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
-
 
 
 

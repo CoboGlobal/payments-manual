@@ -108,3 +108,15 @@ You can also actively query transfer request status through Payments App or Paym
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - Query detailed information about all transfer requests
   </Tab>
 </Tabs>
+
+## Fund preparation and sweeping
+
+Cobo consolidates, or sweeps, funds that have arrived at deposit or collection addresses so they are ready to send out. This sweep cadence runs on Cobo's internal, organization-level configuration — it is not a setting you configure as part of a payout request.
+
+When you submit a payout, Cobo first checks whether the source account (merchant or developer) has sufficient ledger balance, as described in [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#balances). A sufficient ledger balance makes the payout eligible to submit — it does not mean the payout executes immediately. Cobo then separately checks whether the underlying on-chain funds still need to be consolidated to a payout-ready address, and automatically starts that consolidation if needed. You do not need to take any action to trigger it.
+
+While this fund preparation is in progress, the payout remains in the `Pending` status. Cobo retries fund preparation automatically if it fails. If a payout stays `Pending` for longer than expected, requery its status with [Get payout information](/payments/en/api-references/payment/get-payout-information).
+
+<Note>
+[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) and [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) are deprecated and retained only for backward compatibility. You do not need to call them before creating a payout — fund consolidation now happens automatically as part of payout processing.
+</Note>

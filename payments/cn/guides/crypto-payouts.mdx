@@ -89,3 +89,15 @@ lang: "zh-hans"
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - 查询所有转账请求的详细信息
   </Tab>
 </Tabs>
+
+## 资金准备与归集
+
+Cobo 会对到达充币地址或归集地址的资金进行归集（Sweep），以便随时可用于转出。归集的执行节奏由 Cobo 内部的机构级配置统一管理，并不是资金转出请求中可配置的选项。
+
+当您提交资金转出请求时，Cobo 会首先检查来源账户（商户或开发者）的账本余额是否充足，详见[账户与资金分配](/payments/cn/guides/amounts-and-balances#余额)。账本余额充足仅代表该笔转出具备提交资格，并不代表会立即执行。随后，Cobo 会单独检测链上资金是否仍需要归集到可用于转出的地址，并在需要时自动发起归集，无需您采取任何操作。
+
+在资金准备过程中，转出请求会保持 `Pending` 状态。如果资金准备失败，Cobo 会自动重试；如果转出请求的 `Pending` 状态持续时间超出预期，您可以调用 [Get payout information](/payments/en/api-references/payment/get-payout-information) 重新查询转出状态。
+
+<Note>
+[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) 和 [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) 操作已废弃，仅为兼容旧版本而保留。您无需在创建资金转出前调用这些操作 —— 资金归集现已作为转出流程的一部分自动完成。
+</Note>

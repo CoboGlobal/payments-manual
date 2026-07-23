@@ -50,7 +50,7 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
     3. In the App's left navigation bar, click **Pay-In** \> **Top-Ups**.
     4. Click the **Create Payer** button in the upper right corner.
     5. In the pop-up form:
-       - Select a merchant. The payments made by this payer will belong to this merchant.
+       - Select a merchant. Deposits to this payer's top-up address are attributed through the payer and route to the merchant bound at the time the payer and address are created. For the complete deposit-routing model, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution).
        - Select a token and network. Cobo will create a dedicated top-up address on that network for this payer. After creating the payer, you can also create more top-up addresses on other networks for this payer to support multi-chain top-ups.
        - Enter a custom payer ID. This ID needs to be the unique identifier for this payer in your system.
     5. Click **Create** to complete payer creation.
@@ -129,7 +129,7 @@ When you need to replace a top-up address (for example, due to business changes,
 </Warning>
 
 - **Transaction monitoring**: Cobo will continue to monitor transaction activity at the old address, and corresponding transactions will trigger corresponding webhook notifications.
-- **Fund handling**: The association between this address and the merchant still exists. According to the original configuration, received funds will be allocated to the corresponding merchant balance, and if the merchant has a developer fee rate configured, the corresponding proportion of funds will also be allocated to the developer balance.
+- **Fund handling**: The association between this address and the merchant still exists, so deposits continue routing to the same merchant after replacement. For the complete deposit-attribution and settlement model, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution).
 - **Address query**: You can view all addresses that the payer has been bound to in history on Payments App.
 
 ### Compliance screening failure
@@ -148,4 +148,3 @@ For isolated or frozen funds:
 
 - To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold is applied. Transactions with a value below **0.05 USDT** (or equivalent) will not be processed for automatic credit.\
   _Note: If you need to manually recover accumulated funds below this threshold, please contact Cobo Support for assistance in extracting them from the consolidation addresses._
-

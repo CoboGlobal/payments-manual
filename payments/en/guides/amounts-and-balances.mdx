@@ -20,6 +20,19 @@ The following accounts are currently supported:
 
 When you perform operations such as payouts or refunds, you need to select which account to use as the source of funds.
 
+## Deposit attribution
+
+Every deposit must be attributed to a merchant account before it can be settled. How Cobo determines the destination merchant depends on the pay-in mode:
+
+- **Top-up mode**: Cobo resolves the payer associated with the receiving address, then attributes the deposit to the merchant that was bound to that payer and address at the time they were created. Replacing a payer's top-up address does not change this attribution — see [Impact after address replacement](/payments/en/guides/get-topup-addresses#impact-after-address-replacement).
+- **Order mode**: Cobo attributes the deposit to the merchant that was stored on the order at the time the order was created. This destination does not change even if a later deposit arrives against the same order address.
+
+To support both perspectives, Cobo's accounting records preserve two sides of every deposit: the payment owner (the payer or order the funds were paid for) and the receiving address the funds arrived at. This lets you trace a deposit back through either the payer/order relationship or the specific on-chain address it used.
+
+<Note>
+Deposits received after an order has already reached `Expired`, the terminal `Underpaid` status, or `Completed` are credited to the developer account instead of the merchant account, since the order can no longer accept the deposit as part of its normal payment.
+</Note>
+
 ## Fund settlement and allocation
 
 Funds can be distributed between accounts in two ways:
@@ -154,6 +167,8 @@ In addition to automatic settlement during payment collection, you can also use 
 
 Account balance refers to the total amount of funds in an account that can be used for payouts or refunds at a specific moment. This balance can be queried through the **Balance** module in the Payments App or by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance).
 
+Payout eligibility is based on this ledger balance, not on whether the underlying on-chain funds have already been physically consolidated (swept) to a payout-ready address. A merchant or developer account can show a sufficient ledger balance and be eligible for a payout while fund consolidation is still catching up in the background. For how Cobo prepares and consolidates funds ahead of a payout, and the timing this can add, see [Crypto payouts](/payments/en/guides/crypto-payouts#fund-preparation-and-sweeping).
+
 
 Balance changes mainly come from the following activities:
 
@@ -197,7 +212,5 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
-
 
 

@@ -26,6 +26,8 @@ You can create an order in two ways:
 - Call [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) to directly create a payment order. After a successful call, you will receive information such as the payable amount and payment address. You will need to build the frontend page yourself, or you can integrate Web3 payment capabilities using the [React SDK / Vue SDK](/payments/en/guides/payment-toolkit).
 - Call [Create order link](/payments/en/api-references/payment/create-order-link) to generate a payment link. This link will direct users to a payment page provided by Cobo, where they can create an order and complete payment without you needing to develop the front-end interaction. You can also embed this payment page into your website or application using an iFrame.
 
+The merchant that receives payment for this order is the merchant specified when the order is created, and this destination does not change afterward. For the complete deposit-routing model across order and top-up payments, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution).
+
 ### Prerequisites
 
 You have completed all the steps mentioned in [Preparation](/payments/en/guides/preparation).
@@ -162,7 +164,7 @@ The following three exception situations may occur during the payment process:
 | **Underpayment**    | Within the order validity period, the payer's actual payment amount is less than the amount payable | The order status is `Underpaid` (final state).                                                                 |
 | **Late payment**    | The payer makes the first or subsequent payment after the order expires                             | Does not change the order status. Each late payment will trigger one `payment.transaction.late` webhook event. |
 
-[Accounts and fund allocation](/payments/en/guides/amounts-and-balances) details how Cobo handles funds in the case of overpayment, underpayment, and late payment.
+[Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution) details how Cobo handles funds in the case of overpayment, underpayment, and late payment — including that a deposit received after an order has already expired, reached the terminal `Underpaid` status, or is `Completed` is credited to the developer account rather than the merchant account.
 
 ### Handle refund requests
 
@@ -254,4 +256,3 @@ For isolated or frozen funds:
 
 - To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold is applied. Transactions with a value below **0.05 USDT** (or equivalent) will not be processed for automatic credit.\
   _Note: If you need to manually recover accumulated funds below this threshold, please contact Cobo Support for assistance in extracting them from the consolidation addresses._
-
