@@ -15,13 +15,10 @@ When a request fails, the response body contains an `error_code` field (integer)
 |---|---|---|---|
 | 2006 | 400 | One or more parameters are in an invalid format or contain unsupported values. | Validate your request body against the [API reference](/payments/en/api-references/overview). Check parameter types, enum values, and all required fields. The `error_message` field usually names the specific parameter that failed validation. |
 | 2010 | 429 | You have exceeded the API access rate limit. | Reduce request frequency. Implement exponential backoff with jitter before retrying. |
-| 2024 | 401 | API key authentication failed. | <ul><li>Use the API key that corresponds to the current environment (for example, use a development API key in the development environment and a production API key in the production environment).</li><li>Ensure that the API key you are using is registered in Cobo Portal and is in active status.</li><li>If your API key is permanent, make sure the request originates from a whitelisted IP address.</li></ul>For details, see [Send your first request](/payments/en/developer-tools/get-started-with-api). |
-| 2025 | 403 | Your API key does not have the permission required to perform this action. | Check the OAuth scopes and roles assigned to your API key in Cobo Portal. Refer to [Roles and permissions](/payments/en/guides/roles-and-permissions) for details. |
-| 2026 | 429 | Too many requests. Your request rate has exceeded the server-side threshold. | Wait before retrying. Use a retry strategy with exponential backoff. |
-| 2027 | 400 | You have exceeded your quota limit for this resource or operation. | Check your current usage and package limits in Cobo Portal under **Settings** > **Developer**. |
-| 2028 | 404 | The requested resource was not found. | Verify that the resource ID in your request (for example, `merchant_id`, `order_id`, `payer_id`) is correct and belongs to your organization. |
-| 2029 | 400 | The resource is in an invalid status for the requested operation. Common causes: (1) updating a transaction description before the transaction reaches `Completed`, `Rejected`, or `Failed` status; (2) cancelling a transaction export that is not currently in `Generating` status; (3) your payment developer account is not in an active state. | Check the `error_message` field for the specific cause. For transaction description updates, wait until the transaction reaches a terminal status. For export cancellation, verify the export is still generating. |
-| 2040 | 400 | A duplicate key was detected. A record with this identifier already exists. | Use a different unique identifier for the new record. |
+| 2001 | 400 | MFA verification is required before this action can be performed. | Complete MFA verification in Cobo Portal, then retry the request. |
+| 2024 | 401 | API key authentication failed. | <ul><li>If the `error_message` says the API key is not registered in this environment, switch to the correct API host and use the matching API key.</li><li>If the `error_message` says the API key is not yet activated, complete the required approval flow so the key becomes active.</li><li>If the `error_message` mentions the IP whitelist, add your server's egress IP address to the key's allowlist in Cobo Portal.</li><li>If signature verification fails, check that you are signing the correct request path and payload and that the nonce matches the `Biz-Api-Nonce` header.</li></ul>For details, see [Send your first request](/payments/en/developer-tools/get-started-with-api). |
+| 2025, 4001 | 403 | Forbidden access to the requested resource. | <ul><li>Check the permissions and scopes associated with your API key. Refer to [Roles and permissions](/payments/en/guides/roles-and-permissions) for details.</li><li>If the error means the resource is out of your organization, verify that the resource you are accessing belongs to the same organization as the API key.</li><li>Make sure you are using the correct environment and API key combination.</li></ul> |
+| 4002 | 400 | Your organization status does not permit this action. Your developer account may be under review or not fully activated. | Verify that your developer onboarding is complete. If the error persists, your account may have been restricted — check for any notifications in Cobo Portal. |
 
 #### Payment resource errors
 
@@ -29,71 +26,10 @@ Payment-specific validation failures — such as a resource not being found or a
 
 | Scenario | Example `error_message` | Solution |
 |---|---|---|
-| Merchant not found | `Merchant {merchant_id} not found.` | Verify the `merchant_id` value is correct and belongs to your organization. |
-| Order not found | `Order {order_id} not found.` | Verify the `order_id` value. Orders are scoped to the merchant — confirm the order belongs to the merchant you specified. |
-| Topup payer not found | `Topup payer {payer_id} not found.` | Verify the `payer_id` value. Payers are created per merchant. |
-| Token not supported | `Unsupported token {token_id}` | Verify the token ID is correct and the token is enabled for your organization. |
-| Fiat currency not supported | `Unsupported fiat currency: {currency}` | Use a supported fiat currency code. Check the API reference for accepted values. |
-| Invalid amount format | `Invalid amount format: {amount}` | Provide a valid decimal string, for example `"10.50"`. Do not pass integers or scientific notation. |
-| Amount below minimum | Message includes the minimum amount and token symbol. | Increase the amount to meet or exceed the minimum threshold shown in the error message. |
-| Bank account not found | `Bank Account with account_uuid: {id} not found.` | Verify the `bank_account_id` value is correct and belongs to your organization. |
-| Bank account not approved | `Bank account {id} is not approved.` | Ensure the bank account has completed verification and approval before using it in a request. |
-| OTC wallet not found | `Wallet {wallet_id} unsupported or not found.` | Verify the `wallet_id` value. Not all wallet types support OTC conversions. |
-| Invalid receiving address | `Invalid receiving address.` | Check the destination address format and confirm it is compatible with the specified token and chain. |
-| Insufficient OTC balance | Message describes the shortfall. | Check the available OTC balance before submitting the conversion request. |
-| OTC amount below minimum | Message includes the minimum amount. | Increase the conversion amount to meet the minimum shown in the error message. |
-| OTC exchange rate unavailable | `Exchange rate for token {token_id} not found.` | Retry the request. If the error persists, the token may not be supported for OTC conversion. |
-| OTC conversion not found | `Conversion {conversion_code} not found.` | Verify the conversion code or OTC order ID is correct. |
-
-#### Authentication and permissions
-
-| Error code | HTTP status | Description | Solution |
-|---|---|---|---|
-| 2001 | 400 | MFA verification is required before this action can be performed. | Complete MFA verification in Cobo Portal, then retry the request. |
-| 4001 | 403 | Forbidden access to the requested resource. | Check the permissions associated with your API key. Refer to [Roles and permissions](/payments/en/guides/roles-and-permissions) for details. |
-| 4002 | 400 | Your organization status does not permit this action. Your developer account may be under review or not fully activated. | Verify that your developer onboarding is complete. If the error persists, your account may have been restricted — check for any notifications in Cobo Portal. |
-| 10000 | 400 | Your organization has read-only permissions in Cobo Portal and cannot perform write operations. | Contact your organization admin to review the account permissions in Cobo Portal. |
-
-#### Quota and resource limits
-
-| Error code | HTTP status | Description | Solution |
-|---|---|---|---|
-| 3000 | 400 | You have used all available test token claims. The test coin faucet is limited to 10 claims per organization. | Test token claim limits cannot be increased. Use your existing test tokens to continue testing. |
-
-#### Transfer and transaction errors
-
-These error codes are returned when initiating transfers, settlements, or withdrawals.
-
-| Error code | HTTP status | Description | Solution |
-|---|---|---|---|
-| 30001 | 400 | Duplicate `request_id`. This `request_id` has already been used in a previous request. | Each request must use a unique `request_id`. If you are retrying a request, reuse the same `request_id` to retrieve the original result instead of generating a new one. |
-| 30002 | 400 | Unknown token ID. The specified token is not recognized. | Verify the token ID against the list of supported tokens. Call [List supported tokens](/payments/en/api-references/overview) to retrieve valid token IDs for your organization. |
-| 30005 | 400 | The address format is invalid or not compatible with the specified token. | Verify that the destination address is correctly formatted for the token's network. Confirm the address belongs to the correct chain. |
-| 30007 | 400 | Invalid amount. The amount value is not a valid number. | Provide a valid numerical amount. Ensure you are not passing a string, null, or a value in scientific notation. |
-| 30009 | 400 | The amount cannot be less than zero. | Provide a positive amount value. |
-| 30010 | 400 | The transfer amount is below the minimum withdrawal threshold. The `error_message` field includes the minimum amount and token symbol. | Increase the transfer amount to meet or exceed the minimum threshold shown in the error message. |
-| 30012 | 400 | The amount exceeds the available balance in the source wallet. | Check the wallet balance before submitting the transfer. Reduce the transfer amount or top up the wallet. |
-| 30013 | 400 | The fee token balance is insufficient to cover the transaction fee. | Check your fee station balance in Cobo Portal under **Fee Station** and recharge if needed. |
-| 30019 | 400 | The transaction was rejected by an on-chain transaction policy. | Review the on-chain transaction policies configured for your Smart Contract Wallet in Cobo Portal. Adjust the policy or use a different wallet. |
-| 30024 | 400 | Neither `to_address` nor `to_wallet_id` was provided. One of the two is required. | Include either `to_address` or `to_wallet_id` in your request. |
-| 30028 | 400 | The `request_id` parameter is missing or malformed. | Include a valid `request_id` in your request. The value must be a non-empty string. |
-| 30030 | 400 | Withdrawal and deposit services for this token are temporarily unavailable. | Check the Cobo status page for active service notices. Retry after the suspension is lifted. |
-| 30031 | 400 | The token is not enabled for your organization. | Call [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) to verify that the token is available for your account. If it does not appear, the token has not been activated for your organization. |
-| 30036 | 400 | The fee station balance is insufficient to cover the transaction fee. | Top up your fee station with a supported token (for example, USDT or USDC) to ensure sufficient balance for transaction fees, then retry. |
-| 30038 | 400 | The fee station token balance is insufficient to cover the transaction fee. | Top up your fee station with a supported token (for example, USDT or USDC) to ensure sufficient balance for transaction fees, then retry. |
-| 30039 | 400 | Cobo's fee station balance is temporarily insufficient. | Retry the transfer after a short wait. This condition is resolved by Cobo automatically. |
-
-#### Transaction operation errors
-
-These error codes are returned when cancelling, dropping, or speeding up an existing transaction.
-
-| Error code | HTTP status | Description | Solution |
-|---|---|---|---|
-| 60003 | 400 | Failed to estimate the transaction fee. | Retry the fee estimation. If the error persists, verify the token and wallet are properly configured. |
-| 60004 | 400 | This transaction cannot be cancelled. | Only transactions in a pending or processing state can be cancelled. Check the transaction status before attempting to cancel. |
-| 60005 | 400 | The current transaction status does not allow cancellation. | The transaction has progressed past the point where cancellation is possible. Check the transaction status in Cobo Portal. |
-| 60006 | 400 | This transaction cannot be dropped. | Dropping is only available for specific transaction types and statuses. Check the transaction details in Cobo Portal. |
-| 60007 | 400 | This transaction cannot be sped up. | Speed-up is only available for specific transaction types and statuses. Check the transaction details in Cobo Portal. |
+| Merchant, wallet, or transaction not found | Examples include `Wallet not found.`, `Transaction {transaction_id} not found.`, and `Request ID {request_id} not found.` | Verify that the referenced ID exists and belongs to your organization. |
+| Token value rejected | Examples include `Token not found.` and `token_id:{token_id} not found` | Check that the token ID is correct and supported by the endpoint you are calling. |
+| Invalid parameter value | Examples include `Invalid parameter: {param_name}.` and `Invalid parameter: {param_name}({param_value}).` | Compare the request against the API reference and correct the invalid field value named in `error_message`. |
+| Invalid amount or address | Examples include `Error: Invalid amount. Please enter a valid numerical value.` and `Invalid withdrawal address.` | Use a valid numeric amount and a destination address that matches the specified token and chain. |
 
 ### HTTP status codes
 
@@ -101,12 +37,12 @@ These error codes are returned when cancelling, dropping, or speeding up an exis
 |---|---|---|
 | 200 | OK. | N/A |
 | 400 | Bad request. | Check the request parameters. |
-| 401 | Unauthorized. | Check the API key, API signature, or timestamp. |
-| 403 | Forbidden. | Ensure you have the required permissions. |
+| 401 | Unauthorized. | Check whether the API key matches the current environment, whether the API signature is correct, and whether the timestamp or nonce values are valid and consistent with the signed request. |
+| 403 | Forbidden. | Check the business error code in the response body first (for example, `4001`) and then verify permissions, scopes, organization ownership, and any required feature enablement. |
 | 404 | Not Found. | Check the request URL. |
 | 405 | Method Not Allowed. | Use a supported HTTP method. |
 | 406 | Not Acceptable. | Ensure the request content format is JSON. |
 | 429 | Too Many Requests. | Reduce request frequency and try again later. |
-| 500 | Internal Server Error. This error can be caused by several issues. | Check your server configuration settings and try again later. |
+| 500 | Internal Server Error. This error can be caused by several issues. | Check your server configuration settings and retry later. If the problem persists, use the `error_id` to contact Cobo support for investigation. |
 | 502 | Bad Gateway. | Check the connectivity and try again later. |
 | 503 | Service Unavailable. | Try again later. |
