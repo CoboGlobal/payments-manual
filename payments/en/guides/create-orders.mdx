@@ -23,8 +23,8 @@ Order mode is suitable for scenarios that require specifying a specific payment 
 
 You can create an order in two ways:
 
-- Call [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) to directly create a payment order. After a successful call, you will receive information such as the payable amount and payment address. You will need to build the frontend page yourself, or you can integrate Web3 payment capabilities using the [React SDK / Vue SDK](/payments/en/guides/payment-toolkit).
-- Call [Create order link](/payments/en/api-references/payment/create-order-link) to generate a payment link. This link will direct users to a payment page provided by Cobo, where they can create an order and complete payment without you needing to develop the front-end interaction. You can also embed this payment page into your website or application using an iFrame.
+- Call [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) to directly create a payment order. Cobo creates the order synchronously and returns its `order_id`, together with the payable amount and payment address, in the API response. You will need to build the frontend page yourself, or you can integrate Web3 payment capabilities using the [React SDK / Vue SDK](/payments/en/guides/payment-toolkit).
+- Call [Create order link](/payments/en/api-references/payment/create-order-link) to generate a payment link. This call returns only the link — no payment order exists yet, so there is no `order_id`. The link directs the payer to a payment page provided by Cobo; once the payer selects the payment token and blockchain network and submits the order there, Cobo creates the order and generates the `order_id`. You can also embed this payment page into your website or application using an iFrame.
 
 The merchant that receives payment for this order is the merchant specified when the order is created, and this destination does not change afterward. For the complete deposit-routing model across order and top-up payments, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution).
 
@@ -50,7 +50,8 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
         Merchant ->> Payer: Return estimated amount payable
         Payer ->> Merchant: Confirm payment order
         Merchant ->> Cobo: ② Request to create payment order
-        Cobo ->> Merchant: Return receiving address and amount payable
+        Cobo ->> Cobo: Create order, generate order_id
+        Cobo ->> Merchant: Return order_id, receiving address, and amount payable
         Cobo ->> Cobo: Address deposit polling
         Payer ->> Cobo: Make payment to address
         Cobo ->> Cobo: Compliance check
@@ -59,6 +60,8 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
     ```
 
     </div>
+
+    In step ②, Cobo creates the payment order and generates its `order_id`, returning both synchronously in the [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) response.
 
     When creating an order, you must choose **one** of the following two amount parameter combinations based on your business model:
 
@@ -114,7 +117,15 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
     | Final Developer Fee       | `"0"`                                                                                                  | `"0"`                                                                                    |
   </Tab>
   <Tab title="Create order link" icon="browser">
-    You can call [Create order link](/payments/en/api-references/payment/create-order-link) to create an order payment link. The payment page is provided by Cobo, and users can access the link directly to complete the order payment. You can also embed the page into your existing website through an iFrame. For details, see [Create order link](/payments/en/guides/payment-link).
+    You can call [Create order link](/payments/en/api-references/payment/create-order-link) to create an order payment link. This call returns only the link — Cobo has not yet created a payment order, so no `order_id` exists at this point. The complete sequence is:
+
+    1. Cobo generates and returns the payment link. No order or `order_id` exists yet.
+    2. The payer opens the hosted payment page provided by Cobo.
+    3. The payer selects the payment token and blockchain network and submits the order.
+    4. Cobo creates the payment order and generates the `order_id`.
+    5. Cobo sends a [`payment.order.status.updated`](/payments/en/guides/status-and-events#paymentorderstatusupdated) webhook event with status `Pending` and the new `order_id` to the merchant.
+
+    You can also embed the page into your existing website through an iFrame. For details, see [Create order link](/payments/en/guides/payment-link).
   </Tab>
 </Tabs>
 
@@ -122,7 +133,7 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
 
 You can subscribe to the following webhook events to receive real-time update notifications of order status. Refer to [Webhook reference](/payments/en/guides/status-and-events) to understand the trigger time and returned data structure of each event.
 
-- `payment.status.updated`
+- `payment.order.status.updated`
 - `payment.transaction.late`
 - `payment.transaction.completed`
 
