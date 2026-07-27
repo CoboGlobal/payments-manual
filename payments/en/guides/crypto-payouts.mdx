@@ -80,7 +80,21 @@ You can create crypto payout requests through Payments App or Payments API.
   </Tab>
 </Tabs>
 
-## 2. Complete secondary confirmation, risk control review, and transaction signing
+## 2. Automatic fund collection
+
+Before processing your payout, Cobo checks whether your total available account funds — across your merchant or developer balance — are sufficient to cover the requested amount.
+
+This total-funds check is based on your account's ledger balance. For details about how this balance is calculated, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#balances).
+
+If the total funds are sufficient but part of that amount is still held at payment addresses (for example, addresses used to collect Order mode or Top-up mode payments) rather than already consolidated into your balance, Cobo automatically collects those funds as part of processing the payout. You do not need to submit a separate request to collect the funds first — this step runs automatically whenever a payout needs it.
+
+While collection is in progress, the payout request remains in `Pending` status. If a collection attempt fails, Cobo automatically retries it; you do not need to resubmit the payout or take any manual action. If the payout remains `Pending` longer than expected, call [Get payout information](/payments/en/api-references/payment/get-payout-information) to requery its status.
+
+<Note>
+  This automatic collection happens as an internal step of the payout process. It is separate from the (deprecated) [Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) and [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) operations, which previously let you trigger fund collection manually and are no longer necessary.
+</Note>
+
+## 3. Complete secondary confirmation, risk control review, and transaction signing
 
 After creating a transfer request, based on your submission method, risk control settings, and other factors, you need to complete the following operations:
 
@@ -88,7 +102,7 @@ After creating a transfer request, based on your submission method, risk control
 - Risk control review: If you have set transaction policies, reviewers may need to approve the transfer request on Cobo Guard.
 - Transaction signing: If you are using MPC Wallets, Mobile Co-Signer or Server Co-Signer needs to sign to finally complete the transfer operation.
 
-## 3. Follow up on transfer status
+## 4. Follow up on transfer status
 
 You can subscribe to the `payment.payout.status.updated` event to receive real-time updates on transfer status. Refer to [Webhook reference](/payments/en/guides/status-and-events) to understand the detailed trigger conditions and returned data structure of each event.
 
@@ -108,15 +122,3 @@ You can also actively query transfer request status through Payments App or Paym
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - Query detailed information about all transfer requests
   </Tab>
 </Tabs>
-
-## Fund preparation and sweeping
-
-Cobo consolidates, or sweeps, funds that have arrived at deposit or collection addresses so they are ready to send out. This sweep cadence runs on Cobo's internal, organization-level configuration — it is not a setting you configure as part of a payout request.
-
-When you submit a payout, Cobo first checks whether the source account (merchant or developer) has sufficient ledger balance, as described in [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#balances). A sufficient ledger balance makes the payout eligible to submit — it does not mean the payout executes immediately. Cobo then separately checks whether the underlying on-chain funds still need to be consolidated to a payout-ready address, and automatically starts that consolidation if needed. You do not need to take any action to trigger it.
-
-While this fund preparation is in progress, the payout remains in the `Pending` status. Cobo retries fund preparation automatically if it fails. If a payout stays `Pending` for longer than expected, requery its status with [Get payout information](/payments/en/api-references/payment/get-payout-information).
-
-<Note>
-[Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) and [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) are deprecated and retained only for backward compatibility. You do not need to call them before creating a payout — fund consolidation now happens automatically as part of payout processing.
-</Note>
