@@ -25,6 +25,8 @@ sequenceDiagram
 
 </div>
 
+充值交易完成后，`developer_fee_rate` 会将该笔充值拆分为商户份额和开发者份额；每笔为正数的份额都会独立计入各自的账户账本，但若开发者份额取整后为 0，则仅记录商户侧账本，不生成开发者侧记录。完整的拆分示例请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。如需配置或调整费率，请参考[商户管理](/payments/cn/guides/merchants)。您可以调用 [List payer transactions](/payments/en/api-references/payment/list-payer-transactions) 查看实际到账的总金额，调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 和 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 查看账户余额，调用 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 查看具体的账本明细。
+
 ## 获取充值地址
 
 您可以通过 Payments App 或 Payments API 获取充值地址。将充值地址提供给付款方后，付款方可以随时向该地址充值任意金额。

@@ -7,7 +7,7 @@ lang: "en"
 
 If you are a platform institution such as a payment service provider (PSP) that needs to provide services for multiple downstream merchants, you can use the merchant management function to independently manage revenue and expenses for each merchant, and achieve automated revenue sharing with merchants by setting developer fee rates.
 
-When a payer completes a payment, the system automatically allocates funds to the corresponding merchant account and developer account based on the merchant associated with that payment and its developer fee rate/fee. The following diagram shows the process of automatic fund allocation to corresponding accounts in top-up mode:
+When a payer completes a Top-up deposit, the system automatically allocates funds to the corresponding merchant account and developer account based on the merchant's configured developer fee rate. The following diagram shows the process of automatic fund allocation to corresponding accounts in Top-up mode. Order mode uses a separate, order-level charge instead — see [Payment collection in order mode](/payments/en/guides/create-orders) and [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
 
 
 ```mermaid
@@ -65,7 +65,8 @@ You can create merchants using Payments App or Payments API.
   5. Complete the following configuration in the pop-up window:
      - Enter the merchant name.
      - Choose whether to **Enable dedicated wallet**. When enabled, the system will create a dedicated wallet for the merchant, with all payment addresses used exclusively to receive payments for this merchant, achieving complete fund isolation. Please note that enabling dedicated wallets may restrict some payout or allocation operations, so it's recommended to balance this choice based on your actual business needs.
-     - Set the **developer fee rate**. The developer fee rate determines the proportion of revenue you receive as a developer from each payment. For example, setting it to 1% means that 1% of each payment will be allocated to you as developer fees. You can adjust the developer fee rate at any time after creating the merchant. <Note>Different pay-in modes have different revenue sharing rules. For more details about developer fee rates and fund allocation, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).</Note>
+     - Set the **developer fee rate**. The developer fee rate applies only to Top-up mode deposits: it determines the proportion of each Top-up deposit that is credited to you as the developer, with the remainder credited to the merchant. For example, a 100 USDT Top-up deposit at a rate of 1.5% credits 1.5 USDT to the developer balance and 98.5 USDT to the merchant balance, with the developer's share rounded down to the token's supported precision. You can adjust the developer fee rate at any time; changes apply only to Top-up deposits processed after the update, not retroactively.
+       <Note>Order mode uses a separate, order-level developer charge (`fee_amount`) instead of the developer fee rate. Because deposits are handled by separate Top-up and Order transaction logic, the two never apply to the same deposit, and there is no calculation order between them. For more details, refer to [Payment collection in order mode](/payments/en/guides/create-orders) and [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).</Note>
      - Add [Destinations](/payments/en/guides/destinations) to configure payout addresses dedicated to this merchant, including wallet addresses and bank accounts.
 
 If your subsequent operations involve API calls, you can click the **View Details** button after creation to obtain and save the merchant ID. You will need to use the merchant ID to identify the merchant in subsequent API calls.
@@ -78,7 +79,8 @@ If your subsequent operations involve API calls, you can click the **View Detail
    * `wallet_setup`: (Optional) Wallet setup. Each wallet contains multiple cryptocurrency addresses that serve as payment addresses for the merchant. Based on your business needs, you can choose from the following two wallet setups:
        - **Shared** (default): Multiple merchants share the same wallet. Addresses in this wallet may be used to receive payments for multiple merchants simultaneously.
        - **Separate**: Create a dedicated wallet for the merchant to achieve complete fund isolation. All addresses in this wallet are used exclusively to receive payments for this merchant.
-   * `developer_fee_rate`: (Optional) Developer fee rate. The developer fee rate determines the proportion of revenue you receive as a developer from each payment. For example, setting it to 1% means that 1% of each payment will be allocated to you as developer fees. You can adjust the developer fee rate at any time after creating the merchant. <Note>Different pay-in modes have different revenue sharing rules. For more details about developer fee rates and fund allocation, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).</Note>
+   * `developer_fee_rate`: (Optional) Developer fee rate, applicable to Top-up mode only. Accepts a decimal fraction from 0 through 1, with up to four decimal places (for example, 0.015 for 1.5%). If not set, or if cleared, the rate is treated as 0. Updates take effect only for Top-up deposits processed after the change. For example, a 100 USDT Top-up deposit at a rate of 0.015 credits 1.5 USDT to the developer balance and 98.5 USDT to the merchant balance; the developer's share is rounded down to the token's supported precision.
+     <Note>Order mode uses a separate, order-level developer charge (`fee_amount`) instead of `developer_fee_rate`. Because deposits are handled by separate Top-up and Order transaction logic, the two never apply to the same deposit, and there is no calculation order between them. For more details, refer to [Payment collection in order mode](/payments/en/guides/create-orders) and [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).</Note>
 
 
    After calling, you will obtain the merchant ID (`merchant_id`), which serves as the unique identifier for this merchant in the Cobo system, used to identify the merchant in subsequent API calls.
@@ -114,7 +116,6 @@ An independent online store operates multiple business lines and creates indepen
 - **Overseas business**: Meets cross-border compliance requirements and exchange rate management
 
 This architecture achieves fund isolation, independent accounting, and refined operations for different business lines.
-
 
 
 

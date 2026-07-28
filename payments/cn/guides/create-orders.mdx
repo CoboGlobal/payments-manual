@@ -73,7 +73,15 @@ lang: "zh-hans"
     - **应付金额**（`payable_amount`）：付款方需要支付的数字货币金额，以`payable_currency` 指定的加密货币为单位。该字段为可选字段：
       - 如果您指定了 `payable_amount`，则系统直接使用该值作为付款方需支付的金额。
       - 如果您未指定 `payable_amount`，系统将使用实时汇率计算：**应付金额 =（订单金额 + 开发者费用）/ 汇率**。汇率以创建订单时调用 [Get exchange rate](/payments/en/api-references/payment/get-exchange-rate) 操作返回的汇率为准。
-    - **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。此费用以`payable_currency` 指定的加密货币为单位。实际分成的开发者费用=开发者费用/应付金额\*实际收款金额，更多信息请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
+    - **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，可以通过设置该订单级费用，从该笔订单中收取开发者分成。这与充值模式下商户级别的 `developer_fee_rate` 不同；关于该费率的配置说明，请参考[商户管理](/payments/cn/guides/merchants)。
+
+      在正常结算情况下（即付款方的入账金额与应付金额完全一致），开发者账户将收到 `fee_amount`，商户账户将收到剩余部分：
+      - 当 `fee_amount` 为 0 时，商户账户将收到全部收款金额。
+      - 当 `payable_amount` 为 104.08、`fee_amount` 为 2 时，一笔精确的 104.08 入账将有 102.08 计入商户账户，2 计入开发者账户。
+
+      对于多付和少付的情况，资金将按照 `fee_amount` 与应付金额之间的相同比例进行结算，而非始终扣减固定的 `fee_amount` 数值。如果某笔入账是在订单已经处于 `EXPIRED`、`UNDERPAID` 或 `COMPLETED` 状态之后才处理的，则该笔入账将全额计入开发者账户，不受 `fee_amount` 影响。
+
+      更多关于账户间资金结算与分配的说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
 
     <Info>
       如果您是商户（直接服务于付款方），通常无需设置开发者费用。
