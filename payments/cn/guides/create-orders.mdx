@@ -135,17 +135,75 @@ lang: "zh-hans"
 
 当一笔支付订单在 `Pending` 状态下，即尚未检测到入账交易时，您可以调用 [Update pay-in order](/payments/en/api-references/payment/update-pay-in-order) 撤销该订单。撤销后，订单状态将变更为 `Expired`。
 
-### 多付、少付和晚付
+### 少付、多付、部分付款和晚付
 
-在支付过程中可能出现以下三种异常情况：
+在支付过程中可能出现以下四种异常情况：
 
-| 异常情况   | 描述                    | 影响                                                         |
-| ------ | --------------------- | ---------------------------------------------------------- |
-| **多付** | 在订单有效期内，付款方实付金额超过应付金额 | 订单最终状态为 `Completed`。                                       |
-| **少付** | 在订单有效期内，付款方实付金额少于应付金额 | 订单状态为 `Underpaid`（终态）。                                     |
-| **晚付** | 付款方在订单过期后进行首次或再次付款    | 不会改变订单状态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。 |
+| 异常情况 | 描述 | 影响 |
+| --- | --- | --- |
+| [**少付**](#少付) | 订单有效期结束时，累计实收金额仍低于扣除容差后的应付金额 | 订单状态变为 `Underpaid`（终态）。 |
+| [**多付**](#多付) | 在订单有效期内，付款方实付金额超过应付金额 | 订单最终状态为 `Completed`。 |
+| [**部分付款**](#部分付款) | 在订单有效期内，付款方通过多笔成功转账完成订单付款 | 没有单独的订单状态。订单将保持当前状态，直到累计实收金额使订单达到 `Completed`，或订单过期并变为 `Underpaid`。 |
+| [**晚付**](#晚付) | 订单达到 `Expired`、`Underpaid` 或 `Completed` 后收到付款 | 不会改变订单终态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。 |
 
-[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)中详细介绍了多付、少付和晚付情况下 Cobo 对资金的处理规则，包括：当充币发生在订单已经过期、已达到终态 `Underpaid`，或已处于 `Completed` 状态之后时，该笔资金会被计入开发者账户，而非商户账户。
+#### 少付
+
+如果订单有效期结束时，所有通过合规筛查的成功入账累计金额仍低于应付金额减去允许的 `amount_tolerance`，则订单会被视为少付。在订单过期前，Cobo 会继续累加成功入账，并将累计金额与该阈值进行比较。如果订单过期时累计金额仍低于阈值，订单将流转为终态 `Underpaid`。
+
+您可以通过 `received_token_amount` 跟踪累计实收金额，并通过 `transactions` 数组查看每笔入账。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+有关少付资金的结算方式，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。订单变为 `Underpaid` 后收到的额外充币将按[晚付](#晚付)处理。
+
+#### 多付
+
+当付款方实付金额超过应付金额时，订单在达到应付金额阈值后仍会流转为 `Completed`。系统没有公开的 `Overpaid` 订单状态。
+
+超出部分会计入 `received_token_amount`，导致多付的入账也会显示在 `transactions` 数组中。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+有关超出金额在商户账户和开发者账户之间的结算方式，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。如需将超出金额退还给付款方，请按照[处理退款申请](#处理退款申请)中的说明发起退款。
+
+#### 部分付款
+
+付款方可以通过多笔转账完成一个订单。每笔成功转账都会累计到订单的 `received_token_amount` 中，每笔入账也会显示在 `transactions` 数组中。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+收到部分付款的订单没有单独的状态。订单将保持当前状态，直到出现以下任一情况：
+
+- 累计实收金额在允许的容差范围内达到应付金额，订单变为 `Completed`；或
+- 订单有效期结束时，累计实收金额仍低于该阈值，订单变为 `Underpaid`。请参考[少付](#少付)。
+
+完成条件基于累计金额而非单笔转账进行评估。因此，付款方可以在订单过期前发送额外转账，使累计金额达到完成阈值。
+
+#### 晚付
+
+如果一笔通过合规筛查的充币交易在订单达到 `Expired`、`Underpaid` 或 `Completed` 后才入账，则该笔交易属于晚付。晚付不会改变订单的终态。
+
+每笔晚付入账都会触发一次 `payment.transaction.late` Webhook 事件。该笔入账也会记录在订单的 `transactions` 数组中，您可以通过 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 获取该数组，并根据订单历史进行对账。
+
+有关晚付资金的入账方式，请参考[充币归属](/payments/cn/guides/amounts-and-balances#充币归属)。
+
+以下时序展示了单个订单中[少付](#少付)、[多付](#多付)、[部分付款](#部分付款)和[晚付](#晚付)之间的关系：
+
+<div style={{ maxWidth:"600px",margin:"0 auto" }}>
+```mermaid
+sequenceDiagram
+    participant 付款方
+    participant Cobo
+    participant 商户
+    商户 ->> Cobo: 创建支付订单
+    付款方 ->> Cobo: 入账 1（部分金额）
+    Cobo ->> Cobo: 累加 received_token_amount
+    付款方 ->> Cobo: 入账 2（部分金额，仍低于阈值）
+    Cobo ->> Cobo: 累加 received_token_amount
+    Note over Cobo: 订单有效期结束。<br/>累计金额仍低于扣除容差后的应付金额。
+    Cobo ->> 商户: payment.order.status.updated（status: Underpaid）
+    付款方 ->> Cobo: 晚付入账（过期后）
+    Cobo ->> 商户: payment.transaction.late（订单状态不变）
+    商户 ->> Cobo: Get pay-in order information（通过 transactions 数组对账）
+```
+
+</div>
+
+[账户与资金分配](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下 Cobo 对资金的处理规则。
 
 ### 处理退款申请
 

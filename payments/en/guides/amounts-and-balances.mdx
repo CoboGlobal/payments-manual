@@ -30,7 +30,7 @@ Every deposit must be attributed to a merchant account before it can be settled.
 To support both perspectives, Cobo's accounting records preserve two sides of every deposit: the payment owner (the payer or order the funds were paid for) and the receiving address the funds arrived at. This lets you trace a deposit back through either the payer/order relationship or the specific on-chain address it used.
 
 <Note>
-Deposits received after an order has already reached `Expired`, the terminal `Underpaid` status, or `Completed` are credited to the developer account instead of the merchant account, since the order can no longer accept the deposit as part of its normal payment.
+Deposits received after an order has already reached `Expired`, the terminal `Underpaid` status, or `Completed` are not attributed to the merchant account, since the order can no longer accept the deposit as part of its normal payment. See [Late payment](/payments/en/guides/create-orders#late-payment) for how these deposits are detected and reported.
 </Note>
 
 ## Fund settlement and allocation
@@ -123,7 +123,7 @@ graph TD
 Special case handling:
 
 - Overpayment/Underpayment: Funds are settled according to the same ratio as above
-- Late payment: All funds are settled to the developer account
+- Late payment: The received funds are not settled to the merchant account through the automatic-settlement flow described above. See [Late payment](/payments/en/guides/create-orders#late-payment) for how late payments are detected and reported.
 </Note>
 
 #### Refunds
@@ -212,5 +212,3 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
-
