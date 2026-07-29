@@ -32,7 +32,22 @@ The merchant that receives payment for this order is the merchant specified when
 
 ### Prerequisites
 
-You have completed all the steps mentioned in [Preparation](/payments/en/guides/preparation).
+Before you can create a pay-in order, make sure the following requirements are met.
+
+| Requirement | Status |
+| --- | --- |
+| [Payments onboarding](/payments/en/guides/preparation) is complete, so your organization's payment developer account is active | Required |
+| `merchant_id` references a merchant that already exists and is owned by your organization | Required |
+| The merchant has completed KYB | Not required |
+| The merchant is activated and in an active status | Not required |
+| The merchant has completed additional configuration | Not required |
+| A developer-fee configuration record exists for the merchant | Not required |
+
+Completing [Payments onboarding](/payments/en/guides/preparation) automatically provisions a default merchant for your organization, which you can use directly as the `merchant_id` value. If you need additional merchants, refer to [Create merchant](/payments/en/api-references/payment/create-merchant).
+
+<Note>
+  Create pay-in order does not independently check merchant KYB, merchant activation or status, merchant configuration, or whether a developer-fee configuration record exists for the merchant. These checks are not substitutes for completing organization-level Payments onboarding — if your organization's payment developer account is not active, the request fails regardless of merchant state. See [Error codes and status codes](/payments/en/guides/error-codes#general-api-errors) for details on this failure.
+</Note>
 
 ### Implementation steps
 

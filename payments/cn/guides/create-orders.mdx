@@ -26,7 +26,22 @@ lang: "zh-hans"
 
 ### 前提条件
 
-您已完成[前置准备](/payments/cn/guides/preparation)中提到的所有步骤。
+在创建收款订单之前，请确认满足以下条件。
+
+| 前提条件 | 是否必需 |
+| --- | --- |
+| 已完成 [Payments 入驻](/payments/cn/guides/preparation)，即您团队的支付开发者账户处于活跃状态 | 必需 |
+| `merchant_id` 指向一个已存在且归属于您团队的商户 | 必需 |
+| 该商户已完成 KYB | 非必需 |
+| 该商户已激活并处于活跃状态 | 非必需 |
+| 该商户已完成额外配置 | 非必需 |
+| 该商户存在开发者费率配置记录 | 非必需 |
+
+完成 [Payments 入驻](/payments/cn/guides/preparation)后，系统会自动为您的团队创建一个可直接使用的默认商户，您可以直接将其用作 `merchant_id` 的取值。如果您需要额外的商户，请参考 [Create merchant](/payments/en/api-references/payment/create-merchant)。
+
+<Note>
+  Create pay-in order 不会单独校验商户 KYB、商户激活或活跃状态、商户配置，或该商户是否存在开发者费率配置记录。这些检查不能替代完成团队级别的 Payments 入驻——如果您团队的支付开发者账户未处于活跃状态，无论商户状态如何，请求都会失败。详情请参考[错误码与状态码](/payments/cn/guides/error-codes)。
+</Note>
 
 ### 操作步骤
 
