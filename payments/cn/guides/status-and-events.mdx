@@ -21,6 +21,12 @@ lang: "zh-hans"
 | 意外入账 | `payment.transaction.external.completed` | 非预期充币交易已通过合规筛查并成功入账，资金已计入开发者余额。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段。 |
 | 入账检查 | `payment.transaction.failed` | 入账交易合规筛查不通过。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，`Order` 表示订单模式，`TopUp` 表示充值模式。<br />- `order_id`（选填）：支付订单 ID。<br />- `psp_order_code`（选填）：开发者用于标识该订单的唯一参考编码。<br />- `payer_id`（选填）：Cobo 分配的用于跟踪和识别付款人的唯一标识符。<br />- `custom_payer_id`（选填）：开发者系统中用于跟踪和识别付款人的唯一标识符。 |
 
+<Note>
+  如果订单在完成前收到多笔部分付款，每笔成功入账都会触发一次 `payment.transaction.completed`，而 `payment.order.status.updated` 反映订单累计金额对应的终态结果（`Completed` 或 `Underpaid`）。详情请参考[部分付款](/payments/cn/guides/create-orders#部分付款)。
+
+  `payment.transaction.late` 用于上报订单达到终态后收到的入账。该事件不会重新开启订单，也不会改变订单的终态。完整流程请参考[晚付](/payments/cn/guides/create-orders#晚付)。
+</Note>
+
 ### 交易负载字段
 
 下表列出所有 `payment.transaction.*` 事件负载中包含的基础字段。在一些场景下，部分字段可能不会返回。

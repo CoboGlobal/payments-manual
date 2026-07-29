@@ -182,17 +182,75 @@ In order mode, you may need to handle the following exception situations.
 
 When a payment order is in the `Pending` status, that is, no deposit transaction has been detected yet, you can call [Update pay-in order](/payments/en/api-references/payment/update-pay-in-order) to cancel the order. After cancellation, the order status will change to `Expired`.
 
-### Overpayment, underpayment, and late payment
+### Underpayment, overpayment, partial payments, and late payment
 
-The following three exception situations may occur during the payment process:
+The following four exception situations may occur during the payment process:
 
-| Exception situation | Description                                                                                         | Impact                                                                                                         |
-| ------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Overpayment**     | Within the order validity period, the payer's actual payment amount exceeds the payable amount      | The final order status is `Completed`.                                                                         |
-| **Underpayment**    | Within the order validity period, the payer's actual payment amount is less than the amount payable | The order status is `Underpaid` (final state).                                                                 |
-| **Late payment**    | The payer makes the first or subsequent payment after the order expires                             | Does not change the order status. Each late payment will trigger one `payment.transaction.late` webhook event. |
+| Exception situation | Description | Impact |
+| --- | --- | --- |
+| [**Underpayment**](#underpayment) | At the end of the order validity period, the cumulative amount received is less than the tolerance-adjusted payable amount | The order becomes `Underpaid` (final state). |
+| [**Overpayment**](#overpayment) | Within the order validity period, the payer's actual payment amount exceeds the payable amount | The final order status is `Completed`. |
+| [**Partial payment**](#partial-payments) | Within the order validity period, the payer completes the order using more than one successful transfer | No separate order status. The order remains in its current status until the cumulative received amount reaches `Completed`, or the order expires and becomes `Underpaid`. |
+| [**Late payment**](#late-payment) | A payment arrives after the order reaches `Expired`, `Underpaid`, or `Completed` | The final order status does not change. Each late payment triggers one `payment.transaction.late` webhook event. |
 
-[Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution) details how Cobo handles funds in the case of overpayment, underpayment, and late payment — including that a deposit received after an order has already expired, reached the terminal `Underpaid` status, or is `Completed` is credited to the developer account rather than the merchant account.
+#### Underpayment
+
+An order becomes underpaid when, at the end of its validity period, the cumulative amount received across all successful receipts that passed compliance screening is still less than the payable amount minus the allowed `amount_tolerance`. Before the order expires, Cobo continues to accumulate successful receipts and compare the cumulative total with this threshold. If the cumulative total remains below the threshold at expiry, the order transitions to the terminal `Underpaid` status.
+
+Track the cumulative amount received in `received_token_amount`, and inspect individual receipts in the `transactions` array. Both are returned by [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
+
+For information about settling underpaid funds, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances). An additional deposit received after the order becomes `Underpaid` is handled as a [late payment](#late-payment).
+
+#### Overpayment
+
+When the payer's actual payment amount exceeds the payable amount, the order still transitions to `Completed` once the payable-amount threshold is met. There is no public `Overpaid` order status.
+
+The excess amount is included in `received_token_amount`, and the receipt that caused the overpayment appears in the `transactions` array. Both are returned by [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
+
+For information about settling the excess amount between merchant and developer accounts, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances). To return excess funds to the payer, initiate a refund as described in [Handle refund requests](#handle-refund-requests).
+
+#### Partial payments
+
+A payer can complete one order using more than one transfer. Each successful transfer accumulates in the order's `received_token_amount`, and every individual receipt appears in the `transactions` array. Both are returned by [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
+
+There is no separate status for an order that has received a partial payment. The order remains in its current status until either:
+
+- The cumulative received amount reaches the payable amount within the allowed tolerance, and the order becomes `Completed`; or
+- The order's validity period ends while the cumulative received amount remains below that threshold, and the order becomes `Underpaid`. See [Underpayment](#underpayment).
+
+Because completion is evaluated against the cumulative total rather than a single transfer, the payer can send an additional transfer before the order expires to bring the cumulative amount to the completion threshold.
+
+#### Late payment
+
+A late payment occurs when a deposit transaction that passes compliance screening arrives after the order reaches `Expired`, `Underpaid`, or `Completed`. The order's final status does not change as a result of a late payment.
+
+Each late receipt triggers one `payment.transaction.late` webhook event. The receipt is also recorded in the order's `transactions` array, returned by [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information), so you can reconcile it with the order history.
+
+For information about how late-payment funds are credited, see [Deposit attribution](/payments/en/guides/amounts-and-balances#deposit-attribution).
+
+The following sequence shows how [underpayment](#underpayment), [overpayment](#overpayment), [partial payments](#partial-payments), and [late payment](#late-payment) can interact for a single order:
+
+<div style={{ maxWidth:"600px",margin:"0 auto" }}>
+```mermaid
+sequenceDiagram
+    participant Payer
+    participant Cobo
+    participant Merchant
+    Merchant ->> Cobo: Create payment order
+    Payer ->> Cobo: Receipt 1 (partial amount)
+    Cobo ->> Cobo: Accumulate received_token_amount
+    Payer ->> Cobo: Receipt 2 (partial amount, still below threshold)
+    Cobo ->> Cobo: Accumulate received_token_amount
+    Note over Cobo: Order validity period ends.<br/>Cumulative amount is still below the tolerance-adjusted payable amount.
+    Cobo ->> Merchant: payment.order.status.updated (status: Underpaid)
+    Payer ->> Cobo: Late receipt (after expiry)
+    Cobo ->> Merchant: payment.transaction.late (order status unchanged)
+    Merchant ->> Cobo: Get pay-in order information (reconcile via transactions array)
+```
+
+</div>
+
+[Accounts and fund allocation](/payments/en/guides/amounts-and-balances) details how Cobo handles funds in cases of overpayment, underpayment, and late payment.
 
 Before a payout, Cobo also automatically collects funds received through orders from their payment addresses. For details, refer to [Automatic fund collection](/payments/en/guides/crypto-payouts#2-automatic-fund-collection).
 
