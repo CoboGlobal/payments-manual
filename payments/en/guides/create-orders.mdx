@@ -17,6 +17,8 @@ Order mode is suitable for scenarios that require specifying a specific payment 
   - Initiating refunds for paid orders
   - Handling payment exceptions such as overpayment, underpayment, and late payment
 
+To compare Order mode with Top-up mode and choose the mode that fits your business, refer to [Order mode vs. Top-up mode](/payments/en/guides/overview#order-mode-vs-top-up-mode).
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }} />
 
 ## Create order
@@ -165,6 +167,8 @@ The following three exception situations may occur during the payment process:
 | **Late payment**    | The payer makes the first or subsequent payment after the order expires                             | Does not change the order status. Each late payment will trigger one `payment.transaction.late` webhook event. |
 
 [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution) details how Cobo handles funds in the case of overpayment, underpayment, and late payment — including that a deposit received after an order has already expired, reached the terminal `Underpaid` status, or is `Completed` is credited to the developer account rather than the merchant account.
+
+Before a payout, Cobo also automatically collects funds received through orders from their payment addresses. For details, refer to [Automatic fund collection](/payments/en/guides/crypto-payouts#2-automatic-fund-collection).
 
 ### Handle refund requests
 

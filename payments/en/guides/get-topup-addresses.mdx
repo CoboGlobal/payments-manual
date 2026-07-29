@@ -10,6 +10,8 @@ lang: "en"
 
 In top-up mode, Cobo generates a fixed top-up address for each payer, and payers can top up any amount to that address at any time. The following diagram shows the interaction process between payers, merchants (you), and Cobo:
 
+To compare Top-up mode with Order mode and choose the mode that fits your business, refer to [Order mode vs. Top-up mode](/payments/en/guides/overview#order-mode-vs-top-up-mode).
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }}>
 ```mermaid
 sequenceDiagram
@@ -86,6 +88,8 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
        - **Merchant ID** (`merchant_id`): The unique identifier for the merchant in the Cobo system, assigned by Cobo.
        - **Custom payer ID** (`custom_payer_id`): The unique identifier for the payer in your system.
        - **Token ID** (`token_id`): Specifies the cryptocurrency and blockchain network that the top-up address needs to support.
+
+       If a top-up address already exists for the specified payer and chain, this operation returns that existing address instead of creating a new one, so you can call it repeatedly for the same payer and chain without creating duplicates.
     2. If you need to create top-up addresses for multiple payers in batches, you can call [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses).
     2. **Configure top-up event listening**: Receive event notifications related to top-ups through webhooks. For details, refer to [Events and status](/payments/en/guides/status-and-events).
   </Tab>
@@ -129,7 +133,7 @@ When you need to replace a top-up address (for example, due to business changes,
 </Warning>
 
 - **Transaction monitoring**: Cobo will continue to monitor transaction activity at the old address, and corresponding transactions will trigger corresponding webhook notifications.
-- **Fund handling**: The association between this address and the merchant still exists, so deposits continue routing to the same merchant after replacement. For the complete deposit-attribution and settlement model, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution).
+- **Fund handling**: The association between this address and the merchant still exists, so deposits continue routing to the same merchant after replacement. For the complete deposit-attribution and settlement model, see [Accounts and fund allocation](/payments/en/guides/amounts-and-balances#deposit-attribution). Before a payout, Cobo also automatically collects top-up funds from these addresses. For details, refer to [Automatic fund collection](/payments/en/guides/crypto-payouts#2-automatic-fund-collection).
 - **Address query**: You can view all addresses that the payer has been bound to in history on Payments App.
 
 ### Compliance screening failure
