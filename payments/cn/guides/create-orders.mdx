@@ -19,8 +19,8 @@ lang: "zh-hans"
 
 您可以通过两种方式创建订单：
 
-- 调用 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 直接创建一个支付订单。调用成功后，您将得到应付金额、付款地址等信息。您需要自行搭建前端页面，也可借助 [React SDK / Vue SDK](/payments/cn/guides/payment-toolkit) 引入 Web3 支付能力；
-- 调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。该链接会跳转到由 Cobo 提供的支付页面，付款方可在该页面创建订单并完成支付，无需您自行开发前端交互流程。您还可以通过 iFrame 方式将该支付页面嵌入到您的网站或应用中。
+- 调用 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 直接创建一个支付订单。Cobo 会同步创建该订单，并在接口响应中返回 `order_id`，以及应付金额、付款地址等信息。您需要自行搭建前端页面，也可借助 [React SDK / Vue SDK](/payments/cn/guides/payment-toolkit) 引入 Web3 支付能力；
+- 调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。此调用仅返回支付链接——Cobo 此时尚未创建支付订单，因此还没有 `order_id`。该链接会跳转到由 Cobo 提供的支付页面，付款方在该页面选择支付代币和区块链网络并提交订单后，Cobo 才会创建该订单并生成 `order_id`。您还可以通过 iFrame 方式将该支付页面嵌入到您的网站或应用中。
 
 该订单的收款商户为订单创建时指定的商户，且该归属之后不会改变。有关订单与充值两种收款方式的完整资金路由模型，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)。
 
@@ -61,7 +61,8 @@ lang: "zh-hans"
         商户 ->> 付款方: 返回预估的应付金额
         付款方 ->> 商户: 确认支付订单
         商户 ->> Cobo: ② 请求创建支付订单
-        Cobo ->> 商户: 返回收币地址和应付金额
+        Cobo ->> Cobo: 创建订单，生成 order_id
+        Cobo ->> 商户: 返回 order_id、收币地址和应付金额
         Cobo ->> Cobo: 地址入账轮询
         付款方 ->> Cobo: 向地址付款
         Cobo ->> Cobo: 合规检查
@@ -70,6 +71,8 @@ lang: "zh-hans"
     ```
 
     </div>
+
+    在步骤 ② 中，Cobo 会创建该支付订单并生成 `order_id`，并在 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 的响应中同步返回。
 
     创建订单时，您需要在以下两种方式中**选择一种适合业务的金额参数组合**：
 
@@ -112,7 +115,15 @@ lang: "zh-hans"
     | 最终开发者费用            | `"0"`                                        | `"2"`                                       |
   </Tab>
   <Tab title="使用 Payments API 创建支付链接" icon="browser">
-    您可以调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。具体的支付页面效果和集成步骤请参考[创建订单支付链接](/payments/cn/guides/payment-link)。
+    您可以调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。此调用仅返回支付链接——Cobo 此时尚未创建支付订单，因此还没有 `order_id`。完整流程如下：
+
+    1. Cobo 生成并返回支付链接。此时尚不存在订单，也没有 `order_id`。
+    2. 付款方打开由 Cobo 提供的托管支付页面。
+    3. 付款方选择支付代币和区块链网络并提交订单。
+    4. Cobo 创建该支付订单并生成 `order_id`。
+    5. Cobo 向商户发送 [`payment.order.status.updated`](/payments/cn/guides/status-and-events#paymentorderstatusupdated) Webhook 事件，状态为 `Pending`，并携带新生成的 `order_id`。
+
+    具体的支付页面效果和集成步骤请参考[创建订单支付链接](/payments/cn/guides/payment-link)。
   </Tab>
 </Tabs>
 
@@ -120,7 +131,7 @@ lang: "zh-hans"
 
 您可以订阅以下 Webhook 事件，以获取订单状态的实时更新通知。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的触发时间和返回的数据结构。
 
-- `payment.status.updated`
+- `payment.order.status.updated`
 - `payment.transaction.late`
 - `payment.transaction.completed`
 
