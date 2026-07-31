@@ -16203,12 +16203,12 @@ components:
           example: '1001'
         merchant_order_code:
           type: string
-          description: A unique reference code assigned by the merchant to identify this order in their system.
-          example: M20240201001
+          description: 'The downstream merchant''s order reference, exactly as you supplied it in `merchant_order_code` when creating the order, if you provided one. Present only when a `merchant_order_code` was included at order creation.'
+          example: merchant-inv-55231
         psp_order_code:
           type: string
-          description: A unique reference code assigned by the developer to identify this order in their system.
-          example: P20240201001
+          description: 'The order identifier for your own internal business order, exactly as you supplied it in `psp_order_code` when creating the order. This value is unique within your Cobo organization.'
+          example: psp-order-20240601-00789
         pricing_currency:
           type: string
           description: The pricing currency of the order.
@@ -24931,12 +24931,12 @@ components:
                 example: '1001'
               merchant_order_code:
                 type: string
-                description: A unique reference code assigned by the merchant to identify this order in their system.
-                example: M20240201001
+                description: 'An optional reference for the order maintained by a downstream merchant you serve — for example, when you are a payment service provider (PSP) processing pay-in orders on behalf of merchants. Set this field only when such a downstream merchant supplies its own order reference that is distinct from your internal `psp_order_code`. Omit this field if you are collecting payment directly as the merchant, with no separate downstream merchant reference to track.'
+                example: merchant-inv-55231
               psp_order_code:
                 type: string
-                description: A unique reference code assigned by the developer to identify this order in their system.
-                example: P20240201001
+                description: 'The order identifier for your own internal business order. Set this to the order reference you use internally to identify this pay-in — for example, an order or transaction ID from your own order-management system. This value must be unique within your Cobo organization: Cobo enforces uniqueness on `psp_order_code`, so reusing a code already associated with an existing order in your organization is rejected. If a downstream merchant you serve supplies its own separate order reference, record that in `merchant_order_code` instead — `psp_order_code` always identifies your own order, not the merchant''s.'
+                example: psp-order-20240601-00789
               pricing_currency:
                 type: string
                 description: |
