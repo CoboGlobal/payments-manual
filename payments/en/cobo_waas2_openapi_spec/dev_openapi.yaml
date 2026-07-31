@@ -16161,8 +16161,15 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174001
         developer_fee_rate:
           type: string
-          description: The developer fee rate applied to this merchant.
-          example: '0.01'
+          description: |
+            The merchant-level fee fraction applied specifically to Top-up-mode deposits. The value can range from `0` through `1` and can contain up to four decimal places. For example, `0.015` represents 1.5%. An absent or cleared value is treated as zero, so no developer fee is charged on Top-up deposits.
+
+            An update applies only to subsequent Top-up deposits and is not retroactive to deposits that have already been processed. The developer share is rounded down to the token's precision.
+
+            This rate does not combine with a Payment Order's `fee_amount`. Order-mode and Top-up-mode deposits use separate, mutually exclusive settlement paths, so there is no calculation order or precedence between the two fees.
+
+            For configuration and settlement details, see [Merchant management](https://www.cobo.com/payments/en/guides/merchants), [Payment collection in order mode](https://www.cobo.com/payments/en/guides/create-orders), and [Accounts and fund allocation](https://www.cobo.com/payments/en/guides/amounts-and-balances).
+          example: '0.015'
         wallet_setup:
           $ref: '#/components/schemas/WalletSetup'
         created_timestamp:
@@ -16212,8 +16219,13 @@ components:
           example: '100.00'
         fee_amount:
           type: string
-          description: The developer fee for the order. It is added to the base amount to determine the final charge.
-          example: '2.00'
+          description: |
+            The order-level developer charge credited to your developer balance when the order settles. A value of `0` means that no developer fee was charged and the merchant was credited with the full collected amount.
+
+            When the collected payment exactly matches the payable amount, the merchant balance is credited with the payable amount minus `fee_amount`, and your developer balance is credited with `fee_amount`. For example, for a payable amount of `104.08` and a `fee_amount` of `2`, the merchant receives `102.08` and you receive `2`.
+
+            For related fee settings and settlement details, see [Merchant management](https://www.cobo.com/payments/en/guides/merchants) and [Accounts and fund allocation](https://www.cobo.com/payments/en/guides/amounts-and-balances).
+          example: '2'
         payable_currency:
           type: string
           description: The ID of the cryptocurrency used for payment.
@@ -18875,18 +18887,15 @@ components:
       properties:
         address:
           type: string
-          description: The recipient's wallet address where the payout will be sent.
+          description: 'The recipient''s cryptocurrency address. Use an address that you have registered as a destination and that has been approved for payouts. Call [List destination entries](https://www.cobo.com/payments/en/api-references/payment/list-destination-entries) with `entry_type` set to `Address` to retrieve your registered wallet addresses and each address''s `chain_id`. A destination entry returns the `address` and its `chain_id`, not a `token_id` -- confirm that the network indicated by `chain_id` matches the network encoded in the `token_id` you use, since an address on the wrong network for that token cannot complete the transfer.'
           example: '0x9876543210abcdef1234567890abcdef12345678'
         token_id:
           type: string
-          description: |
-            The token ID for the cryptocurrency to be sent to the recipient.
-
-            If `recipient_info.token_id` is on a different chain than `payout_param.token_id`, the token will be automatically bridged to the chain specified in `recipient_info.token_id`.
+          description: 'The cryptocurrency ID of the token to send (for example, `ETH_USDT`, `TRON_USDT`). When this token ID and the `token_id` in `payout_params` represent the same token on different chains, Cobo automatically executes a cross-chain transfer. You can retrieve the full list of supported token IDs by calling [List supported tokens](https://www.cobo.com/payments/en/api-references/payment/list-supported-tokens).'
           example: TRON_USDT
         currency:
           type: string
-          description: The fiat currency of the bank account to which the payout will be sent.
+          description: The fiat currency of the bank account selected in `bank_account_id` -- the two must match. This endpoint currently accepts only `USD`.
           example: USD
         bank_account_id:
           type: string
@@ -18916,7 +18925,7 @@ components:
         amount:
           type: string
           description: |
-            The payout cryptocurrency amount.
+            The payout amount, provided as a decimal string. You can include up to two nonzero digits after the decimal point; trailing zeros beyond that (for example, `100.500`) are accepted, but a value with more than two nonzero fractional digits (for example, `100.567`) is rejected with an invalid amount format error instead of being rounded.
           example: '500.00'
     PaymentPayoutStatus:
       type: string
@@ -19092,9 +19101,23 @@ components:
         - Partial
       example: Strict
       description: |
-        The execution mode of the bulk send.
-        - `Strict`: The bulk send is executed in strict mode. All-or-nothing is enforced at the validation stage: if any item fails validation, the entire batch is rejected and no items are sent. Note that this all-or-nothing guarantee applies at validation only, not at execution. After validation passes, individual items may still be rejected by risk control or fail during on-chain execution, which can result in a `PartiallyCompleted` bulk send status.
-        - `Partial`: The bulk send is executed in partial mode, which means some bulk send items can be successfully executed and some can be failed.
+        Specifies how the batch handles item-level validation failures. The required
+        `execution_mode` field is a string enum and must be set to either `Strict` or
+        `Partial`; no default is applied if you omit it. It is not a `strict_mode`
+        boolean flag.
+
+        - `Strict`: If any item in the batch fails validation, no items are executed.
+          Every item is marked `NotExecuted`, and the batch fails. The batch also
+          fails in `Strict` mode if the fund sweep needed to fund it only partially
+          completes.
+        - `Partial`: Item validation failures are isolated to the affected items.
+          Failed items are marked `NotExecuted`, while all other validated items in
+          the batch continue to be processed normally.
+
+        Use `Partial` when one item's validation failure should not block the rest of
+        the batch. Because outcomes can differ by item, check each item's result and
+        `validation_status` individually instead of assuming that a batch-level
+        outcome applies to every item.
     PaymentBulkSendItemStatus:
       type: string
       enum:
@@ -24926,8 +24949,13 @@ components:
                 example: '100.00'
               fee_amount:
                 type: string
-                description: 'The developer fee for the order. It is added to the base amount (`pricing_amount`) to determine the final charge. For example, if `pricing_amount` is "100.00" and `fee_amount` is "2.00", the payer will be charged "102.00" in total, with "100.00" being settled to the merchant account and "2.00" settled to the developer account. Values must be greater than or equal to 0 and contain two decimal places.'
-                example: '2.00'
+                description: |
+                  The order-level developer charge deducted from the payment collected for this order and credited to your developer balance. Both `0` and positive values are valid. A value of `0` means that no developer fee is taken and the merchant receives the full collected amount.
+
+                  When the collected payment exactly matches the payable amount, the merchant balance is credited with the payable amount minus `fee_amount`, and your developer balance is credited with `fee_amount`. For example, for a payable amount of `104.08` and a `fee_amount` of `2`, the merchant receives `102.08` and you receive `2`.
+
+                  For related fee settings and settlement details, see [Merchant management](https://www.cobo.com/payments/en/guides/merchants) and [Accounts and fund allocation](https://www.cobo.com/payments/en/guides/amounts-and-balances).
+                example: '2'
               payable_currency:
                 type: string
                 description: |

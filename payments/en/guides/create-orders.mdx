@@ -108,11 +108,16 @@ Completing [Payments onboarding](/payments/en/guides/preparation) automatically 
       - If `payable_amount` is not specified, the system will calculate the payable amount using the real-time exchange rate:\
         **Payable Amount = (Order Amount + Developer Fee) / Exchange Rate**.\
         The exchange rate is based on the rate returned by the [Get exchange rate](/payments/en/api-references/payment/get-exchange-rate) operation at the time the order is created.
-    - **Developer Fee (**`fee_amount`**)**:\
-      If you are a platform serving multiple downstream merchants and need to distribute revenue between yourself and those merchants, you can configure this fee to achieve revenue sharing.\
-      This fee is denominated in the cryptocurrency specified by `payable_currency`.\
-      The actual developer fee received is calculated as:\
-      Actual Developer Fee = (Configured Developer Fee / Payable Amount) × Actual Collected Amount. For more details, please refer to [Accounts and Fund Allocation](/payments/en/guides/amounts-and-balances).
+    - **Developer Fee (`fee_amount`)**:
+      If you are a platform serving multiple downstream merchants, you can configure this order-level charge to collect a developer share from this specific order. This is distinct from the merchant-level `developer_fee_rate` used in Top-up mode; for details on configuring that rate, refer to [Merchants](/payments/en/guides/merchants).
+
+      In a normal settlement, where the payer's deposit exactly matches the payable amount, the developer account receives `fee_amount` and the merchant account receives the remainder:
+      - When `fee_amount` is 0, the merchant account receives the full collected amount.
+      - When `payable_amount` is 104.08 and `fee_amount` is 2, an exact 104.08 deposit credits 102.08 to the merchant account and 2 to the developer account.
+
+      For overpayments and underpayments, funds are settled using the same ratio between `fee_amount` and the payable amount, rather than always subtracting the literal `fee_amount` value. If a deposit is processed after the order has already reached the `EXPIRED`, `UNDERPAID`, or `COMPLETED` status, the entire deposit is credited to the developer account regardless of `fee_amount`.
+
+      For more details on how funds are settled and allocated between accounts, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
 
     <Info>
       If you are a merchant (serving users directly), you typically do not need to set the developer fee.
@@ -131,7 +136,7 @@ Completing [Payments onboarding](/payments/en/guides/preparation) automatically 
     | Calculation Process       | (100 + 0) / 0.99                                                                                       | Directly uses specified payable_amount                                                   |
     | Final payable amount      | `"101.01"`                                                                                             | `"104.08"`                                                                               |
     | Developer Fee Calculation | 0                                                                                                      | 2/104.08\*104.08                                                                         |
-    | Final Developer Fee       | `"0"`                                                                                                  | `"0"`                                                                                    |
+    | Final Developer Fee       | `"0"`                                                                                                  | `"2"`                                                                                    |
   </Tab>
   <Tab title="Create order link" icon="browser">
     You can call [Create order link](/payments/en/api-references/payment/create-order-link) to create an order payment link. This call returns only the link — Cobo has not yet created a payment order, so no `order_id` exists at this point. The complete sequence is:

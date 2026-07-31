@@ -31,6 +31,8 @@ sequenceDiagram
 
 </div>
 
+After a Top-up deposit completes, `developer_fee_rate` splits the deposit into a merchant share and a developer share; each positive share is credited independently to its own account ledger, though a deposit whose developer share rounds down to zero posts only the merchant-side ledger entry. For a full worked example of this split, refer to [Accounts and fund allocation](/payments/en/guides/amounts-and-balances). To configure or adjust the rate, refer to [Merchants](/payments/en/guides/merchants). You can observe the gross amount received by calling [List payer transactions](/payments/en/api-references/payment/list-payer-transactions), the resulting account balances by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance), and the individual ledger entries by calling [List balance changes](/payments/en/api-references/payment/list-balance-changes).
+
 ## Get top-up address
 
 You can get top-up addresses through Payments App or Payments API. After providing the top-up address to the payer, the payer can top up any amount to that address at any time.
