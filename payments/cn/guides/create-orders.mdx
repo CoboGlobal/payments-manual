@@ -74,6 +74,44 @@ lang: "zh-hans"
 
     在步骤 ② 中，Cobo 会创建该支付订单并生成 `order_id`，并在 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 的响应中同步返回。
 
+    #### 订单标识字段
+
+    在配置金额字段之前，请先设置订单标识字段，以便您和 Cobo 能够唯一地追踪该订单：
+
+    - **PSP 订单号（`psp_order_code`）**：请将该字段设置为您自己的内部业务订单标识。该字段为必填字段，其值须在您的 Cobo 团队账号内保持唯一。
+    - **商户订单号（`merchant_order_code`）**：仅当您是服务下游商户的平台或支付服务提供商（PSP），且该下游商户拥有独立的订单编号需要追踪时，才需要设置该字段。该字段为可选字段。
+
+    如果您是直接服务付款方的商户，通常只需设置 `psp_order_code`，无需填写 `merchant_order_code`。如果您是服务下游商户的平台或 PSP，请将 `psp_order_code` 设置为您自己的订单标识，并额外设置 `merchant_order_code` 为对应下游商户的订单编号，以便双方各自通过自己的标识对账。
+
+    示例：
+
+    - 服务下游商户的平台或 PSP：
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "merchant_order_code": "SHOP88-INV-556213",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    - 直接服务付款方的商户：
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    完整请求参数说明请参考 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order)。
+
     创建订单时，您需要在以下两种方式中**选择一种适合业务的金额参数组合**：
 
     - \*\*方式一：\*\*原订单商品以法币定价，您需要收取数字货币金额

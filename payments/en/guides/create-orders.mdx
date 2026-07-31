@@ -80,6 +80,44 @@ Completing [Payments onboarding](/payments/en/guides/preparation) automatically 
 
     In step ②, Cobo creates the payment order and generates its `order_id`, returning both synchronously in the [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) response.
 
+    #### Order identification fields
+
+    Before you configure the amount fields, set the order identification fields so that you and Cobo can uniquely track the order:
+
+    - **PSP order code (`psp_order_code`)**: Set this field to your own internal business order identifier. This field is required, and the value must be unique within your Cobo organization.
+    - **Merchant order code (`merchant_order_code`)**: Set this field only if you are a platform or payment service provider (PSP) serving a downstream merchant that has its own separate order reference to track. This field is optional.
+
+    If you serve payers directly as a merchant, you typically only need to set `psp_order_code` and can omit `merchant_order_code`. If you serve downstream merchants as a platform or PSP, set `psp_order_code` to your own order identifier, and additionally set `merchant_order_code` to the corresponding downstream merchant's order reference so that both you and the merchant can reconcile the order using your own identifiers.
+
+    For example:
+
+    - Platform or PSP serving a downstream merchant:
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "merchant_order_code": "SHOP88-INV-556213",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    - Direct merchant serving payers:
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    For the complete list of request parameters, refer to [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order).
+
     When creating an order, you must choose **one** of the following two amount parameter combinations based on your business model:
 
     - \*\*Option 1: \*\*The original order is priced in fiat currency, and you collect payment in cryptocurrency
