@@ -20,6 +20,19 @@ The following accounts are currently supported:
 
 When you perform operations such as payouts or refunds, you need to select which account to use as the source of funds.
 
+## Deposit attribution
+
+Every deposit must be attributed to a merchant account before it can be settled. How Cobo determines the destination merchant depends on the pay-in mode:
+
+- **Top-up mode**: Cobo resolves the payer associated with the receiving address, then attributes the deposit to the merchant that was bound to that payer and address at the time they were created. Replacing a payer's top-up address does not change this attribution — see [Impact after address replacement](/payments/en/guides/get-topup-addresses#impact-after-address-replacement).
+- **Order mode**: Cobo attributes the deposit to the merchant that was stored on the order at the time the order was created. This destination does not change even if a later deposit arrives against the same order address.
+
+To support both perspectives, Cobo's accounting records preserve two sides of every deposit: the payment owner (the payer or order the funds were paid for) and the receiving address the funds arrived at. This lets you trace a deposit back through either the payer/order relationship or the specific on-chain address it used.
+
+<Note>
+Deposits received after an order has already reached `Expired`, the terminal `Underpaid` status, or `Completed` are not attributed to the merchant account, since the order can no longer accept the deposit as part of its normal payment. See [Late payment](/payments/en/guides/create-orders#late-payment) for how these deposits are detected and reported.
+</Note>
+
 ## Fund settlement and allocation
 
 Funds can be distributed between accounts in two ways:
@@ -68,7 +81,7 @@ graph TD
 
 #### Top-up mode
 
-In top-up mode, fund settlement is based on the developer fee rate (`developer_fee_rate`) set when creating the merchant. The developer fee rate determines the proportion of each top-up that is settled to the developer account.
+In top-up mode, fund settlement is based on the developer fee rate (`developer_fee_rate`) set when creating the merchant. The developer fee rate determines the proportion of each top-up that is settled to the developer account. For details on configuring this rate, refer to [Merchants](/payments/en/guides/merchants).
 
 **Example**: When the developer fee rate is 1%, a 100 USDT top-up will be settled as 99 USDT to the merchant account and 1 USDT to the developer account.
 
@@ -86,9 +99,21 @@ graph TD
     style F fill:#fff3e0
 ```
 
+**Before/after example**: Suppose the merchant account balance is 500 USDT and the developer account balance is 50 USDT before the deposit. A 100 USDT Top-up deposit with `developer_fee_rate` set to 0.01 posts two independent balance-change records:
+
+| Ledger record | Amount | Merchant balance | Developer balance |
+| --- | --- | --- | --- |
+| Before | — | 500 USDT | 50 USDT |
+| `MERCHANT_TOP_UP` | +99 USDT | 599 USDT | 50 USDT |
+| `PSP_TOP_UP` | +1 USDT | 599 USDT | 51 USDT |
+
+Each share is posted as its own balance-change record, and the developer's share is rounded down to the token's supported precision. If the developer fee rate rounds down to 0 for a given deposit (for example, a very small deposit at a low rate), no `PSP_TOP_UP` record is created for that deposit — only the `MERCHANT_TOP_UP` record is posted.
+
+You can observe the gross amount received by calling [List payer transactions](/payments/en/api-references/payment/list-payer-transactions), and the resulting balances by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances), [Get developer balance](/payments/en/api-references/payment/get-developer-balance), and [List balance changes](/payments/en/api-references/payment/list-balance-changes).
+
 #### Order mode
 
-In order mode, fund settlement is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the order amount (`pricing_amount`) determines the proportion of each order that is settled to the developer account.
+In order mode, fund settlement is based on the amount parameters set when creating the order. The ratio between the developer fee (`fee_amount`) and the payable amount (`payable_amount`) determines the proportion of each order that is settled to the developer account; `pricing_amount` may not be present at all for orders priced directly in cryptocurrency, so it cannot serve as the basis for this ratio. For details on configuring these parameters, refer to [Payment collection in order mode](/payments/en/guides/create-orders).
 
 **Example**: When the order amount is 99 USDT and the developer fee is 1 USDT, the actual received amount of 100 USDT will be settled as 99 USDT to the merchant account and 1 USDT to the developer account:
 
@@ -106,11 +131,20 @@ graph TD
     style F fill:#fff3e0
 ```
 
+**Before/after example**: Suppose the merchant account balance is 500 USDT and the developer account balance is 50 USDT before settlement. For a normal Payment Order with `fee_amount` set to 0, a 100 USDT deposit that exactly matches the payable amount credits the full amount to the merchant account:
+
+| Ledger record | Amount | Merchant balance | Developer balance |
+| --- | --- | --- | --- |
+| Before | — | 500 USDT | 50 USDT |
+| Order settlement | +100 USDT | 600 USDT | 50 USDT (unchanged) |
+
+The developer balance is unchanged because `fee_amount` is 0. For a worked example with a nonzero `fee_amount`, see [Payment collection in order mode](/payments/en/guides/create-orders).
+
 <Note>
 Special case handling:
 
 - Overpayment/Underpayment: Funds are settled according to the same ratio as above
-- Late payment: All funds are settled to the developer account
+- Late payment: The received funds are not settled to the merchant account through the automatic-settlement flow described above. See [Late payment](/payments/en/guides/create-orders#late-payment) for how late payments are detected and reported.
 </Note>
 
 #### Refunds
@@ -153,6 +187,8 @@ In addition to automatic settlement during payment collection, you can also use 
 ## Balances
 
 Account balance refers to the total amount of funds in an account that can be used for payouts or refunds at a specific moment. This balance can be queried through the **Balance** module in the Payments App or by calling [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance).
+
+Payout eligibility is based on this ledger balance, not on whether the underlying on-chain funds have already been physically consolidated (swept) to a payout-ready address. A merchant or developer account can show a sufficient ledger balance and be eligible for a payout while fund consolidation is still catching up in the background. For how Cobo prepares and consolidates funds ahead of a payout, and the timing this can add, see [Crypto payouts](/payments/en/guides/crypto-payouts#fund-preparation-and-sweeping).
 
 
 Balance changes mainly come from the following activities:
@@ -197,7 +233,3 @@ graph TD
     style M fill:#e1f5fe
     style L fill:#ffebee
 ```
-
-
-
-

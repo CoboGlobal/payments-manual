@@ -52,14 +52,19 @@ curl -X POST "https://api.example.com/v1/payments/bulk_sends" \
 
 ### **1.2 How to choose execution_mode**
 
-After receiving a Bulk Send request, Cobo first validates **all** addresses in the request (including format validation and compliance checks such as KYA). `execution_mode` determines whether Cobo continues with on-chain transfers for valid items when **any** item fails validation.
+After receiving a Bulk Send request, Cobo first validates **all** addresses in the request (including format validation and compliance checks such as KYA). `execution_mode` determines what happens in two situations: when **any** item fails validation, and — for `Strict` batches only — when the on-chain transfer step completes only partially (a partially completed sweep). `execution_mode` does not guarantee that every item succeeds once validation passes, and it does not provide transaction-level atomicity beyond these two situations. Always check each item's own `status` and `validation_status` instead of assuming a single outcome for the whole batch.
 
-#### **`Behavior: Strict vs Partial`**
+#### **Behavior: Strict vs Partial**
 
-| execution_mode | If any address fails validation (e.g., KYA rejected) | On-chain transfer result                                                                  | What you need to do                                                                                   |
-| -------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Strict         | If **any** bulk send item has an invalid address        | **No** on-chain transfers will be initiated (the entire batch is not executed)            | Replace the problematic address(es) and resubmit the **entire** Bulk Send (must include **all** items |
-| Partial        | Allows some invalid addresses                        | Transfers will be executed for **all validated** items; invalid items will be **skipped** | Query failed items, replace addresses, and resend **only** the failed items                           |
+| execution_mode | When a problem occurs | Batch and item outcome | What you need to do |
+| -------------- | ---------------------- | ----------------------- | --------------------- |
+| `Strict` | **Any** item fails validation (for example, KYA rejected) | The batch status becomes `Failed` and **every** item is marked `NotExecuted` | Replace the problematic address(es) and resubmit the **entire** Bulk Send (must include **all** items) |
+| `Strict` | The on-chain transfer step (sweep) completes only partially | The batch status becomes `Failed` | Inspect each item's `status` individually before deciding whether and how to resubmit |
+| `Partial` | One or more items fail validation | The validation failure is isolated: failed items are marked `NotExecuted` with `validation_status: ValidationFailed`; all validated items continue to on-chain transfer | Query failed items, replace addresses, and resend **only** the failed items |
+
+<Note>
+`execution_mode` governs only the failure paths described above. It does not guarantee that a `Partial` batch's validated items will all succeed on-chain, or that a `Strict` batch is atomic beyond these paths. Always inspect each item's `status` and `validation_status` individually, and check the batch `status` (`PartiallyCompleted` or `Failed`) before deciding whether to resend.
+</Note>
 
 #### **Recommended scenarios**
 
@@ -67,15 +72,15 @@ After receiving a Bulk Send request, Cobo first validates **all** addresses in t
   - Partner settlements (must take effect consistently within the same batch)
   - Vendor payments (finance requires batch-level consistency)
   - Any scenario where partial success is unacceptable
-- **`Use Partial (high throughput: partial failures allowed, retry later)`**
+- **`Use Partial (high throughput: partial failures allowed, retry later)`** — recommended whenever a single item's validation failure must not block the rest of a valid batch:
   - Global payroll payouts (large volume; a few bad addresses should not block the whole batch)
   - Rebates/rewards airdrops (mixed address quality)
   - Tips/revenue distribution for content platforms; merchant payout distribution for e-commerce/ads platforms (retry is acceptable)
 
 **Impact summary:**
 
-- `Strict` improves financial consistency, but increases operational overhead due to “one bad address forces a full resubmission”.
-- `Partial` scales better and is more automation-friendly, but requires a retry workflow for failed items.
+- `Strict` improves financial consistency by failing the whole batch on any validation failure (marking every item `NotExecuted`) or a partially completed sweep (batch status `Failed`), but increases operational overhead: a validation failure forces a full resubmission, while a partially completed sweep requires you to inspect each item's `status` individually before deciding what to resubmit.
+- `Partial` isolates validation failures to the affected items so the rest of the batch proceeds, which scales better and is more automation-friendly, but requires a retry workflow for the failed items.
 
 ### **1.3 Smart contract mechanism for Bulk Send**
 
@@ -192,14 +197,17 @@ Resend strategy depends on execution_mode:
 
 #### **A) Previous batch used Strict**
 
-- Under `Strict`, if any address has an issue, **no** on-chain transfer is executed for the entire batch.
-- Therefore, on retry (resubmission), you must include **all** items (not only the failed ones).
+- Under `Strict`, if any item fails validation, the batch fails and **every** item is marked `NotExecuted`.
+- Under `Strict`, if the on-chain transfer step completes only partially, the batch status becomes `Failed`.
+- For the validation-failure path, resubmission must include **all** items. For a partially completed sweep, inspect each item's `status` individually before deciding what to resubmit — do not assume every item needs resubmission.
 
-Steps:
+Steps (validation-failure path):
 
-1. Query items and identify those with ValidationFailed or Failed/NotExecuted
-2. Replace the addresses for those items (or fix other parameters causing failures)
-3. Resubmit a new Bulk Send containing **all** items
+1. Query items and identify those with `validation_status: ValidationFailed`.
+2. Replace the addresses for those items (or fix other parameters causing failures).
+3. Resubmit a new Bulk Send containing **all** items.
+
+For a partially completed sweep, query each item's `status` individually and use that to decide which items (if any) to resubmit — do not default to resubmitting the full batch.
 
 #### **`B) Previous batch used Partial`**
 
@@ -302,8 +310,8 @@ app.listen(3000, () => console.log("Webhook listener on :3000"));
 
 - **`Always include business-traceable identifiers in description`** (e.g., `batch_id + user_id/employee_id + period`) for auditing, reconciliation, diagnosing failures, and address replacement.
 - **Use different resend strategies for Strict vs Partial:**
-  - Strict：retry must include **all** items
-  - Partial：retry **only failed** items (avoid duplicate payouts)
+  - Strict: for a validation failure, retry must include **all** items; for a partially completed sweep, inspect each item's `status` individually before deciding what to resubmit
+  - Partial: retry **only failed** items (avoid duplicate payouts)
 - **Webhook idempotency**: use `bulk_send_id + status + updated_timestamp` as an idempotency key to avoid duplicated resend triggers.
 - **Failure classification**:
   - validation_status=ValidationFailed：prioritize replacing the address
