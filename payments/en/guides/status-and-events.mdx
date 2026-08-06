@@ -304,7 +304,6 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `transaction_id` (string, UUID, required) — The transaction ID.
 - `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
 - `request_id` (string, optional) — The request ID used to track the transaction request.
-- `wallet_id` (string, required) — For deposit transactions, the wallet ID of the destination. For other transaction types, the wallet ID of the source.
 
 **Status and lifecycle**
 - `type` (string, optional) — The transaction type. For Payments events this is `Deposit`.
