@@ -315,7 +315,6 @@ The following fields are included in all `payment.transaction.*` events. Not all
 **Chain and asset**
 - `chain_id` (string, optional) — The chain ID.
 - `token_id` (string, optional) — The token ID.
-- `asset_id` (string, optional) — The asset ID. Exchange Wallets only.
 - `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
 
 **Source, destination, result, and fee**
