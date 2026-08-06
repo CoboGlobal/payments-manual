@@ -373,43 +373,13 @@ For full details, see [Get bulk send information](/payments/en/api-references/pa
 
 **Event content:** The base fields from [Transaction payload fields](#transaction-payload-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
 
-## Sample webhook payloads
+## Sample webhook payload
+
+All webhook events share the same envelope: `event_id`, `url`, `created_timestamp`, `type`, `data` (the event-specific payload, with its shape indicated by `data_type`), and `status`. The following example shows a `payment.transaction.created` event.
 
 <Note>
-  This section shows a sample payload for a few representative event types only — it is not the full list of events. See [Webhook Events](#webhook-events) above for every event this integration can send. The examples below are illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
+  This example is illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
 </Note>
-
-### payment.order.status.updated
-
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b1f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.order.status.updated",
-  "data": {
-    "data_type": "PaymentOrder",
-    "order_id": "O20250304-M1001-1001",
-    "merchant_id": "1001",
-    "psp_order_code": "P20240201001",
-    "pricing_currency": "USD",
-    "pricing_amount": "100.00",
-    "fee_amount": "2.00",
-    "payable_currency": "ETH_USDT",
-    "chain_id": "ETH",
-    "payable_amount": "103.03",
-    "exchange_rate": "0.99",
-    "receive_address": "0x1234567890abcdef1234567890abcdef12345678",
-    "status": "Completed",
-    "received_token_amount": "103.0305",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
-
-### payment.transaction.created
 
 ```json
 {
@@ -433,55 +403,6 @@ For full details, see [Get bulk send information](/payments/en/api-references/pa
     "acquiring_type": "TopUp",
     "payer_id": "P20250619T0310056d7aa",
     "custom_payer_id": "user_abc_10001"
-  },
-  "status": "Success"
-}
-```
-
-### payment.payout.status.updated
-
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b3f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.payout.status.updated",
-  "data": {
-    "data_type": "PaymentPayout",
-    "payout_id": "123e457-e89b-12d3-a456-426614174004",
-    "request_id": "123e457-e89b-12d3-a456-426614174004",
-    "payout_channel": "Crypto",
-    "source_account": "M1001",
-    "status": "Completed",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
-
-### payment.account.balance.updated
-
-```json
-{
-  "event_id": "9a3f1c2b-7d8e-4f0a-9b2c-5d6e7f8a9b0c",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.account.balance.updated",
-  "data": {
-    "data_type": "PaymentAccountBalanceUpdate",
-    "source_account": "M1001",
-    "source_id": "O202503041234567890",
-    "source_type": "OrderIn",
-    "token_id": "Tron_USDT",
-    "amount": "20.00",
-    "amount_raw": "20",
-    "balance_before": "100.00",
-    "balance_before_raw": "100",
-    "balance_after": "120.00",
-    "balance_after_raw": "120",
-    "flow_direction": "in",
-    "update_time": 1701396866
   },
   "status": "Success"
 }
