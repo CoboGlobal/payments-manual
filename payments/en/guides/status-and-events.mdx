@@ -311,7 +311,6 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
 - `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures.
 - `initiator` (string, optional) — The transaction initiator.
-- `initiator_type` (string, required) — The transaction initiator type.
 
 **Chain and asset**
 - `chain_id` (string, optional) — The chain ID. See [List enabled chains](https://www.cobo.com/developers/v2/api-references/wallets/list-enabled-chains).
