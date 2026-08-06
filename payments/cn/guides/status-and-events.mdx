@@ -296,33 +296,21 @@ lang: "zh-hans"
 
 所有 `payment.transaction.*` 事件均包含以下基础字段。在一些场景下，部分字段可能不会返回——请留意各字段的必填/选填说明。每个 `payment.transaction.*` 事件还会额外包含其专属的 Payment 字段，见上文对应事件的说明。
 
-**标识符**
 - `transaction_id`（string，UUID，必填）— 交易 ID。
 - `cobo_id`（string，选填）— 用于追踪交易的 Cobo ID。
 - `request_id`（string，选填）— 用于追踪交易请求的请求 ID。
-
-**状态与生命周期**
 - `type`（string，选填）— 交易类型。
 - `status`（string，必填）— 交易状态（例如 `Submitted`、`PendingScreening`、`Confirming`、`Completed`、`Failed`、`Rejected`）。完整生命周期请参考[交易状态与子状态](https://www.cobo.com/developers/v2/guides/transactions/status)。`PendingAuthorization` 状态既包含人工审批环节，也包含内部自动化的风控/KYT/合规检查——处于该状态不一定需要人工操作。
 - `sub_status`（string，选填）— 比 `status` 更细粒度的子状态（例如 `PendingApproverCheck`、`RejectedKYT`、`FailedOnChain`）。完整列表请参考同一篇[交易状态与子状态](https://www.cobo.com/developers/v2/guides/transactions/status)。
 - `failed_reason`（string，选填）— 交易失败原因。仅在审批失败和签名失败时返回。
 - `initiator`（string，选填）— 交易发起者。
-
-**链与资产**
 - `chain_id`（string，选填）— 链 ID。
 - `token_id`（string，选填）— 代币 ID。
 - `transaction_hash`（string，选填）— 链上交易哈希（`txid`）。仅在交易广播上链后才会返回，广播前可能为 `null` 或不存在——与之不同，`transaction_id` 在交易创建时即分配且始终存在。
-
-**来源、目标、结果与手续费**
-
-这几个对象的结构由其内嵌的 `*_type` 字段（例如 `source_type`、`destination_type`）标识。
-
-- `source`（object，必填）— 充币来源，通常为外部钱包地址（`DepositFromAddress`）。
-- `destination`（object，必填）— 充币目标，通常为充值地址（`DepositToAddress`）。
+- `source`（object，必填）— 充币来源，通常为外部钱包地址（`source_type: DepositFromAddress`）。
+- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`）。
 - `result`（object，选填）— 交易结果。
 - `fee`（object，选填）— 交易手续费，其结构取决于链的手续费模型（例如 EIP-1559、UTXO）。
-
-**确认数与区块信息**
 - `confirmed_num`（integer，选填）— 该交易已收到的确认数。
 - `confirming_threshold`（integer，选填）— 判定交易安全所需的最低确认数（例如比特币交易通常为 6）。
 - `block_info`（object，选填）— 交易所在区块的信息：
@@ -339,8 +327,6 @@ lang: "zh-hans"
   - `replaced_by_type` / `replaced_type` — 替换类型：`Drop`、`Resend` 或 `SpeedUp`。
   - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — 替换了该交易的交易 ID/哈希。
   - `replaced_transaction_id` / `replaced_transaction_hash` — 被该交易替换的交易 ID/哈希。
-
-**时间戳**
 - `created_timestamp`（integer，int64，必填）— 创建时间，Unix 时间戳（毫秒）。
 - `updated_timestamp`（integer，int64，必填）— 最后更新时间，Unix 时间戳（毫秒）。
 

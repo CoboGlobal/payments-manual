@@ -300,33 +300,21 @@ For full details, see [Get bulk send information](/payments/en/api-references/pa
 
 The following fields are included in all `payment.transaction.*` events. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
 
-**Identifiers**
 - `transaction_id` (string, UUID, required) — The transaction ID.
 - `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
 - `request_id` (string, optional) — The request ID used to track the transaction request.
-
-**Status and lifecycle**
 - `type` (string, optional) — The transaction type.
 - `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
 - `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
 - `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures.
 - `initiator` (string, optional) — The transaction initiator.
-
-**Chain and asset**
 - `chain_id` (string, optional) — The chain ID.
 - `token_id` (string, optional) — The token ID.
 - `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
-
-**Source, destination, result, and fee**
-
-The shape of these objects is indicated by their nested `*_type` field (e.g. `source_type`, `destination_type`).
-
-- `source` (object, required) — Where the deposit came from, typically an external wallet address (`DepositFromAddress`).
-- `destination` (object, required) — Where the deposit went, typically a deposit address (`DepositToAddress`).
+- `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`).
 - `result` (object, optional) — The transaction result.
 - `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
-
-**Confirmations and block info**
 - `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
 - `confirming_threshold` (integer, optional) — The minimum number of confirmations required to deem a transaction secure (e.g. commonly 6 for a Bitcoin transaction).
 - `block_info` (object, optional) — Details of the block the transaction was included in:
@@ -343,8 +331,6 @@ The shape of these objects is indicated by their nested `*_type` field (e.g. `so
   - `replaced_by_type` / `replaced_type` — The replacement type: `Drop`, `Resend`, or `SpeedUp`.
   - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — The ID/hash of the transaction that replaced this one.
   - `replaced_transaction_id` / `replaced_transaction_hash` — The ID/hash of the transaction this one replaced.
-
-**Timestamps**
 - `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
 - `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
 
