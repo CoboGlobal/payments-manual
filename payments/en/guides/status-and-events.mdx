@@ -324,6 +324,10 @@ To test delivery to your registered webhook endpoints, use [Trigger test webhook
 
 The following fields are included in all `payment.transaction.*` events. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
 
+<Note>
+  This section only covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
+</Note>
+
 - `transaction_id` (string, UUID, required) — The transaction ID.
 - `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
 - `request_id` (string, optional) — The request ID used to track the transaction request.

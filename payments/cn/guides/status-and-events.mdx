@@ -320,6 +320,10 @@ lang: "zh-hans"
 
 所有 `payment.transaction.*` 事件均包含以下基础字段。在一些场景下，部分字段可能不会返回——请留意各字段的必填/选填说明。每个 `payment.transaction.*` 事件还会额外包含其专属的 Payment 字段，见上文对应事件的说明。
 
+<Note>
+  本节仅列出与收款场景最相关的部分字段。完整的交易字段及含义请参考 [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information)。
+</Note>
+
 - `transaction_id`（string，UUID，必填）— 交易 ID。
 - `cobo_id`（string，选填）— 用于追踪交易的 Cobo ID。
 - `request_id`（string，选填）— 用于追踪交易请求的请求 ID。
