@@ -1,0 +1,75 @@
+---
+title: "Payment bulk send item status updated"
+lang: "en"
+description: "Webhook event payload for payment.bulk_send.item.status.updated."
+---
+
+This webhook event is triggered when the status of a bulk send item changes.
+Use it to track item-level execution results for a bulk send, especially when a
+batch completes partially or individual items fail validation or transfer.
+
+To test delivery to your registered Payments webhook endpoints, use
+[Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)
+with `event_type` set to `payment.bulk_send.item.status.updated`.
+
+## Event type
+
+`payment.bulk_send.item.status.updated`
+
+## Event data schema
+
+The `data` object uses the `PaymentBulkSendItemEvent` schema. It includes
+`data_type: "PaymentBulkSendItem"`, the fields from `PaymentBulkSendItem`, and
+the bulk-send context fields listed below.
+
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| `data_type` | string | Yes | The event data discriminator. Value: `PaymentBulkSendItem`. |
+| `bulk_send_item_id` | string | Yes | The bulk send item ID. |
+| `bulk_send_id` | string | Yes | The bulk send ID that this item belongs to. |
+| `request_id` | string | No | The request ID of the bulk send batch. |
+| `source_account` | string | Yes | The source account ID of the bulk send batch. |
+| `token_id` | string | Yes | The token ID of the cryptocurrency sent to the recipient. |
+| `receiving_address` | string | Yes | The recipient's cryptocurrency address. |
+| `amount` | string | Yes | The cryptocurrency amount sent to the recipient. |
+| `description` | string | No | A note or comment about the bulk send item. |
+| `tx_hash` | string | No | The transaction hash of the bulk send item. |
+| `status` | string | Yes | The item execution status. Possible values: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`. |
+| `validation_status` | string | Yes | The item validation status. Possible values: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`. |
+| `failed_reason` | string | No | The reason why the bulk send item failed. |
+| `created_timestamp` | integer | Yes | The time when the bulk send item was created, represented as a Unix timestamp in seconds. |
+| `updated_timestamp` | integer | Yes | The time when the bulk send item was last updated, represented as a Unix timestamp in seconds. |
+
+## Payload example
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b1f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.bulk_send.item.status.updated",
+  "data": {
+    "data_type": "PaymentBulkSendItem",
+    "bulk_send_item_id": "123e4567-e89b-12d3-a456-426614174003",
+    "bulk_send_id": "123e4567-e89b-12d3-a456-426614174003",
+    "request_id": "123e457-e89b-12d3-a456-426614174004",
+    "source_account": "M1001",
+    "token_id": "ETH_USDT",
+    "receiving_address": "0xabc123456789def0000000000000000000000000",
+    "amount": "500.00",
+    "description": "Invoice #INV-2024-001",
+    "tx_hash": "0xabc123456789def0000000000000000000000000",
+    "status": "Completed",
+    "validation_status": "Validated",
+    "created_timestamp": 1744689600,
+    "updated_timestamp": 1744689600
+  },
+  "status": "Success"
+}
+```
+
+## Related operations
+
+- [Create bulk send](/payments/en/api-references/payment/create-bulk-send)
+- [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)
+- [List bulk send items](/payments/en/api-references/payment/list-bulk-send-items)
