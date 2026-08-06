@@ -306,7 +306,7 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `request_id` (string, optional) — The request ID used to track the transaction request.
 
 **Status and lifecycle**
-- `type` (string, optional) — The transaction type. For Payments events this is typically `Deposit`, but can also be `Withdrawal` or `ContractCall`.
+- `type` (string, optional) — The transaction type.
 - `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
 - `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
 - `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures.
