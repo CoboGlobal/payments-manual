@@ -64,7 +64,7 @@ Subscribe to the events that match how you use Payments. Click any event name fo
       <td>An account balance changes for a token — useful for internal accounting.</td>
     </tr>
     <tr>
-      <td rowSpan={3}>**Payout**</td>
+      <td rowSpan={4}>**Payout**</td>
       <td>[`payment.payout.status.updated`](#payment-payout-status-updated)</td>
       <td>A single-destination payout/transfer request's status changes.</td>
     </tr>
@@ -75,6 +75,10 @@ Subscribe to the events that match how you use Payments. Click any event name fo
     <tr>
       <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated)</td>
       <td>A bulk send request's status changes (only if you use Bulk Send for crypto payouts).</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated)</td>
+      <td>A single bulk send item's status changes (only if you use Bulk Send for crypto payouts).</td>
     </tr>
     <tr>
       <td rowSpan={2}>**[Settlement Network](/payments/en/guides/settlement-network)**</td>
@@ -264,6 +268,28 @@ For full details, see [Get payout information](/payments/en/api-references/payme
 - `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
 
 For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
+
+#### `payment.bulk_send.item.status.updated`
+
+**Trigger condition:** Triggered when the status of a single bulk send item changes. Use it to track item-level execution results for a bulk send, especially when a batch completes partially or individual items fail validation or transfer.
+
+**Event content:**
+- `bulk_send_item_id` (required) — The bulk send item ID.
+- `bulk_send_id` (required) — The bulk send ID that this item belongs to.
+- `request_id` (optional) — The request ID of the bulk send batch.
+- `source_account` (required) — The source account ID of the bulk send batch.
+- `token_id` (required) — The token ID of the cryptocurrency sent to the recipient.
+- `receiving_address` (required) — The recipient's cryptocurrency address.
+- `amount` (required) — The cryptocurrency amount sent to the recipient.
+- `description` (optional) — A note or comment about the bulk send item.
+- `tx_hash` (optional) — The transaction hash of the bulk send item.
+- `status` (required) — The item execution status. One of: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`.
+- `validation_status` (required) — The item validation status. One of: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`.
+- `failed_reason` (optional) — The reason why the bulk send item failed.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+
+To test delivery to your registered webhook endpoints, use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) with `event_type` set to `payment.bulk_send.item.status.updated`.
 
 #### `payment.account.balance.updated`
 

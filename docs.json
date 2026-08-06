@@ -264,8 +264,7 @@
               {
                 "group": "Webhooks",
                 "pages": [
-                  "payments/en/api-references/payment/trigger-test-webhook-event",
-                  "payments/en/api-references/payment/payment-bulk-send-item-status-updated"
+                  "payments/en/api-references/payment/trigger-test-webhook-event"
                 ]
               }
             ]

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "payments-manual-mintlify",
+      "runtimeExecutable": "mintlify",
+      "runtimeArgs": ["dev"],
+      "port": 3000
+    }
+  ]
+}
