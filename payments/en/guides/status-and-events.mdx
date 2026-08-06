@@ -11,6 +11,27 @@ This document describes all Webhook events and status transition processes invol
 
 ## Webhook Events
 
+### Event type reference
+
+Use this table to quickly identify which events to subscribe to. Click an event name to jump to its full trigger condition and payload fields.
+
+| Event Name | Category | Fires when |
+|:-----------|:---------|:-----------|
+| [`payment.order.status.updated`](#payment-order-status-updated-order-mode) | Pay-in — Order Mode | A payment order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). |
+| [`payment.transaction.late`](#payment-transaction-late-order-mode) | Pay-in — Order Mode | A compliant deposit transaction arrives after its order already reached a final state. |
+| [`payment.transaction.created`](#payment-transaction-created-top-up-mode) | Pay-in — Top-up Mode | A new deposit transaction is detected on a deposit address. |
+| [`payment.address.updated`](#payment-address-updated-top-up-mode) | Pay-in — Top-up Mode | A payer's top-up address is replaced. |
+| [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | Pay-in — Order Mode and Top-up Mode | A deposit transaction passes compliance screening and is credited to the Actual Receipt amount. |
+| [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) | Pay-in — Unexpected Deposit | An unexpected deposit transaction is detected (e.g. outside any order/deposit plan, or in an unsupported token). |
+| [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) | Pay-in — Unexpected Deposit | An unexpected deposit passes compliance scanning and is credited to the developer balance. |
+| [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | Pay-in — Compliance Check | A collection transaction fails compliance screening. |
+| [`payment.refund.status.updated`](#payment-refund-status-updated-refund) | Pay-out — Refund | A refund order's status changes. |
+| [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) | Pay-out — Single-Destination Payout/Transfer | A payout/transfer request's status changes. |
+| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) | Pay-out — Bulk Send (Crypto) | A bulk send request's status changes. |
+| [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) | Pay-out — Account Balance | The available balance of a Payments account changes for a specific token. |
+| [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) | Settlement Network | A Settlement Network transaction is created. |
+| [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) | Settlement Network | A Settlement Network transaction completes and its funds are reflected in your Payment account balance. |
+
 ### **1. Pay-in Related**
 
 #### `payment.order.status.updated` (Order Mode)
