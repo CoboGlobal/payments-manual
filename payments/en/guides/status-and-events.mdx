@@ -13,7 +13,7 @@ This document describes all Webhook events and status transition processes invol
 
 ### Which events should you subscribe to?
 
-Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two rows. Click any event name to jump to its full trigger condition and field descriptions.
+Find the integration profile(s) that match how you use Payments, and also subscribe to the shared events that apply to either pay-in mode. Click any event name to jump to its full trigger condition and field descriptions.
 
 <table>
   <thead>
@@ -343,14 +343,12 @@ All webhook messages share the same top-level structure: `event_id`, `url`, `cre
   "data": {
     "data_type": "PaymentTransaction",
     "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
     "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
     "source": { "source_type": "DepositFromAddress" },
     "destination": { "destination_type": "DepositToAddress" },
-    "initiator_type": "API",
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",

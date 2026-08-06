@@ -9,7 +9,7 @@ lang: "zh-hans"
 
 ### 应该订阅哪些事件？
 
-请根据您使用 Payments 的方式，找到对应的集成场景——如果您同时使用两种收款模式，请合并对应的两组事件。点击事件名称可跳转至该事件的完整触发条件和字段说明。
+请根据您使用 Payments 的方式，找到对应的集成场景，并同时订阅适用于任一收款模式的共享事件。点击事件名称可跳转至该事件的完整触发条件和字段说明。
 
 <table>
   <thead>
@@ -84,7 +84,7 @@ lang: "zh-hans"
   </tbody>
 </table>
 
-### **1. 入账相关**
+### **1. 收款相关**
 
 #### `payment.order.status.updated`
 
@@ -339,14 +339,12 @@ lang: "zh-hans"
   "data": {
     "data_type": "PaymentTransaction",
     "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
     "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
     "source": { "source_type": "DepositFromAddress" },
     "destination": { "destination_type": "DepositToAddress" },
-    "initiator_type": "API",
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",
