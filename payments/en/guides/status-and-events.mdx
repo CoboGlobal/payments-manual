@@ -13,7 +13,7 @@ This document describes all Webhook events and status transition processes invol
 
 ### Which events should you subscribe to?
 
-Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two rows. Click any event name to jump to its full trigger condition and payload fields.
+Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two rows. Click any event name to jump to its full trigger condition and field descriptions.
 
 <table>
   <thead>
@@ -133,7 +133,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 **Trigger condition:** In Order Mode, a deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. Value: `Order` (Order Mode only).
 - `order_id` (optional) — The pay-in order ID.
 - `psp_order_code` (optional) — A unique reference code assigned by the developer to identify this order.
@@ -142,7 +142,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 **Trigger condition:** In Top-up Mode, a new deposit transaction is detected on a deposit address.
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. Value: `TopUp` (Top-up Mode only).
 - `payer_id` (optional) — A unique identifier assigned by Cobo to track and identify individual payers.
 - `custom_payer_id` (optional) — A unique identifier assigned by the developer to track and identify individual payers.
@@ -164,7 +164,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - Order Mode: For every transaction received within the order's validity period, once the funds pass compliance screening, they are credited and recorded in the **Actual Receipt** amount.
 - Top-up Mode: Once a collection transaction passes compliance screening, the funds are credited and recorded in the **Actual Receipt** amount.
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
 - Order Mode: `acquiring_type` (required, value `Order`), `order_id` (optional), `psp_order_code` (optional).
 - Top-up Mode: `acquiring_type` (required, value `TopUp`), `payer_id` (optional), `custom_payer_id` (optional).
 
@@ -172,19 +172,19 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 **Trigger condition:** In either pay-in mode, an unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
+**Event content:** All fields from [Transaction fields](#transaction-fields).
 
 #### `payment.transaction.external.completed`
 
 **Trigger condition:** In either pay-in mode, the unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
+**Event content:** All fields from [Transaction fields](#transaction-fields).
 
 #### `payment.transaction.failed`
 
 **Trigger condition:** In either pay-in mode, the collection transaction failed the compliance screening.
 
-**Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. `Order` for Order Mode, `TopUp` for Top-up Mode.
 - `order_id` (optional) — The pay-in order ID.
 - `psp_order_code` (optional) — A unique reference code assigned by the developer to identify this order.
@@ -288,17 +288,17 @@ For full details, see [Get bulk send information](/payments/en/api-references/pa
 
 **Trigger condition:** Triggered when a Settlement Network transaction is created.
 
-**Event content:** The base fields from [Transaction payload fields](#transaction-payload-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
+**Event content:** The base fields from [Transaction fields](#transaction-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
 
 #### `payment.transaction.settlement_network.completed`
 
 **Trigger condition:** Triggered when a Settlement Network transaction is completed. On completion, the settled funds are reflected in your Payment account balance with the `SettlementNetwork` `source_type`.
 
-**Event content:** The base fields from [Transaction payload fields](#transaction-payload-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
+**Event content:** The base fields from [Transaction fields](#transaction-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
 
-## Transaction payload fields
+## Transaction fields
 
-The following fields are included in all `payment.transaction.*` event payloads. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
+The following fields are included in all `payment.transaction.*` events. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
 
 **Identifiers**
 - `transaction_id` (string, UUID, required) — The transaction ID.
@@ -366,9 +366,9 @@ These fields are polymorphic objects: their shape is indicated by a nested `*_ty
 - `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
 - `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
 
-## Sample webhook payload
+## Webhook message example
 
-All webhook events share the same envelope: `event_id`, `url`, `created_timestamp`, `type`, `data` (the event-specific payload, with its shape indicated by `data_type`), and `status`. The following example shows a `payment.transaction.created` event.
+All webhook messages share the same top-level structure: `event_id`, `url`, `created_timestamp`, `type`, `data` (the event-specific content, with its shape indicated by `data_type`), and `status`. The following example shows a `payment.transaction.created` event.
 
 <Note>
   This example is illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
@@ -405,7 +405,7 @@ All webhook events share the same envelope: `event_id`, `url`, `created_timestam
 
 ## Tips
 
-To ensure absolute data accuracy and avoid concurrency conflicts, the Webhook payload does not include real-time balance changes or detailed fee deductions. If your use case requires this information, please refer to the following:
+To ensure absolute data accuracy and avoid concurrency conflicts, the Webhook message does not include real-time balance changes or detailed fee deductions. If your use case requires this information, please refer to the following:
 
 - **To update balances promptly based on Webhook notifications:** Upon receiving a Webhook, immediately call the [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) endpoint to obtain the accurate balance for internal accounting.
 - **To obtain fee details associated with a transaction for reconciliation:** Use the corresponding transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports) to retrieve fee reports for data verification.
