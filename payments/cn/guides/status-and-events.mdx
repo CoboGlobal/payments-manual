@@ -320,6 +320,10 @@ lang: "zh-hans"
 
 所有 `payment.transaction.*` 事件均包含以下基础字段。在一些场景下，部分字段可能不会返回——请留意各字段的必填/选填说明。每个 `payment.transaction.*` 事件还会额外包含其专属的 Payment 字段，见上文对应事件的说明。
 
+<Note>
+  本节仅列出与收款场景最相关的部分字段。完整的交易字段及含义请参考 [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information)。
+</Note>
+
 - `transaction_id`（string，UUID，必填）— 交易 ID。
 - `cobo_id`（string，选填）— 用于追踪交易的 Cobo ID。
 - `request_id`（string，选填）— 用于追踪交易请求的请求 ID。
@@ -332,7 +336,10 @@ lang: "zh-hans"
 - `token_id`（string，选填）— 代币 ID。
 - `transaction_hash`（string，选填）— 链上交易哈希（`txid`）。仅在交易广播上链后才会返回，广播前可能为 `null` 或不存在——与之不同，`transaction_id` 在交易创建时即分配且始终存在。
 - `source`（object，必填）— 充币来源，通常为外部钱包地址（`source_type: DepositFromAddress`）。
-- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`）。
+- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`），主要子字段包括：
+  - `address` — 到账地址。
+  - `amount` — 到账金额。例如充入 1.5 USDT，则该值为 `1.5`。
+  - `memo` — 用于识别交易归属账户的 memo（仅部分链）。
 - `result`（object，选填）— 交易结果。
 - `fee`（object，选填）— 交易手续费，其结构取决于链的手续费模型（例如 EIP-1559、UTXO）。
 - `confirmed_num`（integer，选填）— 该交易已收到的确认数。

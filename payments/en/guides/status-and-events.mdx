@@ -324,6 +324,10 @@ To test delivery to your registered webhook endpoints, use [Trigger test webhook
 
 The following fields are included in all `payment.transaction.*` events. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
 
+<Note>
+  This section only covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
+</Note>
+
 - `transaction_id` (string, UUID, required) — The transaction ID.
 - `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
 - `request_id` (string, optional) — The request ID used to track the transaction request.
@@ -336,7 +340,10 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `token_id` (string, optional) — The token ID.
 - `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
 - `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
-- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`). Key sub-fields:
+  - `address` — The receiving address.
+  - `amount` — The received amount. For example, if 1.5 USDT was deposited, the value is `1.5`.
+  - `memo` — The memo identifying which account to credit (only on certain chains).
 - `result` (object, optional) — The transaction result.
 - `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
 - `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
