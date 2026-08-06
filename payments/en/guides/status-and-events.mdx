@@ -15,24 +15,86 @@ This document describes all Webhook events and status transition processes invol
 
 Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two rows. Click any event name to jump to its full trigger condition and payload fields.
 
-| If you... | Subscribe to | Fires when |
-|:----------|:-------------|:-----------|
-| **Receive payments in Order Mode** | [`payment.order.status.updated`](#payment-order-status-updated-order-mode) | The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment. |
-| | [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | A deposit passes compliance screening and is credited. |
-| | [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | A deposit fails compliance screening. |
-| | [`payment.transaction.late`](#payment-transaction-late-order-mode) | A compliant deposit arrives after the order already reached a final state. |
-| **Receive payments in Top-up Mode** | [`payment.transaction.created`](#payment-transaction-created-top-up-mode) | A new deposit is detected on a payer's top-up address. |
-| | [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | The deposit passes compliance screening and is credited. |
-| | [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | The deposit fails compliance screening. |
-| | [`payment.address.updated`](#payment-address-updated-top-up-mode) | A payer's top-up address is replaced. |
-| **Receive payments in either mode** (recommended for all pay-in users) | [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) | An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected. |
-| | [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) | The unexpected deposit is credited to your developer balance. |
-| | [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) | A Payments account balance changes for a token. Useful for internal accounting. |
-| **Send funds out** | [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) | A single-destination payout/transfer request's status changes. |
-| | [`payment.refund.status.updated`](#payment-refund-status-updated-refund) | A refund order's status changes (only if you issue refunds). |
-| | [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) | A bulk send request's status changes (only if you use Bulk Send for crypto payouts). |
-| **Use the [Settlement Network](/payments/en/guides/settlement-network)** (special use case) | [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) | A Settlement Network transaction is created. |
-| | [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) | The transaction completes and settled funds are reflected in your Payment account balance. |
+<table>
+  <thead>
+    <tr>
+      <th>If you...</th>
+      <th>Subscribe to</th>
+      <th>Fires when</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowSpan={4}>**Receive payments in Order Mode**</td>
+      <td>[`payment.order.status.updated`](#payment-order-status-updated-order-mode)</td>
+      <td>The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode)</td>
+      <td>A deposit passes compliance screening and is credited.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed-pay-in-check)</td>
+      <td>A deposit fails compliance screening.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.late`](#payment-transaction-late-order-mode)</td>
+      <td>A compliant deposit arrives after the order already reached a final state.</td>
+    </tr>
+    <tr>
+      <td rowSpan={4}>**Receive payments in Top-up Mode**</td>
+      <td>[`payment.transaction.created`](#payment-transaction-created-top-up-mode)</td>
+      <td>A new deposit is detected on a payer's top-up address.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode)</td>
+      <td>The deposit passes compliance screening and is credited.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed-pay-in-check)</td>
+      <td>The deposit fails compliance screening.</td>
+    </tr>
+    <tr>
+      <td>[`payment.address.updated`](#payment-address-updated-top-up-mode)</td>
+      <td>A payer's top-up address is replaced.</td>
+    </tr>
+    <tr>
+      <td rowSpan={3}>**Receive payments in either mode** (recommended for all pay-in users)</td>
+      <td>[`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit)</td>
+      <td>An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit)</td>
+      <td>The unexpected deposit is credited to your developer balance.</td>
+    </tr>
+    <tr>
+      <td>[`payment.account.balance.updated`](#payment-account-balance-updated-account-balance)</td>
+      <td>A Payments account balance changes for a token. Useful for internal accounting.</td>
+    </tr>
+    <tr>
+      <td rowSpan={3}>**Send funds out**</td>
+      <td>[`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer)</td>
+      <td>A single-destination payout/transfer request's status changes.</td>
+    </tr>
+    <tr>
+      <td>[`payment.refund.status.updated`](#payment-refund-status-updated-refund)</td>
+      <td>A refund order's status changes (only if you issue refunds).</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto)</td>
+      <td>A bulk send request's status changes (only if you use Bulk Send for crypto payouts).</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**Use the [Settlement Network](/payments/en/guides/settlement-network)** (special use case)</td>
+      <td>[`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created)</td>
+      <td>A Settlement Network transaction is created.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed)</td>
+      <td>The transaction completes and settled funds are reflected in your Payment account balance.</td>
+    </tr>
+  </tbody>
+</table>
 
 ### **1. Pay-in Related**
 
