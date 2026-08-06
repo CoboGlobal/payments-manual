@@ -11,26 +11,39 @@ This document describes all Webhook events and status transition processes invol
 
 ## Webhook Events
 
-### Event type reference
+### Which events should you subscribe to?
 
-Use this table to quickly identify which events to subscribe to. Click an event name to jump to its full trigger condition and payload fields.
+Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two lists. Click any event name to jump to its full trigger condition and payload fields.
 
-| Event Name | Category | Fires when |
-|:-----------|:---------|:-----------|
-| [`payment.order.status.updated`](#payment-order-status-updated-order-mode) | Pay-in — Order Mode | A payment order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). |
-| [`payment.transaction.late`](#payment-transaction-late-order-mode) | Pay-in — Order Mode | A compliant deposit transaction arrives after its order already reached a final state. |
-| [`payment.transaction.created`](#payment-transaction-created-top-up-mode) | Pay-in — Top-up Mode | A new deposit transaction is detected on a deposit address. |
-| [`payment.address.updated`](#payment-address-updated-top-up-mode) | Pay-in — Top-up Mode | A payer's top-up address is replaced. |
-| [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | Pay-in — Order Mode and Top-up Mode | A deposit transaction passes compliance screening and is credited to the Actual Receipt amount. |
-| [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) | Pay-in — Unexpected Deposit | An unexpected deposit transaction is detected (e.g. outside any order/deposit plan, or in an unsupported token). |
-| [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) | Pay-in — Unexpected Deposit | An unexpected deposit passes compliance scanning and is credited to the developer balance. |
-| [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | Pay-in — Compliance Check | A collection transaction fails compliance screening. |
-| [`payment.refund.status.updated`](#payment-refund-status-updated-refund) | Pay-out — Refund | A refund order's status changes. |
-| [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) | Pay-out — Single-Destination Payout/Transfer | A payout/transfer request's status changes. |
-| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) | Pay-out — Bulk Send (Crypto) | A bulk send request's status changes. |
-| [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) | Pay-out — Account Balance | The available balance of a Payments account changes for a specific token. |
-| [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) | Settlement Network | A Settlement Network transaction is created. |
-| [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) | Settlement Network | A Settlement Network transaction completes and its funds are reflected in your Payment account balance. |
+**If you receive payments in Order Mode**, subscribe to:
+
+- [`payment.order.status.updated`](#payment-order-status-updated-order-mode) — the order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). This is your main signal for order fulfillment.
+- [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) — a deposit passes compliance screening and is credited.
+- [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) — a deposit fails compliance screening.
+- [`payment.transaction.late`](#payment-transaction-late-order-mode) — a compliant deposit arrives after the order already reached a final state.
+
+**If you receive payments in Top-up Mode**, subscribe to:
+
+- [`payment.transaction.created`](#payment-transaction-created-top-up-mode) — a new deposit is detected on a payer's top-up address.
+- [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) — the deposit passes compliance screening and is credited.
+- [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) — the deposit fails compliance screening.
+- [`payment.address.updated`](#payment-address-updated-top-up-mode) — a payer's top-up address is replaced.
+
+**For all pay-in users** (both modes), also consider:
+
+- [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) / [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) — an unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected / credited to your developer balance.
+- [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) — a Payments account balance changes for a token. Useful for internal accounting regardless of mode.
+
+**If you send funds out** (payouts, refunds), subscribe to the events matching the features you use:
+
+- [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) — for single-destination payouts/transfers.
+- [`payment.refund.status.updated`](#payment-refund-status-updated-refund) — if you issue refunds.
+- [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) — only if you use Bulk Send (crypto) for payouts.
+
+**If you use the Settlement Network** (a special use case — see the [Settlement Network](/payments/en/guides/settlement-network) guide), additionally subscribe to:
+
+- [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) — a Settlement Network transaction is created.
+- [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) — the transaction completes and settled funds are reflected in your Payment account balance.
 
 ### **1. Pay-in Related**
 
