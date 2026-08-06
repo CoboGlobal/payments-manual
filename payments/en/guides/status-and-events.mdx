@@ -13,37 +13,26 @@ This document describes all Webhook events and status transition processes invol
 
 ### Which events should you subscribe to?
 
-Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two lists. Click any event name to jump to its full trigger condition and payload fields.
+Find the integration profile(s) that match how you use Payments — if you use both pay-in modes, combine the two rows. Click any event name to jump to its full trigger condition and payload fields.
 
-**If you receive payments in Order Mode**, subscribe to:
-
-- [`payment.order.status.updated`](#payment-order-status-updated-order-mode) — the order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). This is your main signal for order fulfillment.
-- [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) — a deposit passes compliance screening and is credited.
-- [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) — a deposit fails compliance screening.
-- [`payment.transaction.late`](#payment-transaction-late-order-mode) — a compliant deposit arrives after the order already reached a final state.
-
-**If you receive payments in Top-up Mode**, subscribe to:
-
-- [`payment.transaction.created`](#payment-transaction-created-top-up-mode) — a new deposit is detected on a payer's top-up address.
-- [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) — the deposit passes compliance screening and is credited.
-- [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) — the deposit fails compliance screening.
-- [`payment.address.updated`](#payment-address-updated-top-up-mode) — a payer's top-up address is replaced.
-
-**For all pay-in users** (both modes), also consider:
-
-- [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) / [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) — an unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected / credited to your developer balance.
-- [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) — a Payments account balance changes for a token. Useful for internal accounting regardless of mode.
-
-**If you send funds out** (payouts, refunds), subscribe to the events matching the features you use:
-
-- [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) — for single-destination payouts/transfers.
-- [`payment.refund.status.updated`](#payment-refund-status-updated-refund) — if you issue refunds.
-- [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) — only if you use Bulk Send (crypto) for payouts.
-
-**If you use the Settlement Network** (a special use case — see the [Settlement Network](/payments/en/guides/settlement-network) guide), additionally subscribe to:
-
-- [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) — a Settlement Network transaction is created.
-- [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) — the transaction completes and settled funds are reflected in your Payment account balance.
+| If you... | Subscribe to | Fires when |
+|:----------|:-------------|:-----------|
+| **Receive payments in Order Mode** | [`payment.order.status.updated`](#payment-order-status-updated-order-mode) | The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment. |
+| | [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | A deposit passes compliance screening and is credited. |
+| | [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | A deposit fails compliance screening. |
+| | [`payment.transaction.late`](#payment-transaction-late-order-mode) | A compliant deposit arrives after the order already reached a final state. |
+| **Receive payments in Top-up Mode** | [`payment.transaction.created`](#payment-transaction-created-top-up-mode) | A new deposit is detected on a payer's top-up address. |
+| | [`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode) | The deposit passes compliance screening and is credited. |
+| | [`payment.transaction.failed`](#payment-transaction-failed-pay-in-check) | The deposit fails compliance screening. |
+| | [`payment.address.updated`](#payment-address-updated-top-up-mode) | A payer's top-up address is replaced. |
+| **Receive payments in either mode** (recommended for all pay-in users) | [`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit) | An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected. |
+| | [`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit) | The unexpected deposit is credited to your developer balance. |
+| | [`payment.account.balance.updated`](#payment-account-balance-updated-account-balance) | A Payments account balance changes for a token. Useful for internal accounting. |
+| **Send funds out** | [`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer) | A single-destination payout/transfer request's status changes. |
+| | [`payment.refund.status.updated`](#payment-refund-status-updated-refund) | A refund order's status changes (only if you issue refunds). |
+| | [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto) | A bulk send request's status changes (only if you use Bulk Send for crypto payouts). |
+| **Use the [Settlement Network](/payments/en/guides/settlement-network)** (special use case) | [`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created) | A Settlement Network transaction is created. |
+| | [`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed) | The transaction completes and settled funds are reflected in your Payment account balance. |
 
 ### **1. Pay-in Related**
 
