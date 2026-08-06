@@ -340,17 +340,6 @@ lang: "zh-hans"
   - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — 替换了该交易的交易 ID/哈希。
   - `replaced_transaction_id` / `replaced_transaction_hash` — 被该交易替换的交易 ID/哈希。
 
-**分类与元数据**
-- `category`（array，选填）— 您自定义的交易分类，便于识别您的转账。
-- `cobo_category`（array，选填）— Cobo 定义的交易分类（例如 `AutoFueling`）。参考 [Cobo-defined categories](https://www.cobo.com/developers/v2/guides/transactions/manage-transactions#cobo-defined-categories)。
-- `description`（string，选填）— 交易描述。
-- `is_loop`（boolean，选填）— 该交易是否为 [Cobo Loop](https://manuals.cobo.com/cn/portal/custodial-wallets/cobo-loop) 转账。
-- `extra`（array，选填）— JSON 编码字符串列表，包含该交易的结构化业务专属信息。每项的 `extra_type` 字段标识其数据类型（例如 `BabylonBusinessInfo`）。
-- `fueling_info`（object，选填）— 当该交易由 Fee Station 自动补充 Gas 时返回：
-  - `request_id` — 加油交易的请求 ID。
-  - `transaction_id` — 加油交易自身的交易 ID。
-  - `main_transaction_id` — 该加油交易所服务的主交易 ID。
-
 **时间戳**
 - `created_timestamp`（integer，int64，必填）— 创建时间，Unix 时间戳（毫秒）。
 - `updated_timestamp`（integer，int64，必填）— 最后更新时间，Unix 时间戳（毫秒）。

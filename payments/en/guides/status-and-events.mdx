@@ -344,17 +344,6 @@ The shape of these objects is indicated by their nested `*_type` field (e.g. `so
   - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — The ID/hash of the transaction that replaced this one.
   - `replaced_transaction_id` / `replaced_transaction_hash` — The ID/hash of the transaction this one replaced.
 
-**Categorization and metadata**
-- `category` (array, optional) — Custom transaction categories you assign, to identify your transfers more easily.
-- `cobo_category` (array, optional) — Transaction categories defined by Cobo (e.g. `AutoFueling`). See [Cobo-defined categories](https://www.cobo.com/developers/v2/guides/transactions/manage-transactions#cobo-defined-categories).
-- `description` (string, optional) — The transaction description.
-- `is_loop` (boolean, optional) — Whether the transaction was executed as a [Cobo Loop](https://manuals.cobo.com/en/portal/custodial-wallets/cobo-loop) transfer.
-- `extra` (array, optional) — A list of JSON-encoded strings containing structured, business-specific information for the transaction. Each item's `extra_type` field indicates its data type (e.g. `BabylonBusinessInfo`).
-- `fueling_info` (object, optional) — Populated when this transaction was auto-fueled with gas by Fee Station:
-  - `request_id` — The request ID of the fueling transaction.
-  - `transaction_id` — The fueling transaction's own ID.
-  - `main_transaction_id` — The ID of the parent transaction this fueling transaction paid gas for.
-
 **Timestamps**
 - `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
 - `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
