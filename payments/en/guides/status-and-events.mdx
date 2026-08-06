@@ -100,9 +100,7 @@ Find the integration profile(s) that match how you use Payments — if you use b
 
 #### `payment.order.status.updated`
 
-**Applies to:** Order Mode only.
-
-**Trigger condition:** Triggered when a payment order status changes. Key nodes include:
+**Trigger condition:** Triggered when a payment order status changes (Order Mode only). Key nodes include:
 - `Pending`: Triggered only when an order is successfully created via a payment link.
 - `Completed`: Full payment received within the order validity period.
 - `Expired`: No completed deposit transactions within the validity period, or the order was canceled.
@@ -133,9 +131,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 #### `payment.transaction.late`
 
-**Applies to:** Order Mode only.
-
-**Trigger condition:** A deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).
+**Trigger condition:** In Order Mode, a deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. Value: `Order` (Order Mode only).
@@ -144,9 +140,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 #### `payment.transaction.created`
 
-**Applies to:** Top-up Mode only.
-
-**Trigger condition:** A new deposit transaction is detected on a deposit address.
+**Trigger condition:** In Top-up Mode, a new deposit transaction is detected on a deposit address.
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. Value: `TopUp` (Top-up Mode only).
@@ -155,9 +149,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 #### `payment.address.updated`
 
-**Applies to:** Top-up Mode only.
-
-**Trigger condition:** Triggered when the payer's top-up address is replaced.
+**Trigger condition:** In Top-up Mode, triggered when the payer's top-up address is replaced.
 
 **Event content:**
 - `custom_payer_id` — Payer identifier in your system.
@@ -168,9 +160,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 #### `payment.transaction.completed`
 
-**Applies to:** Order Mode and Top-up Mode.
-
-**Trigger condition:**
+**Trigger condition:** Applies to both pay-in modes:
 - Order Mode: For every transaction received within the order's validity period, once the funds pass compliance screening, they are credited and recorded in the **Actual Receipt** amount.
 - Top-up Mode: Once a collection transaction passes compliance screening, the funds are credited and recorded in the **Actual Receipt** amount.
 
@@ -180,25 +170,19 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 #### `payment.transaction.external.created`
 
-**Applies to:** Order Mode and Top-up Mode (unexpected deposits).
-
-**Trigger condition:** An unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).
+**Trigger condition:** In either pay-in mode, an unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
 
 #### `payment.transaction.external.completed`
 
-**Applies to:** Order Mode and Top-up Mode (unexpected deposits).
-
-**Trigger condition:** The unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.
+**Trigger condition:** In either pay-in mode, the unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
 
 #### `payment.transaction.failed`
 
-**Applies to:** Order Mode and Top-up Mode.
-
-**Trigger condition:** The collection transaction failed the compliance screening.
+**Trigger condition:** In either pay-in mode, the collection transaction failed the compliance screening.
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields), plus these Payment-specific fields:
 - `acquiring_type` (required) — The collection type. `Order` for Order Mode, `TopUp` for Top-up Mode.
