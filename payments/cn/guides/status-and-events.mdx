@@ -332,7 +332,10 @@ lang: "zh-hans"
 - `token_id`（string，选填）— 代币 ID。
 - `transaction_hash`（string，选填）— 链上交易哈希（`txid`）。仅在交易广播上链后才会返回，广播前可能为 `null` 或不存在——与之不同，`transaction_id` 在交易创建时即分配且始终存在。
 - `source`（object，必填）— 充币来源，通常为外部钱包地址（`source_type: DepositFromAddress`）。
-- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`）。
+- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`），主要子字段包括：
+  - `address` — 到账地址。
+  - `amount` — 到账金额。例如充入 1.5 USDT，则该值为 `1.5`。
+  - `memo` — 用于识别交易归属账户的 memo（仅部分链）。
 - `result`（object，选填）— 交易结果。
 - `fee`（object，选填）— 交易手续费，其结构取决于链的手续费模型（例如 EIP-1559、UTXO）。
 - `confirmed_num`（integer，选填）— 该交易已收到的确认数。

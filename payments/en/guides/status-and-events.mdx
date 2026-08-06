@@ -336,7 +336,10 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `token_id` (string, optional) — The token ID.
 - `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
 - `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
-- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`). Key sub-fields:
+  - `address` — The receiving address.
+  - `amount` — The received amount. For example, if 1.5 USDT was deposited, the value is `1.5`.
+  - `memo` — The memo identifying which account to credit (only on certain chains).
 - `result` (object, optional) — The transaction result.
 - `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
 - `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
