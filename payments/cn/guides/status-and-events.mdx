@@ -21,28 +21,25 @@ lang: "zh-hans"
   </thead>
   <tbody>
     <tr>
-      <td rowSpan={4}>**使用订单模式收款**</td>
+      <td rowSpan={2}>**使用订单模式收款**</td>
       <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
       <td>订单状态发生变更（`Pending`、`Completed`、`Expired`、`Underpaid`）。这是判断订单是否完成的主要信号。</td>
-    </tr>
-    <tr>
-      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
-      <td>充币交易通过合规筛查并成功入账。</td>
-    </tr>
-    <tr>
-      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
-      <td>充币交易合规筛查不通过。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.late`](#payment-transaction-late)</td>
       <td>订单已处于终态后，又收到一笔通过合规筛查的充币交易。</td>
     </tr>
     <tr>
-      <td rowSpan={4}>**使用充值模式收款**</td>
+      <td rowSpan={2}>**使用充值模式收款**</td>
       <td>[`payment.transaction.created`](#payment-transaction-created)</td>
       <td>付款人的充值地址检测到新的充币交易。</td>
     </tr>
     <tr>
+      <td>[`payment.address.updated`](#payment-address-updated)</td>
+      <td>付款人的充值地址被更换。</td>
+    </tr>
+    <tr>
+      <td rowSpan={5}>**使用任一模式收款**</td>
       <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
       <td>充币交易通过合规筛查并成功入账。</td>
     </tr>
@@ -51,11 +48,6 @@ lang: "zh-hans"
       <td>充币交易合规筛查不通过。</td>
     </tr>
     <tr>
-      <td>[`payment.address.updated`](#payment-address-updated)</td>
-      <td>付款人的充值地址被更换。</td>
-    </tr>
-    <tr>
-      <td rowSpan={3}>**使用任一模式收款**（建议所有收款用户订阅）</td>
       <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
       <td>检测到非预期充币交易（非当前订单/充值计划内的交易，或不支持的币种充币）。</td>
     </tr>

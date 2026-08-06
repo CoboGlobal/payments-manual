@@ -25,11 +25,25 @@ Find the integration profile(s) that match how you use Payments — if you use b
   </thead>
   <tbody>
     <tr>
-      <td rowSpan={4}>**Receive payments in Order Mode**</td>
+      <td rowSpan={2}>**Receive payments in Order Mode**</td>
       <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
       <td>The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment.</td>
     </tr>
     <tr>
+      <td>[`payment.transaction.late`](#payment-transaction-late)</td>
+      <td>A compliant deposit arrives after the order already reached a final state.</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**Receive payments in Top-up Mode**</td>
+      <td>[`payment.transaction.created`](#payment-transaction-created)</td>
+      <td>A new deposit is detected on a payer's top-up address.</td>
+    </tr>
+    <tr>
+      <td>[`payment.address.updated`](#payment-address-updated)</td>
+      <td>A payer's top-up address is replaced.</td>
+    </tr>
+    <tr>
+      <td rowSpan={5}>**Receive payments in either mode**</td>
       <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
       <td>A deposit passes compliance screening and is credited.</td>
     </tr>
@@ -38,28 +52,6 @@ Find the integration profile(s) that match how you use Payments — if you use b
       <td>A deposit fails compliance screening.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.late`](#payment-transaction-late)</td>
-      <td>A compliant deposit arrives after the order already reached a final state.</td>
-    </tr>
-    <tr>
-      <td rowSpan={4}>**Receive payments in Top-up Mode**</td>
-      <td>[`payment.transaction.created`](#payment-transaction-created)</td>
-      <td>A new deposit is detected on a payer's top-up address.</td>
-    </tr>
-    <tr>
-      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
-      <td>The deposit passes compliance screening and is credited.</td>
-    </tr>
-    <tr>
-      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
-      <td>The deposit fails compliance screening.</td>
-    </tr>
-    <tr>
-      <td>[`payment.address.updated`](#payment-address-updated)</td>
-      <td>A payer's top-up address is replaced.</td>
-    </tr>
-    <tr>
-      <td rowSpan={3}>**Receive payments in either mode** (recommended for all pay-in users)</td>
       <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
       <td>An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected.</td>
     </tr>
