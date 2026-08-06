@@ -14,50 +14,50 @@ lang: "zh-hans"
 <table>
   <thead>
     <tr>
-      <th>如果您...</th>
-      <th>需订阅的事件</th>
+      <th>使用场景</th>
+      <th>事件</th>
       <th>触发时机</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td rowSpan={2}>**使用订单模式收款**</td>
+      <td rowSpan={2}>**仅订单模式**</td>
       <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
-      <td>订单状态发生变更（`Pending`、`Completed`、`Expired`、`Underpaid`）。这是判断订单是否完成的主要信号。</td>
+      <td>订单状态变更（`Pending`、`Completed`、`Expired`、`Underpaid`），是判断订单是否完成的主要依据。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.late`](#payment-transaction-late)</td>
-      <td>订单已处于终态后，又收到一笔通过合规筛查的充币交易。</td>
+      <td>订单进入终态后又收到合规充币交易。</td>
     </tr>
     <tr>
-      <td rowSpan={2}>**使用充值模式收款**</td>
+      <td rowSpan={2}>**仅充值模式**</td>
       <td>[`payment.transaction.created`](#payment-transaction-created)</td>
-      <td>付款人的充值地址检测到新的充币交易。</td>
+      <td>充值地址收到新的充币交易。</td>
     </tr>
     <tr>
       <td>[`payment.address.updated`](#payment-address-updated)</td>
       <td>付款人的充值地址被更换。</td>
     </tr>
     <tr>
-      <td rowSpan={5}>**使用任一模式收款**</td>
+      <td rowSpan={5}>**两种收款模式通用**</td>
       <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
-      <td>充币交易通过合规筛查并成功入账。</td>
+      <td>充币交易通过合规筛查并入账。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
-      <td>充币交易合规筛查不通过。</td>
+      <td>充币交易未通过合规筛查。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
-      <td>检测到非预期充币交易（非当前订单/充值计划内的交易，或不支持的币种充币）。</td>
+      <td>检测到非预期充币（不属于任何订单/充值计划，或币种不支持）。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed)</td>
-      <td>非预期充币交易已成功入账，资金已计入开发者余额。</td>
+      <td>非预期充币已入账至开发者余额。</td>
     </tr>
     <tr>
       <td>[`payment.account.balance.updated`](#payment-account-balance-updated)</td>
-      <td>支付账户某币种的余额发生变动。适合用于内部记账。</td>
+      <td>账户某币种余额变动，可用于内部记账。</td>
     </tr>
     <tr>
       <td rowSpan={3}>**资金转出**</td>
@@ -73,7 +73,7 @@ lang: "zh-hans"
       <td>批量下发请求状态变更（仅当您使用批量下发加密货币功能时需订阅）。</td>
     </tr>
     <tr>
-      <td rowSpan={2}>**使用[结算网络](/payments/cn/guides/settlement-network)**</td>
+      <td rowSpan={2}>**[结算网络](/payments/cn/guides/settlement-network)**</td>
       <td>[`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created)</td>
       <td>结算网络交易创建。</td>
     </tr>

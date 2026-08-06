@@ -18,32 +18,32 @@ Subscribe to the events that match how you use Payments. Click any event name fo
 <table>
   <thead>
     <tr>
-      <th>If you...</th>
-      <th>Subscribe to</th>
+      <th>Scenario</th>
+      <th>Event</th>
       <th>Fires when</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td rowSpan={2}>**Receive payments in Order Mode**</td>
+      <td rowSpan={2}>**Order Mode only**</td>
       <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
-      <td>The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment.</td>
+      <td>The order status changes (`Pending`, `Completed`, `Expired`, `Underpaid`) — your main signal for order fulfillment.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.late`](#payment-transaction-late)</td>
-      <td>A compliant deposit arrives after the order already reached a final state.</td>
+      <td>A compliant deposit arrives after the order reached a final state.</td>
     </tr>
     <tr>
-      <td rowSpan={2}>**Receive payments in Top-up Mode**</td>
+      <td rowSpan={2}>**Top-up Mode only**</td>
       <td>[`payment.transaction.created`](#payment-transaction-created)</td>
-      <td>A new deposit is detected on a payer's top-up address.</td>
+      <td>A top-up address receives a new deposit.</td>
     </tr>
     <tr>
       <td>[`payment.address.updated`](#payment-address-updated)</td>
       <td>A payer's top-up address is replaced.</td>
     </tr>
     <tr>
-      <td rowSpan={5}>**Receive payments in either mode**</td>
+      <td rowSpan={5}>**Both pay-in modes**</td>
       <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
       <td>A deposit passes compliance screening and is credited.</td>
     </tr>
@@ -53,15 +53,15 @@ Subscribe to the events that match how you use Payments. Click any event name fo
     </tr>
     <tr>
       <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
-      <td>An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected.</td>
+      <td>An unexpected deposit is detected (outside any order/top-up plan, or in an unsupported token).</td>
     </tr>
     <tr>
       <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed)</td>
-      <td>The unexpected deposit is credited to your developer balance.</td>
+      <td>An unexpected deposit is credited to your developer balance.</td>
     </tr>
     <tr>
       <td>[`payment.account.balance.updated`](#payment-account-balance-updated)</td>
-      <td>A Payments account balance changes for a token. Useful for internal accounting.</td>
+      <td>An account balance changes for a token — useful for internal accounting.</td>
     </tr>
     <tr>
       <td rowSpan={3}>**Payout**</td>
@@ -77,7 +77,7 @@ Subscribe to the events that match how you use Payments. Click any event name fo
       <td>A bulk send request's status changes (only if you use Bulk Send for crypto payouts).</td>
     </tr>
     <tr>
-      <td rowSpan={2}>**Use the [Settlement Network](/payments/en/guides/settlement-network)**</td>
+      <td rowSpan={2}>**[Settlement Network](/payments/en/guides/settlement-network)**</td>
       <td>[`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created)</td>
       <td>A Settlement Network transaction is created.</td>
     </tr>
