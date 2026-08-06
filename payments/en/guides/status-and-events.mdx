@@ -307,15 +307,8 @@ The following fields are included in all `payment.transaction.*` event payloads.
 - `wallet_id` (string, required) — For deposit transactions, the wallet ID of the destination. For other transaction types, the wallet ID of the source.
 
 **Status and lifecycle**
-- `type` (string, optional) — The transaction type. One of:
-  - `Deposit` — A deposit transaction.
-  - `Withdrawal` — A withdrawal transaction.
-  - `ContractCall` — A transaction that interacts with a smart contract.
-  - `MessageSign` — A transaction that signs a message.
-  - `ExternalSafeTx` — A transaction to a Smart Contract Wallet (Safe{Wallet}) that requires one or more signatures to be executed.
-  - `Stake` — A transaction that creates a staking request.
-  - `Unstake` — A transaction that creates an unstaking request.
-- `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `PendingAuthorization`, `PendingSignature`, `Broadcasting`, `Confirming`, `Completed`, `Failed`, `Rejected`, `Pending`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
+- `type` (string, optional) — The transaction type. For Payments events this is `Deposit`.
+- `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
 - `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
 - `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures.
 - `initiator` (string, optional) — The transaction initiator.
@@ -333,12 +326,12 @@ The following fields are included in all `payment.transaction.*` event payloads.
 
 **Source, destination, result, and fee**
 
-These four fields are polymorphic objects: their shape depends on the transaction's source type, destination type, result type, or fee type, indicated by a nested `*_type` discriminator field. Rather than duplicate every variant here, see [Transaction sources and destinations](https://www.cobo.com/developers/v2/guides/transactions/sources-and-destinations) for the full breakdown by transaction type.
+These fields are polymorphic objects: their shape is indicated by a nested `*_type` discriminator field (e.g. `source_type`, `destination_type`). For deposit transactions in Payments:
 
-- `source` (object, required) — Where the transaction originated (e.g. a Custodial Wallet, MPC Wallet, Exchange Wallet, or deposit address).
-- `destination` (object, required) — Where the transaction is going (e.g. a wallet address, a smart contract call, a signature request, or a deposit destination).
-- `result` (object, optional) — The transaction result, e.g. signature output for `MessageSign` transactions.
-- `fee` (object, optional) — The transaction fee. Shape depends on the chain's fee model: EIP-1559, legacy (EVM), UTXO, fixed, SOL, or FIL.
+- `source` (object, required) — Where the deposit came from. Typically `source_type: DepositFromAddress` (an external wallet address); can also be `DepositFromWallet` (an Exchange Wallet) or `DepositFromLoop` (a [Cobo Loop](https://manuals.cobo.com/en/portal/custodial-wallets/cobo-loop) transfer).
+- `destination` (object, required) — Where the deposit went. Typically `destination_type: DepositToAddress`, or `DepositToWallet` for transfers between Exchange Wallets.
+- `result` (object, optional) — The transaction result.
+- `fee` (object, optional) — The transaction fee. Shape depends on the chain's fee model (indicated by `fee_type`), e.g. EIP-1559 or legacy for EVM chains, UTXO for Bitcoin-like chains.
 
 **Confirmations and block info**
 - `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
