@@ -315,12 +315,12 @@ lang: "zh-hans"
 
 **来源、目标、结果与手续费**
 
-这几个字段是多态对象：其结构由内嵌的 `*_type` 判别字段（例如 `source_type`、`destination_type`）决定。对于 Payments 中的充币交易：
+这几个对象的结构由其内嵌的 `*_type` 字段（例如 `source_type`、`destination_type`）标识。
 
-- `source`（object，必填）— 充币来源。通常为 `source_type: DepositFromAddress`（外部钱包地址）；也可能是 `DepositFromWallet`（交易所钱包）或 `DepositFromLoop`（[Cobo Loop](https://manuals.cobo.com/cn/portal/custodial-wallets/cobo-loop) 转账）。
-- `destination`（object，必填）— 充币目标。通常为 `destination_type: DepositToAddress`；交易所钱包之间的转账为 `DepositToWallet`。
+- `source`（object，必填）— 充币来源，通常为外部钱包地址（`DepositFromAddress`）。
+- `destination`（object，必填）— 充币目标，通常为充值地址（`DepositToAddress`）。
 - `result`（object，选填）— 交易结果。
-- `fee`（object，选填）— 交易手续费。结构取决于链的手续费模型（由 `fee_type` 标识），例如 EVM 链的 EIP-1559 或 legacy 模型、比特币系链的 UTXO 模型。
+- `fee`（object，选填）— 交易手续费，其结构取决于链的手续费模型（例如 EIP-1559、UTXO）。
 
 **确认数与区块信息**
 - `confirmed_num`（integer，选填）— 该交易已收到的确认数。

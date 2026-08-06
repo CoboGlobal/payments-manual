@@ -319,12 +319,12 @@ The following fields are included in all `payment.transaction.*` events. Not all
 
 **Source, destination, result, and fee**
 
-These fields are polymorphic objects: their shape is indicated by a nested `*_type` discriminator field (e.g. `source_type`, `destination_type`). For deposit transactions in Payments:
+The shape of these objects is indicated by their nested `*_type` field (e.g. `source_type`, `destination_type`).
 
-- `source` (object, required) — Where the deposit came from. Typically `source_type: DepositFromAddress` (an external wallet address); can also be `DepositFromWallet` (an Exchange Wallet) or `DepositFromLoop` (a [Cobo Loop](https://manuals.cobo.com/en/portal/custodial-wallets/cobo-loop) transfer).
-- `destination` (object, required) — Where the deposit went. Typically `destination_type: DepositToAddress`, or `DepositToWallet` for transfers between Exchange Wallets.
+- `source` (object, required) — Where the deposit came from, typically an external wallet address (`DepositFromAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`DepositToAddress`).
 - `result` (object, optional) — The transaction result.
-- `fee` (object, optional) — The transaction fee. Shape depends on the chain's fee model (indicated by `fee_type`), e.g. EIP-1559 or legacy for EVM chains, UTXO for Bitcoin-like chains.
+- `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
 
 **Confirmations and block info**
 - `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
