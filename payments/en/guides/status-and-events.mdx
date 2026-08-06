@@ -26,62 +26,62 @@ Find the integration profile(s) that match how you use Payments — if you use b
   <tbody>
     <tr>
       <td rowSpan={4}>**Receive payments in Order Mode**</td>
-      <td>[`payment.order.status.updated`](#payment-order-status-updated-order-mode)</td>
+      <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
       <td>The order's status changes (`Pending`, `Completed`, `Expired`, `Underpaid`). Your main signal for order fulfillment.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode)</td>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
       <td>A deposit passes compliance screening and is credited.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.failed`](#payment-transaction-failed-pay-in-check)</td>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
       <td>A deposit fails compliance screening.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.late`](#payment-transaction-late-order-mode)</td>
+      <td>[`payment.transaction.late`](#payment-transaction-late)</td>
       <td>A compliant deposit arrives after the order already reached a final state.</td>
     </tr>
     <tr>
       <td rowSpan={4}>**Receive payments in Top-up Mode**</td>
-      <td>[`payment.transaction.created`](#payment-transaction-created-top-up-mode)</td>
+      <td>[`payment.transaction.created`](#payment-transaction-created)</td>
       <td>A new deposit is detected on a payer's top-up address.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.completed`](#payment-transaction-completed-order-mode-and-top-up-mode)</td>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
       <td>The deposit passes compliance screening and is credited.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.failed`](#payment-transaction-failed-pay-in-check)</td>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
       <td>The deposit fails compliance screening.</td>
     </tr>
     <tr>
-      <td>[`payment.address.updated`](#payment-address-updated-top-up-mode)</td>
+      <td>[`payment.address.updated`](#payment-address-updated)</td>
       <td>A payer's top-up address is replaced.</td>
     </tr>
     <tr>
       <td rowSpan={3}>**Receive payments in either mode** (recommended for all pay-in users)</td>
-      <td>[`payment.transaction.external.created`](#payment-transaction-external-created-unexpected-deposit)</td>
+      <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
       <td>An unexpected deposit (outside any order or deposit plan, or in an unsupported token) is detected.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed-unexpected-deposit)</td>
+      <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed)</td>
       <td>The unexpected deposit is credited to your developer balance.</td>
     </tr>
     <tr>
-      <td>[`payment.account.balance.updated`](#payment-account-balance-updated-account-balance)</td>
+      <td>[`payment.account.balance.updated`](#payment-account-balance-updated)</td>
       <td>A Payments account balance changes for a token. Useful for internal accounting.</td>
     </tr>
     <tr>
       <td rowSpan={3}>**Payout**</td>
-      <td>[`payment.payout.status.updated`](#payment-payout-status-updated-single-destination-payout/transfer)</td>
+      <td>[`payment.payout.status.updated`](#payment-payout-status-updated)</td>
       <td>A single-destination payout/transfer request's status changes.</td>
     </tr>
     <tr>
-      <td>[`payment.refund.status.updated`](#payment-refund-status-updated-refund)</td>
+      <td>[`payment.refund.status.updated`](#payment-refund-status-updated)</td>
       <td>A refund order's status changes (only if you issue refunds).</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated-bulk-send-crypto)</td>
+      <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated)</td>
       <td>A bulk send request's status changes (only if you use Bulk Send for crypto payouts).</td>
     </tr>
     <tr>
@@ -98,7 +98,7 @@ Find the integration profile(s) that match how you use Payments — if you use b
 
 ### **1. Pay-in Related**
 
-#### `payment.order.status.updated` (Order Mode)
+#### `payment.order.status.updated`
 
 **Trigger condition:** Triggered when a payment order status changes. Key nodes include:
 - `Pending`: Triggered only when an order is successfully created via a payment link.
@@ -129,7 +129,7 @@ Find the integration profile(s) that match how you use Payments — if you use b
 
 For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
 
-#### `payment.transaction.late` (Order Mode)
+#### `payment.transaction.late`
 
 **Trigger condition:** A deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).
 
@@ -138,7 +138,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - `order_id` (optional) — The pay-in order ID.
 - `psp_order_code` (optional) — A unique reference code assigned by the developer to identify this order.
 
-#### `payment.transaction.created` (Top-up Mode)
+#### `payment.transaction.created`
 
 **Trigger condition:** A new deposit transaction is detected on a deposit address.
 
@@ -147,7 +147,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - `payer_id` (optional) — A unique identifier assigned by Cobo to track and identify individual payers.
 - `custom_payer_id` (optional) — A unique identifier assigned by the developer to track and identify individual payers.
 
-#### `payment.address.updated` (Top-up Mode)
+#### `payment.address.updated`
 
 **Trigger condition:** Triggered when the payer's top-up address is replaced.
 
@@ -158,7 +158,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - `previous_address` — Address before replacement.
 - `updated_address` — Address after replacement.
 
-#### `payment.transaction.completed` (Order Mode and Top-up Mode)
+#### `payment.transaction.completed`
 
 **Trigger condition:**
 - Order Mode: For every transaction received within the order's validity period, once the funds pass compliance screening, they are credited and recorded in the **Actual Receipt** amount.
@@ -168,19 +168,19 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - Order Mode: `acquiring_type` (required, value `Order`), `order_id` (optional), `psp_order_code` (optional).
 - Top-up Mode: `acquiring_type` (required, value `TopUp`), `payer_id` (optional), `custom_payer_id` (optional).
 
-#### `payment.transaction.external.created` (Unexpected Deposit)
+#### `payment.transaction.external.created`
 
 **Trigger condition:** An unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
 
-#### `payment.transaction.external.completed` (Unexpected Deposit)
+#### `payment.transaction.external.completed`
 
 **Trigger condition:** The unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.
 
 **Event content:** All fields from [Transaction payload fields](#transaction-payload-fields).
 
-#### `payment.transaction.failed` (Pay-in Check)
+#### `payment.transaction.failed`
 
 **Trigger condition:** The collection transaction failed the compliance screening.
 
@@ -270,7 +270,7 @@ These four fields are polymorphic objects: their shape depends on the transactio
 
 ### **2. Pay-out Related**
 
-#### `payment.refund.status.updated` (Refund)
+#### `payment.refund.status.updated`
 
 **Trigger condition:** Triggered when a refund order status changes. Key nodes include:
 - `Pending`: Triggered only when a refund order is successfully created via a refund link.
@@ -300,7 +300,7 @@ These four fields are polymorphic objects: their shape depends on the transactio
 
 For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
 
-#### `payment.payout.status.updated` (Single-Destination Payout/Transfer)
+#### `payment.payout.status.updated`
 
 **Trigger condition:** Triggered when a payout/transfer request status changes:
 - `Completed`: All payouts/transfers completed.
@@ -325,7 +325,7 @@ For full details, see [Get refund order information](/payments/en/api-references
 
 For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
 
-#### `payment.bulk_send.status.updated` (Bulk Send, Crypto)
+#### `payment.bulk_send.status.updated`
 
 **Trigger condition:** Triggered when a bulk send request status changes:
 - `Completed`: All sends completed.
@@ -344,7 +344,7 @@ For full details, see [Get payout information](/payments/en/api-references/payme
 
 For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
 
-#### `payment.account.balance.updated` (Account Balance)
+#### `payment.account.balance.updated`
 
 **Trigger condition:** Triggered when the available balance of a Payments account changes for a specific token.
 
