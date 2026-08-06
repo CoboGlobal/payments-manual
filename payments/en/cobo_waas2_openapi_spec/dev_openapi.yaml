@@ -4112,6 +4112,17 @@ paths:
       summary: Create pay-in order
       description: |
         This operation creates a pay-in order.
+
+        Before you can call this operation, make sure the following prerequisites are met:
+
+        - [Payments onboarding](https://www.cobo.com/payments/en/guides/preparation) is complete, so your organization's payment developer account is active.
+        - `merchant_id` references a merchant that already exists and is owned by your organization.
+
+        Completing Payments onboarding automatically provisions a default merchant for your organization, which you can use directly as the `merchant_id` value. To create additional merchants, call [Create merchant](https://www.cobo.com/payments/en/api-references/payment/create-merchant).
+
+        <Note>
+          This operation does not independently check merchant KYB, merchant activation or status, merchant configuration, or whether a developer-fee configuration record exists for the merchant. These checks are not substitutes for completing organization-level Payments onboarding — if your organization's payment developer account is not active, the request fails regardless of merchant state. For more information, refer to [Merchants](https://www.cobo.com/payments/en/guides/merchants) and [Error codes and status codes](https://www.cobo.com/payments/en/guides/error-codes#general-api-errors).
+        </Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -12214,6 +12225,7 @@ components:
             - PaymentAddressUpdate
             - PaymentPayout
             - PaymentBulkSend
+            - PaymentBulkSendItem
             - PaymentAccountBalanceUpdate
             - BalanceUpdateInfo
             - SuspendedToken
@@ -12241,6 +12253,7 @@ components:
             - `PaymentAddressUpdate`: The top-up address update event data.
             - `PaymentPayout`: The payment payout event data.
             - `PaymentBulkSend`: The payment bulk send event data.
+            - `PaymentBulkSendItem`: The payment bulk send item event data.
             - `PaymentAccountBalanceUpdate`: The Payments account balance updated event data, including account information and balance change details.
             - `BalanceUpdateInfo`: The balance update event data.
             - `SuspendedToken`: The token suspension event data.
@@ -12269,6 +12282,7 @@ components:
         - $ref: '#/components/schemas/PaymentAddressUpdateEventData'
         - $ref: '#/components/schemas/PaymentPayoutEvent'
         - $ref: '#/components/schemas/PaymentBulkSendEvent'
+        - $ref: '#/components/schemas/PaymentBulkSendItemEvent'
         - $ref: '#/components/schemas/PaymentAccountBalanceUpdateEventData'
         - $ref: '#/components/schemas/ComplianceDispositionUpdateEventData'
         - $ref: '#/components/schemas/ComplianceKytScreeningsUpdateEventData'
@@ -12295,6 +12309,7 @@ components:
           PaymentAddressUpdate: '#/components/schemas/PaymentAddressUpdateEventData'
           PaymentPayout: '#/components/schemas/PaymentPayoutEvent'
           PaymentBulkSend: '#/components/schemas/PaymentBulkSendEvent'
+          PaymentBulkSendItem: '#/components/schemas/PaymentBulkSendItemEvent'
           PaymentAccountBalanceUpdate: '#/components/schemas/PaymentAccountBalanceUpdateEventData'
           ComplianceDisposition: '#/components/schemas/ComplianceDispositionUpdateEventData'
           ComplianceKytScreenings: '#/components/schemas/ComplianceKytScreeningsUpdateEventData'
@@ -12565,6 +12580,38 @@ components:
       allOf:
         - $ref: '#/components/schemas/WebhookEventDataType'
         - $ref: '#/components/schemas/PaymentBulkSend'
+    PaymentBulkSendItemEvent:
+      title: Payment Bulk Send Item Event Data
+      allOf:
+        - $ref: '#/components/schemas/WebhookEventDataType'
+        - $ref: '#/components/schemas/PaymentBulkSendItem'
+        - type: object
+          required:
+            - bulk_send_id
+            - source_account
+            - created_timestamp
+            - updated_timestamp
+          properties:
+            bulk_send_id:
+              type: string
+              description: The bulk send ID that this item belongs to.
+              example: 123e4567-e89b-12d3-a456-426614174003
+            request_id:
+              type: string
+              description: The request ID of the bulk send batch.
+              example: 123e457-e89b-12d3-a456-426614174004
+            source_account:
+              type: string
+              description: The source account ID of the bulk send batch.
+              example: M1001
+            created_timestamp:
+              type: integer
+              description: 'The created time of the bulk send item, represented as a UNIX timestamp in seconds.'
+              example: 1744689600
+            updated_timestamp:
+              type: integer
+              description: 'The updated time of the bulk send item, represented as a UNIX timestamp in seconds.'
+              example: 1744689600
     PaymentAccountBalanceUpdateEventData:
       title: Payment account balance updated Event Data
       description: |-
@@ -12713,6 +12760,7 @@ components:
         - payment.subscription.status.updated
         - payment.charge.status.updated
         - payment.bulk_send.status.updated
+        - payment.bulk_send.item.status.updated
         - payment.transaction.external.created
         - payment.transaction.external.completed
         - payment.transaction.settlement_network.created
@@ -16018,12 +16066,14 @@ components:
         - CSV
         - XLSX
         - ZIP
+        - PDF
       example: CSV
       description: |
         The format of the report.
         - `CSV`: The report will be exported as a CSV file.
         - `XLSX`: The report will be exported as an XLSX file.
         - `ZIP`: The report will be exported as a ZIP file which contains multiple files.
+        - `PDF`: The report will be exported as a PDF file, only supported for balance snapshot report.
     Report:
       type: object
       required:
@@ -16195,7 +16245,12 @@ components:
       properties:
         order_id:
           type: string
-          description: The order ID.
+          description: |
+            The unique identifier of the payment order. Cobo assigns this ID when the payment order is created — when that happens depends on which pay-in method you use.
+
+            For the direct method, `Create pay-in order` creates the order synchronously and returns `order_id` in the response immediately.
+
+            For the payment link method, `Create order link` returns only the hosted link details and does not create an order, so `order_id` does not exist yet at that point. `order_id` becomes available only after the payer opens the hosted payment page, selects the payment token and blockchain network, and submits the order — Cobo creates the order and assigns `order_id` at that moment, not when the link itself was generated.
           example: '5001'
         merchant_id:
           type: string

@@ -3,6 +3,17 @@ title: "发布历史"
 lang: "zh-hans"
 ---
 
+## 2026 年 08 月
+
+| 功能 | 变更说明 | 发布时间 |
+| ----- | ----- | ----- |
+| **Webhook** | (SDK v1.41.0) 新增 `payment.bulk_send.item.status.updated` Webhook 事件，用于通知单条批量下发项目的状态更新。事件负载新增 `PaymentBulkSendItem` 数据类型及对应事件数据 Schema、discriminator 映射和事件类型枚举值。详见 [状态与事件](/payments/cn/guides/status-and-events)。 | 2026-08-05 |
+| **报表** | (SDK v1.41.0) [Generate reports](/payments/en/api-references/payment/generate-reports) 和 [List all reports](/payments/en/api-references/payment/list-all-reports)：`ReportExportFormat` 新增 `PDF`。PDF 导出仅支持余额快照报表。 | 2026-08-05 |
+| **收款** | (SDK v1.41.0) 支付订单相关语义澄清：<br />・[Create pay-in order](/payments/en/api-references/payment/create-pay-in-order)：必须完成 Payments onboarding，`merchant_id` 必须属于当前组织，`psp_order_code` 在组织内唯一，`merchant_order_code` 是可选的下游商户参考号，`fee_amount` 是订单级开发者费用，会从实收款项中扣除。<br />・[List all pay-in orders](/payments/en/api-references/payment/list-all-pay-in-orders) 和 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)：澄清 `order_id` 的生成时机、`merchant_order_code` 的可选性、`psp_order_code` 在组织内唯一，以及 `fee_amount` 在结算中的分配方式。 | 2026-08-05 |
+| **商户管理** | (SDK v1.41.0) [Create merchant](/payments/en/api-references/payment/create-merchant)、[List all merchants](/payments/en/api-references/payment/list-all-merchants) 和 [Update merchant](/payments/en/api-references/payment/update-merchant)：澄清 `developer_fee_rate` 行为。该字段仅适用于充值模式充值，支持 0 到 1、最多四位小数；未设置或清空时按 0 处理；更新不追溯历史订单；费用分成按 token 精度向下取整，且不会与订单级 `fee_amount` 叠加。 | 2026-08-05 |
+| **资金管理** | (SDK v1.41.0) 转出与 Bulk Send 相关语义澄清：<br />・[Create payout](/payments/en/api-references/payment/create-payout)：加密货币地址必须是对应链上已审核通过的 destination entry；当转出 token 与收款 token 是同一资产但位于不同链时适用自动跨链；OffRamp 币种必须与所选银行账户匹配，当前仅支持 USD；转出金额最多支持两位非零小数且不会自动四舍五入。<br />・[Create bulk send](/payments/en/api-references/payment/create-bulk-send)、[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends) 和 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)：`execution_mode` 必须为 `Strict` 或 `Partial`；`Strict` 模式下任一项目校验失败或部分资金归集失败都会阻止全部项目执行，`Partial` 模式下会隔离单条项目的校验失败。 | 2026-08-05 |
+
+
 ## 2026 年 07 月
 
 | 功能 | 变更说明 | 发布时间 |
@@ -154,5 +165,4 @@ lang: "zh-hans"
 | **支付链接**   | (SDK v1.17.0) 新增以下操作，用于完成 Checkout SDK 的 OAuth 认证：[Get Access Token](/v2/api-references/oauth/get-access-token)、[Refresh Access Token](/v2/api-references/oauth/refresh-access-token)。                            | 2025-06-18 |
 | **资金管理**   | 新增支持加密货币出金的结算方式。                                                                                                                                                                                                  | 2025-06-10 |
 | **支付链接**   | (Checkout SDK v1.1.0) Checkout SDK 提供开箱即用的收单前端组件，支持 iframe 嵌入方式快速集成。                                                                                                                                              | 2025-06-09 |
-
 
