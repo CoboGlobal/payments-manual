@@ -309,8 +309,8 @@ lang: "zh-hans"
 - `initiator`（string，选填）— 交易发起者。
 
 **链与资产**
-- `chain_id`（string，选填）— 链 ID。参考 [List enabled chains](https://www.cobo.com/developers/v2/api-references/wallets/list-enabled-chains)。
-- `token_id`（string，选填）— 代币 ID。参考 [List enabled tokens](https://www.cobo.com/developers/v2/api-references/wallets/list-enabled-tokens)。
+- `chain_id`（string，选填）— 链 ID。
+- `token_id`（string，选填）— 代币 ID。
 - `asset_id`（string，选填）— 资产 ID。仅限交易所钱包。
 - `transaction_hash`（string，选填）— 链上交易哈希（`txid`）。仅在交易广播上链后才会返回，广播前可能为 `null` 或不存在——与之不同，`transaction_id` 在交易创建时即分配且始终存在。
 

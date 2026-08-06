@@ -313,8 +313,8 @@ The following fields are included in all `payment.transaction.*` events. Not all
 - `initiator` (string, optional) — The transaction initiator.
 
 **Chain and asset**
-- `chain_id` (string, optional) — The chain ID. See [List enabled chains](https://www.cobo.com/developers/v2/api-references/wallets/list-enabled-chains).
-- `token_id` (string, optional) — The token ID. See [List enabled tokens](https://www.cobo.com/developers/v2/api-references/wallets/list-enabled-tokens).
+- `chain_id` (string, optional) — The chain ID.
+- `token_id` (string, optional) — The token ID.
 - `asset_id` (string, optional) — The asset ID. Exchange Wallets only.
 - `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
 
