@@ -63,12 +63,14 @@ You can create off-ramp requests through Payments App or Payments API.
     | **payout_params**  | `amount`, `token_id`          |
     | **recipient_info** | `currency`, `bank_account_id` |
 
+    Fiat payouts require both `bank_account_id` and `currency` in **recipient_info**.
+
     **Parameter description:**
 
     - `token_id`: Cryptocurrency ID (e.g., ETH_USDT, TRON_USDT).
-    - `amount`: Cryptocurrency amount.
-    - `currency`: Fiat currency (currently only `USD` is supported).
-    - `bank_account_id`: Destination bank account ID. Can be obtained by calling [List all bank accounts](/payments/en/api-references/payment/list-all-bank-accounts).
+    - `amount`: Cryptocurrency amount, provided as a decimal string. Trailing zeros in the fractional part do not count toward the limit, but once removed, no more than two digits may remain after the decimal point. For example, `100.500` is accepted (equivalent to `100.5`), while `100.567` is rejected rather than rounded, because three fractional digits remain once trailing zeros are removed.
+    - `currency`: The fiat currency of the bank account you select in `bank_account_id` — the two must match. This off-ramp endpoint currently only accepts `USD`.
+    - `bank_account_id`: The identifier of the destination bank account you use for this withdrawal.
   </Tab>
 </Tabs>
 
@@ -100,4 +102,3 @@ You can also actively query withdrawal request status through Payments App or Pa
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - Query detailed information about all withdrawal requests
   </Tab>
 </Tabs>
-

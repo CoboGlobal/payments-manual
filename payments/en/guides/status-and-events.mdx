@@ -183,6 +183,12 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - `payer_id` (optional) — A unique identifier assigned by Cobo to track and identify individual payers.
 - `custom_payer_id` (optional) — A unique identifier assigned by the developer to track and identify individual payers.
 
+<Note>
+  For an order that receives multiple partial transfers before completion, `payment.transaction.completed` fires once per successful receipt as funds are credited, while `payment.order.status.updated` reflects the order's cumulative, terminal outcome (`Completed` or `Underpaid`). See [Partial payments](/payments/en/guides/create-orders#partial-payments) for details.
+
+  `payment.transaction.late` reports a receipt that arrived after the order already reached a terminal status. It does not reopen or otherwise change the order's final status. See [Late payment](/payments/en/guides/create-orders#late-payment) for the full lifecycle.
+</Note>
+
 ### **2. Pay-out Related**
 
 #### `payment.refund.status.updated`
@@ -190,7 +196,6 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 **Trigger condition:** Triggered when a refund order status changes. Key nodes include:
 - `Pending`: Triggered only when a refund order is successfully created via a refund link.
 - `Completed`: All refund transactions are completed.
-- `PartiallyCompleted`: Some refund transactions completed, while others failed.
 - `Failed`: All refund transactions failed.
 
 **Event content:**
@@ -202,7 +207,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 - `chain_id` (required) — The ID of the blockchain network.
 - `amount` (required) — The cryptocurrency amount to be returned for this refund.
 - `to_address` (required) — The recipient wallet address.
-- `status` (required) — The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `PartiallyCompleted`, `Failed`, `PendingConfirmation`.
+- `status` (required) — The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`.
 - `refund_type` (optional) — The source of funds. One of: `Merchant`, `Psp`.
 - `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
 - `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
@@ -221,6 +226,7 @@ For full details, see [Get refund order information](/payments/en/api-references
 - `Completed`: All payouts/transfers completed.
 - `PartiallyCompleted`: Some completed, some failed.
 - `Failed`: All failed.
+- `RejectedByBank`: The recipient bank rejected the Off-Ramp payout.
 
 **Event content:**
 - `payout_id` (required) — The payout ID.

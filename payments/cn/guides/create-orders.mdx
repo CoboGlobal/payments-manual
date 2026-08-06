@@ -13,16 +13,35 @@ lang: "zh-hans"
   - 对已支付订单发起退款
   - 处理多付、少付、晚付等支付异常
 
+如需对比订单模式与充值模式，选择符合业务需求的模式，请参考[订单模式与充值模式对比](/payments/cn/guides/overview#订单模式与充值模式对比)。
+
 ## 创建订单
 
 您可以通过两种方式创建订单：
 
-- 调用 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 直接创建一个支付订单。调用成功后，您将得到应付金额、付款地址等信息。您需要自行搭建前端页面，也可借助 [React SDK / Vue SDK](/payments/cn/guides/payment-toolkit) 引入 Web3 支付能力；
-- 调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。该链接会跳转到由 Cobo 提供的支付页面，付款方可在该页面创建订单并完成支付，无需您自行开发前端交互流程。您还可以通过 iFrame 方式将该支付页面嵌入到您的网站或应用中。
+- 调用 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 直接创建一个支付订单。Cobo 会同步创建该订单，并在接口响应中返回 `order_id`，以及应付金额、付款地址等信息。您需要自行搭建前端页面，也可借助 [React SDK / Vue SDK](/payments/cn/guides/payment-toolkit) 引入 Web3 支付能力；
+- 调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。此调用仅返回支付链接——Cobo 此时尚未创建支付订单，因此还没有 `order_id`。该链接会跳转到由 Cobo 提供的支付页面，付款方在该页面选择支付代币和区块链网络并提交订单后，Cobo 才会创建该订单并生成 `order_id`。您还可以通过 iFrame 方式将该支付页面嵌入到您的网站或应用中。
+
+该订单的收款商户为订单创建时指定的商户，且该归属之后不会改变。有关订单与充值两种收款方式的完整资金路由模型，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)。
 
 ### 前提条件
 
-您已完成[前置准备](/payments/cn/guides/preparation)中提到的所有步骤。
+在创建收款订单之前，请确认满足以下条件。
+
+| 前提条件 | 是否必需 |
+| --- | --- |
+| 已完成 [Payments 入驻](/payments/cn/guides/preparation)，即您团队的支付开发者账户处于活跃状态 | 必需 |
+| `merchant_id` 指向一个已存在且归属于您团队的商户 | 必需 |
+| 该商户已完成 KYB | 非必需 |
+| 该商户已激活并处于活跃状态 | 非必需 |
+| 该商户已完成额外配置 | 非必需 |
+| 该商户存在开发者费率配置记录 | 非必需 |
+
+完成 [Payments 入驻](/payments/cn/guides/preparation)后，系统会自动为您的团队创建一个可直接使用的默认商户，您可以直接将其用作 `merchant_id` 的取值。如果您需要额外的商户，请参考 [Create merchant](/payments/en/api-references/payment/create-merchant)。
+
+<Note>
+  Create pay-in order 不会单独校验商户 KYB、商户激活或活跃状态、商户配置，或该商户是否存在开发者费率配置记录。这些检查不能替代完成团队级别的 Payments 入驻——如果您团队的支付开发者账户未处于活跃状态，无论商户状态如何，请求都会失败。详情请参考[错误码与状态码](/payments/cn/guides/error-codes)。
+</Note>
 
 ### 操作步骤
 
@@ -42,7 +61,8 @@ lang: "zh-hans"
         商户 ->> 付款方: 返回预估的应付金额
         付款方 ->> 商户: 确认支付订单
         商户 ->> Cobo: ② 请求创建支付订单
-        Cobo ->> 商户: 返回收币地址和应付金额
+        Cobo ->> Cobo: 创建订单，生成 order_id
+        Cobo ->> 商户: 返回 order_id、收币地址和应付金额
         Cobo ->> Cobo: 地址入账轮询
         付款方 ->> Cobo: 向地址付款
         Cobo ->> Cobo: 合规检查
@@ -51,6 +71,46 @@ lang: "zh-hans"
     ```
 
     </div>
+
+    在步骤 ② 中，Cobo 会创建该支付订单并生成 `order_id`，并在 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 的响应中同步返回。
+
+    #### 订单标识字段
+
+    在配置金额字段之前，请先设置订单标识字段，以便您和 Cobo 能够唯一地追踪该订单：
+
+    - **PSP 订单号（`psp_order_code`）**：请将该字段设置为您自己的内部业务订单标识。该字段为必填字段，其值须在您的 Cobo 团队账号内保持唯一。
+    - **商户订单号（`merchant_order_code`）**：仅当您是服务下游商户的平台或支付服务提供商（PSP），且该下游商户拥有独立的订单编号需要追踪时，才需要设置该字段。该字段为可选字段。
+
+    如果您是直接服务付款方的商户，通常只需设置 `psp_order_code`，无需填写 `merchant_order_code`。如果您是服务下游商户的平台或 PSP，请将 `psp_order_code` 设置为您自己的订单标识，并额外设置 `merchant_order_code` 为对应下游商户的订单编号，以便双方各自通过自己的标识对账。
+
+    示例：
+
+    - 服务下游商户的平台或 PSP：
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "merchant_order_code": "SHOP88-INV-556213",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    - 直接服务付款方的商户：
+
+    ```json
+    {
+      "merchant_id": "M1001",
+      "psp_order_code": "PSP-20260729-0042",
+      "pricing_currency": "USD",
+      "pricing_amount": "100",
+      "payable_currency": "ETH_USDT"
+    }
+    ```
+
+    完整请求参数说明请参考 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order)。
 
     创建订单时，您需要在以下两种方式中**选择一种适合业务的金额参数组合**：
 
@@ -71,7 +131,15 @@ lang: "zh-hans"
     - **应付金额**（`payable_amount`）：付款方需要支付的数字货币金额，以`payable_currency` 指定的加密货币为单位。该字段为可选字段：
       - 如果您指定了 `payable_amount`，则系统直接使用该值作为付款方需支付的金额。
       - 如果您未指定 `payable_amount`，系统将使用实时汇率计算：**应付金额 =（订单金额 + 开发者费用）/ 汇率**。汇率以创建订单时调用 [Get exchange rate](/payments/en/api-references/payment/get-exchange-rate) 操作返回的汇率为准。
-    - **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，需要在您和下游商户之间分配收入，可以通过设置该费用来实现。此费用以`payable_currency` 指定的加密货币为单位。实际分成的开发者费用=开发者费用/应付金额\*实际收款金额，更多信息请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
+    - **开发者费用**（`fee_amount`）：如果您是服务多个下游商户的平台机构，可以通过设置该订单级费用，从该笔订单中收取开发者分成。这与充值模式下商户级别的 `developer_fee_rate` 不同；关于该费率的配置说明，请参考[商户管理](/payments/cn/guides/merchants)。
+
+      在正常结算情况下（即付款方的入账金额与应付金额完全一致），开发者账户将收到 `fee_amount`，商户账户将收到剩余部分：
+      - 当 `fee_amount` 为 0 时，商户账户将收到全部收款金额。
+      - 当 `payable_amount` 为 104.08、`fee_amount` 为 2 时，一笔精确的 104.08 入账将有 102.08 计入商户账户，2 计入开发者账户。
+
+      对于多付和少付的情况，资金将按照 `fee_amount` 与应付金额之间的相同比例进行结算，而非始终扣减固定的 `fee_amount` 数值。如果某笔入账是在订单已经处于 `EXPIRED`、`UNDERPAID` 或 `COMPLETED` 状态之后才处理的，则该笔入账将全额计入开发者账户，不受 `fee_amount` 影响。
+
+      更多关于账户间资金结算与分配的说明，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
 
     <Info>
       如果您是商户（直接服务于付款方），通常无需设置开发者费用。
@@ -93,7 +161,15 @@ lang: "zh-hans"
     | 最终开发者费用            | `"0"`                                        | `"2"`                                       |
   </Tab>
   <Tab title="使用 Payments API 创建支付链接" icon="browser">
-    您可以调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。具体的支付页面效果和集成步骤请参考[创建订单支付链接](/payments/cn/guides/payment-link)。
+    您可以调用 [Create order link](/payments/en/api-references/payment/create-order-link) 创建一个订单支付链接。此调用仅返回支付链接——Cobo 此时尚未创建支付订单，因此还没有 `order_id`。完整流程如下：
+
+    1. Cobo 生成并返回支付链接。此时尚不存在订单，也没有 `order_id`。
+    2. 付款方打开由 Cobo 提供的托管支付页面。
+    3. 付款方选择支付代币和区块链网络并提交订单。
+    4. Cobo 创建该支付订单并生成 `order_id`。
+    5. Cobo 向商户发送 [`payment.order.status.updated`](/payments/cn/guides/status-and-events#paymentorderstatusupdated) Webhook 事件，状态为 `Pending`，并携带新生成的 `order_id`。
+
+    具体的支付页面效果和集成步骤请参考[创建订单支付链接](/payments/cn/guides/payment-link)。
   </Tab>
 </Tabs>
 
@@ -101,7 +177,7 @@ lang: "zh-hans"
 
 您可以订阅以下 Webhook 事件，以获取订单状态的实时更新通知。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的触发时间和返回的数据结构。
 
-- `payment.status.updated`
+- `payment.order.status.updated`
 - `payment.transaction.late`
 - `payment.transaction.completed`
 
@@ -133,17 +209,77 @@ lang: "zh-hans"
 
 当一笔支付订单在 `Pending` 状态下，即尚未检测到入账交易时，您可以调用 [Update pay-in order](/payments/en/api-references/payment/update-pay-in-order) 撤销该订单。撤销后，订单状态将变更为 `Expired`。
 
-### 多付、少付和晚付
+### 少付、多付、部分付款和晚付
 
-在支付过程中可能出现以下三种异常情况：
+在支付过程中可能出现以下四种异常情况：
 
-| 异常情况   | 描述                    | 影响                                                         |
-| ------ | --------------------- | ---------------------------------------------------------- |
-| **多付** | 在订单有效期内，付款方实付金额超过应付金额 | 订单最终状态为 `Completed`。                                       |
-| **少付** | 在订单有效期内，付款方实付金额少于应付金额 | 订单状态为 `Underpaid`（终态）。                                     |
-| **晚付** | 付款方在订单过期后进行首次或再次付款    | 不会改变订单状态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。 |
+| 异常情况 | 描述 | 影响 |
+| --- | --- | --- |
+| [**少付**](#少付) | 订单有效期结束时，累计实收金额仍低于扣除容差后的应付金额 | 订单状态变为 `Underpaid`（终态）。 |
+| [**多付**](#多付) | 在订单有效期内，付款方实付金额超过应付金额 | 订单最终状态为 `Completed`。 |
+| [**部分付款**](#部分付款) | 在订单有效期内，付款方通过多笔成功转账完成订单付款 | 没有单独的订单状态。订单将保持当前状态，直到累计实收金额使订单达到 `Completed`，或订单过期并变为 `Underpaid`。 |
+| [**晚付**](#晚付) | 订单达到 `Expired`、`Underpaid` 或 `Completed` 后收到付款 | 不会改变订单终态。每次晚付都会触发一次 `payment.transaction.late` Webhook 事件。 |
 
-[账户与资金分配](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下，Cobo 对资金的处理规则。
+#### 少付
+
+如果订单有效期结束时，所有通过合规筛查的成功入账累计金额仍低于应付金额减去允许的 `amount_tolerance`，则订单会被视为少付。在订单过期前，Cobo 会继续累加成功入账，并将累计金额与该阈值进行比较。如果订单过期时累计金额仍低于阈值，订单将流转为终态 `Underpaid`。
+
+您可以通过 `received_token_amount` 跟踪累计实收金额，并通过 `transactions` 数组查看每笔入账。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+有关少付资金的结算方式，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。订单变为 `Underpaid` 后收到的额外充币将按[晚付](#晚付)处理。
+
+#### 多付
+
+当付款方实付金额超过应付金额时，订单在达到应付金额阈值后仍会流转为 `Completed`。系统没有公开的 `Overpaid` 订单状态。
+
+超出部分会计入 `received_token_amount`，导致多付的入账也会显示在 `transactions` 数组中。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+有关超出金额在商户账户和开发者账户之间的结算方式，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。如需将超出金额退还给付款方，请按照[处理退款申请](#处理退款申请)中的说明发起退款。
+
+#### 部分付款
+
+付款方可以通过多笔转账完成一个订单。每笔成功转账都会累计到订单的 `received_token_amount` 中，每笔入账也会显示在 `transactions` 数组中。以上字段均由 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 返回。
+
+收到部分付款的订单没有单独的状态。订单将保持当前状态，直到出现以下任一情况：
+
+- 累计实收金额在允许的容差范围内达到应付金额，订单变为 `Completed`；或
+- 订单有效期结束时，累计实收金额仍低于该阈值，订单变为 `Underpaid`。请参考[少付](#少付)。
+
+完成条件基于累计金额而非单笔转账进行评估。因此，付款方可以在订单过期前发送额外转账，使累计金额达到完成阈值。
+
+#### 晚付
+
+如果一笔通过合规筛查的充币交易在订单达到 `Expired`、`Underpaid` 或 `Completed` 后才入账，则该笔交易属于晚付。晚付不会改变订单的终态。
+
+每笔晚付入账都会触发一次 `payment.transaction.late` Webhook 事件。该笔入账也会记录在订单的 `transactions` 数组中，您可以通过 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) 获取该数组，并根据订单历史进行对账。
+
+有关晚付资金的入账方式，请参考[充币归属](/payments/cn/guides/amounts-and-balances#充币归属)。
+
+以下时序展示了单个订单中[少付](#少付)、[多付](#多付)、[部分付款](#部分付款)和[晚付](#晚付)之间的关系：
+
+<div style={{ maxWidth:"600px",margin:"0 auto" }}>
+```mermaid
+sequenceDiagram
+    participant 付款方
+    participant Cobo
+    participant 商户
+    商户 ->> Cobo: 创建支付订单
+    付款方 ->> Cobo: 入账 1（部分金额）
+    Cobo ->> Cobo: 累加 received_token_amount
+    付款方 ->> Cobo: 入账 2（部分金额，仍低于阈值）
+    Cobo ->> Cobo: 累加 received_token_amount
+    Note over Cobo: 订单有效期结束。<br/>累计金额仍低于扣除容差后的应付金额。
+    Cobo ->> 商户: payment.order.status.updated（status: Underpaid）
+    付款方 ->> Cobo: 晚付入账（过期后）
+    Cobo ->> 商户: payment.transaction.late（订单状态不变）
+    商户 ->> Cobo: Get pay-in order information（通过 transactions 数组对账）
+```
+
+</div>
+
+[账户与资金分配](/payments/cn/guides/amounts-and-balances)中详细介绍了多付、少付和晚付情况下 Cobo 对资金的处理规则。
+
+在资金转出前，Cobo 还会自动将通过订单收到的资金从收款地址归集。详情请参考[自动资金归集](/payments/cn/guides/crypto-payouts#2-自动资金归集)。
 
 ### 处理退款申请
 
@@ -256,4 +392,3 @@ sequenceDiagram
 
 为优化您的账户成本，避免因粉尘金额产生的入账手续费高于交易金额，系统设定了最小入账阈值。当单笔交易金额低于 **0.05 USDT**（或等值币种）时，系统将不自动进行入账处理。\
 _注：若您需要对此类低于阈值的累积资金进行手动处理，请联系 Cobo 客服或技术支持，我们将协助您从归集地址提取。_
-

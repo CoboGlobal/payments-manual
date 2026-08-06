@@ -51,15 +51,31 @@ lang: "zh-hans"
     | **payout_params**  | `amount`、`token_id`  |
     | **recipient_info** | `token_id`、`address` |
 
+    加密货币转账要求 **recipient_info** 中同时提供 `address` 和 `token_id`。
+
     **参数说明：**
 
-    - `amount`：加密货币金额
+    - `amount`：加密货币金额，以十进制字符串形式提供。忽略小数末尾的零后，小数部分最多保留两位；例如 `100.500`（等同于 `100.5`）可以接受，但 `100.567` 在忽略末尾零后仍有三位小数，会导致请求失败，且系统不会对金额进行四舍五入。
     - `token_id`：加密货币 ID（如 `ETH_USDT`、`TRON_USDT`）。当 **payout_params** 和 **recipient_info** 中的 `token_id` 币种相同但链不同时，Cobo 会自动执行跨链操作。
-    - `address`：目标加密货币地址
+    - `address`：目标加密货币地址。
   </Tab>
 </Tabs>
 
-## 2. 完成二次确认、风控审核及交易签名
+## 2. 自动资金归集
+
+在处理您的转账请求前，Cobo 会检查您商户或开发者账户中的可用资金总额是否足以覆盖本次转出金额。
+
+资金总额是否充足的判断依据是账户的账本余额。有关该余额的具体计算方式，请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#余额)。
+
+如果总资金充足，但其中一部分资金仍留存在收款地址中（例如用于收取订单模式或充值模式款项的地址），尚未归集至您的余额，Cobo 会在处理转账请求的过程中自动完成这部分资金的归集。您无需另行提交归集请求——只要转账请求需要，该步骤都会自动执行。
+
+资金归集进行期间，转账请求会保持 `Pending` 状态。如果某次归集尝试失败，Cobo 会自动重试；您无需手动重新发起转账请求或执行任何操作。如果转账请求保持 `Pending` 状态的时间超过预期，请调用 [Get payout information](/payments/en/api-references/payment/get-payout-information) 重新查询其状态。
+
+<Note>
+  该自动归集是转账流程中的一个内部环节，与此前（已废弃）可由您手动发起的 [Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) 和 [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) 操作不同，现在无需再手动发起归集。
+</Note>
+
+## 3. 完成二次确认、风控审核及交易签名
 
 在创建转账请求后，基于您的提交方式、风控设置等因素，需要完成以下操作：
 
@@ -67,7 +83,7 @@ lang: "zh-hans"
 - 风控审核：如果您设置了交易风控，则可能需要审批员在 Cobo Guard 上批准该转账请求。
 - 交易签名：如果您使用的是 MPC 钱包，则需要移动端签名人或服务端签名人签名，方可最终完成转账操作。
 
-## 3. 跟进转账状态
+## 4. 跟进转账状态
 
 您可以订阅 `payment.payout.status.updated` 事件，获取转账状态的实时更新。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的详细触发条件和返回的数据结构。
 
@@ -87,4 +103,3 @@ lang: "zh-hans"
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - 查询所有转账请求的详细信息
   </Tab>
 </Tabs>
-

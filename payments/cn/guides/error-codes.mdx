@@ -20,7 +20,7 @@ lang: "zh-hans"
 | 2026 | 429 | 请求过多。您的请求频率已超出服务器端阈值。 | 等待后重试。使用指数退避策略进行重试。 |
 | 2027 | 400 | 您已超出此资源或操作的配额限制。 | 在 Cobo Portal 的**设置** > **开发者**下查看当前使用量和套餐限制。 |
 | 2028 | 404 | 未找到请求的资源。 | 验证请求中的资源 ID（例如 `merchant_id`、`order_id`、`payer_id`）是否正确，且属于您的组织。 |
-| 2029 | 400 | 资源的当前状态不支持所请求的操作。常见原因：(1) 在交易达到 `Completed`、`Rejected` 或 `Failed` 状态之前尝试更新交易描述；(2) 尝试取消一个不处于 `Generating` 状态的交易导出任务；(3) 您的支付开发者账户未处于活跃状态。 | 查看 `error_message` 字段了解具体原因。如需更新交易描述，请等待交易达到终态后再操作。如需取消导出任务，请确认该任务仍处于生成中状态。 |
+| 2029 | 400 | 资源的当前状态不支持所请求的操作。常见原因：(1) 在交易达到 `Completed`、`Rejected` 或 `Failed` 状态之前尝试更新交易描述；(2) 尝试取消一个不处于 `Generating` 状态的交易导出任务；(3) 对于 [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order)，您团队没有处于活跃状态的支付开发者账户——可能是账户记录不存在，也可能是账户记录存在但尚未激活，原因是尚未完成 [Payments 入驻](/payments/cn/guides/preparation)。 | 查看 `error_message` 字段了解具体原因。如需更新交易描述，请等待交易达到终态后再操作。如需取消导出任务，请确认该任务仍处于生成中状态。对于 Create pay-in order，这是团队级别的账户状态检查，与具体商户的状态或配置无关。请完成 [Payments 入驻](/payments/cn/guides/preparation)，使您团队的支付开发者账户变为活跃状态，然后重试请求。完整的前提条件列表请参考 [Create pay-in order 的前提条件](/payments/cn/guides/create-orders#前提条件)。 |
 | 2040 | 400 | 检测到重复键。具有此标识符的记录已存在。 | 为新记录使用不同的唯一标识符。 |
 
 #### 支付资源错误

@@ -1,0 +1,342 @@
+---
+openapi: post /payments/merchants/{merchant_id}/kyc
+---
+
+<RequestExample>
+```python Python
+import cobo_waas2
+from cobo_waas2.models.merchant_kyc_address import MerchantKycAddress
+from cobo_waas2.models.merchant_kyc_company_attachment import MerchantKycCompanyAttachment
+from cobo_waas2.models.merchant_kyc_company_attachment_file_type import (
+    MerchantKycCompanyAttachmentFileType,
+)
+from cobo_waas2.models.merchant_kyc_company_info import MerchantKycCompanyInfo
+from cobo_waas2.models.merchant_kyc_company_type import MerchantKycCompanyType
+from cobo_waas2.models.merchant_kyc_info import MerchantKycInfo
+from cobo_waas2.models.merchant_kyc_merchant_type import MerchantKycMerchantType
+from cobo_waas2.models.merchant_kyc_person_attachment import MerchantKycPersonAttachment
+from cobo_waas2.models.merchant_kyc_person_attachment_file_type import (
+    MerchantKycPersonAttachmentFileType,
+)
+from cobo_waas2.models.merchant_kyc_person_info import MerchantKycPersonInfo
+from cobo_waas2.models.submit_merchant_kyc import SubmitMerchantKyc
+from cobo_waas2.rest import ApiException
+from pprint import pprint
+
+# See configuration.py for a list of all supported configurations.
+configuration = cobo_waas2.Configuration(
+    # Replace `<YOUR_PRIVATE_KEY>` with your private key
+    api_private_key="<YOUR_PRIVATE_KEY>",
+    # Select the development environment. To use the production environment, change the URL to https://api.cobo.com/v2.
+    host="https://api.dev.cobo.com/v2",
+)
+# Enter a context with an instance of the API client
+with cobo_waas2.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = cobo_waas2.PaymentApi(api_client)
+    merchant_id = "M1001"
+    address = cobo_waas2.MerchantKycAddress(
+        country="HK",
+        state="Hong Kong",
+        city="Hong Kong",
+        postcode="999077",
+        line1="1 Example Street",
+    )
+    person_info = cobo_waas2.MerchantKycPersonInfo(
+        name="张三",
+        name_en="Zhang San",
+        id_number="110101199001011234",
+        date_of_birth="19900101",
+        issue_date="20180101",
+        expiration_date="20280101",
+        attachments=[
+            cobo_waas2.MerchantKycPersonAttachment(
+                file_id="https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id_card_front.jpg",
+                file_type=MerchantKycPersonAttachmentFileType.PRC_ID_EMBLEM,
+            )
+        ],
+        residential_address=address,
+    )
+    submit_merchant_kyc = cobo_waas2.SubmitMerchantKyc(
+        email="merchant@example.com",
+        phone="+85212345678",
+        merchant_type=MerchantKycMerchantType.B2B,
+        country="HKG",
+        industry=["E-commerce"],
+        company_info=cobo_waas2.MerchantKycCompanyInfo(
+            company_type=MerchantKycCompanyType.CORPORATION,
+            listed=False,
+            attachments=[
+                cobo_waas2.MerchantKycCompanyAttachment(
+                    file_id="https://example-bucket.s3.us-east-1.amazonaws.com/uploads/business_registration.pdf",
+                    file_type=MerchantKycCompanyAttachmentFileType.BR,
+                )
+            ],
+            operation_address=address,
+            identify_no="12345678",
+            company_name="示例有限公司",
+            company_name_en="Example Limited",
+            establish_date="2020-01-01",
+            commencement_date="2020-01-01",
+            valid_period="2020-01-01",
+            register_address=address,
+            legal_info=person_info,
+            ubo_infos=[person_info],
+            online_store_url="https://example.com/store",
+        ),
+    )
+
+    try:
+        # Submit merchant KYC
+        api_response = api_instance.submit_merchant_kyc(
+            merchant_id, submit_merchant_kyc=submit_merchant_kyc
+        )
+        print("The response of PaymentApi->submit_merchant_kyc:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling PaymentApi->submit_merchant_kyc: %s\n" % e)
+
+```
+```java Java
+// Import classes:
+import com.cobo.waas2.ApiClient;
+import com.cobo.waas2.ApiException;
+import com.cobo.waas2.Configuration;
+import com.cobo.waas2.Env;
+import com.cobo.waas2.api.PaymentApi;
+import com.cobo.waas2.model.*;
+import java.util.Arrays;
+
+public class Example {
+  public static void main(String[] args) {
+    ApiClient defaultClient = Configuration.getDefaultApiClient();
+    // Select the development environment. To use the production environment, replace `Env.DEV` with
+    // `Env.PROD
+    defaultClient.setEnv(Env.DEV);
+
+    // Replace `<YOUR_PRIVATE_KEY>` with your private key
+    defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
+    PaymentApi apiInstance = new PaymentApi();
+    String merchantId = "M1001";
+    MerchantKycAddress address =
+        new MerchantKycAddress()
+            .country("HK")
+            .state("Hong Kong")
+            .city("Hong Kong")
+            .postcode("999077")
+            .line1("1 Example Street");
+    MerchantKycPersonInfo personInfo =
+        new MerchantKycPersonInfo()
+            .name("张三")
+            .nameEn("Zhang San")
+            .idNumber("110101199001011234")
+            .dateOfBirth("19900101")
+            .issueDate("20180101")
+            .expirationDate("20280101")
+            .attachments(
+                Arrays.asList(
+                    new MerchantKycPersonAttachment()
+                        .fileId(
+                            "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id_card_front.jpg")
+                        .fileType(MerchantKycPersonAttachmentFileType.PRC_ID_EMBLEM)))
+            .residentialAddress(address);
+    SubmitMerchantKyc submitMerchantKyc =
+        new SubmitMerchantKyc()
+            .email("merchant@example.com")
+            .phone("+85212345678")
+            .merchantType(MerchantKycMerchantType.B2B)
+            .country("HKG")
+            .industry(Arrays.asList("E-commerce"))
+            .companyInfo(
+                new MerchantKycCompanyInfo()
+                    .companyType(MerchantKycCompanyType.CORPORATION)
+                    .listed(false)
+                    .attachments(
+                        Arrays.asList(
+                            new MerchantKycCompanyAttachment()
+                                .fileId(
+                                    "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/business_registration.pdf")
+                                .fileType(MerchantKycCompanyAttachmentFileType.BR)))
+                    .operationAddress(address)
+                    .identifyNo("12345678")
+                    .companyName("示例有限公司")
+                    .companyNameEn("Example Limited")
+                    .establishDate("2020-01-01")
+                    .commencementDate("2020-01-01")
+                    .validPeriod("2020-01-01")
+                    .registerAddress(address)
+                    .legalInfo(personInfo)
+                    .uboInfos(Arrays.asList(personInfo))
+                    .onlineStoreUrl("https://example.com/store"));
+    try {
+      MerchantKycInfo result = apiInstance.submitMerchantKyc(merchantId, submitMerchantKyc);
+      System.out.println(result);
+    } catch (ApiException e) {
+      System.err.println("Exception when calling PaymentApi#submitMerchantKyc");
+      System.err.println("Status code: " + e.getCode());
+      System.err.println("Reason: " + e.getResponseBody());
+      System.err.println("Response headers: " + e.getResponseHeaders());
+      e.printStackTrace();
+    }
+  }
+}
+
+```
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+	coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+	"github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2/crypto"
+	"os"
+)
+
+func main() {
+	merchantId := "M1001"
+	address := *coboWaas2.NewMerchantKycAddress("HK", "Hong Kong", "Hong Kong", "999077", "1 Example Street")
+	personInfo := *coboWaas2.NewMerchantKycPersonInfo(
+		"张三",
+		"Zhang San",
+		"110101199001011234",
+		"19900101",
+		"20180101",
+		"20280101",
+		[]coboWaas2.MerchantKycPersonAttachment{
+			*coboWaas2.NewMerchantKycPersonAttachment(
+				"https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id_card_front.jpg",
+				coboWaas2.MerchantKycPersonAttachmentFileType("PRC_ID_Emblem"),
+			),
+		},
+		address,
+	)
+	companyInfo := *coboWaas2.NewMerchantKycCompanyInfo(
+		coboWaas2.MerchantKycCompanyType("Corporation"),
+		false,
+		[]coboWaas2.MerchantKycCompanyAttachment{
+			*coboWaas2.NewMerchantKycCompanyAttachment(
+				"https://example-bucket.s3.us-east-1.amazonaws.com/uploads/business_registration.pdf",
+				coboWaas2.MerchantKycCompanyAttachmentFileType("BR"),
+			),
+		},
+		address,
+		"12345678",
+		"示例有限公司",
+		"Example Limited",
+		"2020-01-01",
+		"2020-01-01",
+		"2020-01-01",
+		address,
+		personInfo,
+		[]coboWaas2.MerchantKycPersonInfo{personInfo},
+	)
+	companyInfo.SetOnlineStoreUrl("https://example.com/store")
+	submitMerchantKyc := *coboWaas2.NewSubmitMerchantKyc(
+		"merchant@example.com",
+		"+85212345678",
+		coboWaas2.MerchantKycMerchantType("B2B"),
+		"HKG",
+		[]string{"E-commerce"},
+		companyInfo,
+	)
+
+	configuration := coboWaas2.NewConfiguration()
+	// Initialize the API client
+	apiClient := coboWaas2.NewAPIClient(configuration)
+	ctx := context.Background()
+
+	// Select the development environment. To use the production environment, replace coboWaas2.DevEnv with coboWaas2.ProdEnv
+	ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+	// Replace `<YOUR_PRIVATE_KEY>` with your private key
+	ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+		Secret: "<YOUR_PRIVATE_KEY>",
+	})
+	resp, r, err := apiClient.PaymentAPI.SubmitMerchantKyc(ctx, merchantId).
+		SubmitMerchantKyc(submitMerchantKyc).
+		Execute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error when calling `PaymentAPI.SubmitMerchantKyc``: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+	}
+	// response from `SubmitMerchantKyc`: MerchantKycInfo
+	fmt.Fprintf(os.Stdout, "Response from `PaymentAPI.SubmitMerchantKyc`: %v\n", resp)
+}
+
+```
+```javascript JavaScript
+const CoboWaas2 = require("@cobo/cobo-waas2");
+// Initialize the API client
+const apiClient = CoboWaas2.ApiClient.instance;
+// Select the development environment. To use the production environment, replace `Env.DEV` with `Env.PROD`
+apiClient.setEnv(CoboWaas2.Env.DEV);
+// Replace `<YOUR_PRIVATE_KEY>` with your private key
+apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
+// Call the API
+const apiInstance = new CoboWaas2.PaymentApi();
+const merchant_id = "M1001";
+const address = {
+  country: "HK",
+  state: "Hong Kong",
+  city: "Hong Kong",
+  postcode: "999077",
+  line1: "1 Example Street",
+};
+const personInfo = {
+  name: "张三",
+  name_en: "Zhang San",
+  id_number: "110101199001011234",
+  date_of_birth: "19900101",
+  issue_date: "20180101",
+  expiration_date: "20280101",
+  attachments: [
+    {
+      file_id:
+        "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id_card_front.jpg",
+      file_type: "PRC_ID_Emblem",
+    },
+  ],
+  residential_address: address,
+};
+const opts = {
+  SubmitMerchantKyc: CoboWaas2.SubmitMerchantKyc.constructFromObject({
+    email: "merchant@example.com",
+    phone: "+85212345678",
+    merchant_type: "B2B",
+    country: "HKG",
+    industry: ["E-commerce"],
+    company_info: {
+      company_type: "Corporation",
+      listed: false,
+      attachments: [
+        {
+          file_id:
+            "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/business_registration.pdf",
+          file_type: "BR",
+        },
+      ],
+      operation_address: address,
+      identify_no: "12345678",
+      company_name: "示例有限公司",
+      company_name_en: "Example Limited",
+      establish_date: "2020-01-01",
+      commencement_date: "2020-01-01",
+      valid_period: "2020-01-01",
+      register_address: address,
+      legal_info: personInfo,
+      ubo_infos: [personInfo],
+      online_store_url: "https://example.com/store",
+    },
+  }),
+};
+apiInstance.submitMerchantKyc(merchant_id, opts).then(
+  (data) => {
+    console.log("API called successfully. Returned data: " + data);
+  },
+  (error) => {
+    console.error(error);
+  },
+);
+
+```
+</RequestExample>

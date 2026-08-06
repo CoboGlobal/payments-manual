@@ -7,7 +7,7 @@ lang: "zh-hans"
 
 - 打开支付链接后，付款方将被引导至由 Cobo 托管的支付页面。付款方可以在该页面查看订单详情并完成支付，无需您自行开发前端交互流程。您还可以将支付页面通过 iFrame 方式嵌入到您的网站或应用中。
 - 该支付链接兼容 PC 端和移动端，支持付款方唤起本地第三方钱包 App 或插件进行支付。详细的第三方钱包支持情况可参考[第三方钱包 App 支持范围](/payments/cn/guides/third-party-wallet-support)。
-- 订单支付链接的标准格式为：`https://payment-link.dev.cobo.com/payment?token=<token>`，其中 `<token>` 是 Cobo 生成的唯一标识符，每个 token 与一笔支付订单唯一对应。
+- 订单支付链接的标准格式为：`https://payment-link.dev.cobo.com/payment?token=<token>`，其中 `<token>` 是 Cobo 为该托管支付页面生成的唯一标识符。此时尚未创建支付订单——只有当付款方在托管页面选择支付代币和区块链网络并提交后，Cobo 才会创建该订单。
 
 ## 支付页面效果展示
 
@@ -95,6 +95,9 @@ sequenceDiagram
     付款方 ->> 您的应用前端: 点击按钮打开支付链接
     您的应用前端 ->> 订单支付链接: 打开支付链接 (直接跳转 / iframe 嵌套)
     付款方 ->> 订单支付链接: 选择币种和链，确认下单
+    订单支付链接 ->> Cobo: 提交订单
+    Cobo ->> Cobo: 创建支付订单，生成 order_id
+    Cobo -->> 您的应用后端: payment.order.status.updated Webhook（Pending，order_id）
     订单支付链接 ->> 第三方钱包: 连接钱包/扫码支付
     Cobo ->> Cobo: 监听链上结果
     付款方 ->> 第三方钱包: 完成支付
@@ -103,6 +106,8 @@ sequenceDiagram
 ```
 
 </div>
+
+当付款方在托管页面选择支付代币和区块链网络并提交订单后，Cobo 会创建该支付订单并生成 `order_id`。Cobo 会立即向您的后端发送一次 [`payment.order.status.updated`](/payments/cn/guides/status-and-events#paymentorderstatusupdated) Webhook 事件，状态为 `Pending`，并携带新生成的 `order_id`——这与后续随订单支付进度发送的 `payment.order.status.updated` 事件是不同的通知。完整的事件负载和触发条件请参考[事件与状态](/payments/cn/guides/status-and-events#paymentorderstatusupdated)。
 
 ### 应付金额计算
 
@@ -129,4 +134,3 @@ sequenceDiagram
 | 实时汇率               | 0.99                                         | 1                                                | 不适用（使用自定义应付金额）                                                   | 1                                              |
 | 计算过程               | (100 + 0) / 0.99                             | (100 + 0) / 1                                    | 直接使用指定的 payable_amounts                                          | (100 + 2) / 1                                  |
 | 最终应付金额             | `"101.01"`                                   | `"100"`                                          | `"104.08"`                                                       | `"102"`                                        |
-

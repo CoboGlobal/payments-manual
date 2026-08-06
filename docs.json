@@ -248,7 +248,10 @@
                 "pages": [
                   "payments/en/api-references/payment/create-merchant",
                   "payments/en/api-references/payment/update-merchant",
-                  "payments/en/api-references/payment/list-all-merchants"
+                  "payments/en/api-references/payment/list-all-merchants",
+                  "payments/en/api-references/payment/upload-file",
+                  "payments/en/api-references/payment/submit-merchant-kyc",
+                  "payments/en/api-references/payment/get-merchant-kyc"
                 ]
               },
               {

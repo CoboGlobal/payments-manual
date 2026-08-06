@@ -179,6 +179,12 @@ lang: "zh-hans"
 - `payer_id`（选填）— Cobo 分配的用于跟踪和识别付款人的唯一标识符。
 - `custom_payer_id`（选填）— 开发者系统中用于跟踪和识别付款人的唯一标识符。
 
+<Note>
+  如果订单在完成前收到多笔部分付款，每笔成功入账都会触发一次 `payment.transaction.completed`，而 `payment.order.status.updated` 反映订单累计金额对应的终态结果（`Completed` 或 `Underpaid`）。详情请参考[部分付款](/payments/cn/guides/create-orders#部分付款)。
+
+  `payment.transaction.late` 用于上报订单达到终态后收到的入账。该事件不会重新开启订单，也不会改变订单的终态。完整流程请参考[晚付](/payments/cn/guides/create-orders#晚付)。
+</Note>
+
 ### **2. 资金转出相关**
 
 #### `payment.refund.status.updated`
@@ -186,7 +192,6 @@ lang: "zh-hans"
 **触发条件：** 退款单状态发生变更时触发。会触发的节点包括：
 - `Pending`：此状态通知仅限于通过退款链接成功创建退款单时触发。
 - `Completed`：所有退款交易均已完成。
-- `PartiallyCompleted`：部分退款交易已完成，部分退款交易失败。
 - `Failed`：所有退款交易均失败。
 
 **事件内容：**
@@ -198,7 +203,7 @@ lang: "zh-hans"
 - `chain_id`（必填）— 区块链网络 ID。
 - `amount`（必填）— 该退款需退还的加密货币金额。
 - `to_address`（必填）— 收款钱包地址。
-- `status`（必填）— 当前退款状态，可能的值：`AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`PartiallyCompleted`、`Failed`、`PendingConfirmation`。
+- `status`（必填）— 当前退款状态，可能的值：`AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation`。
 - `refund_type`（选填）— 资金来源，可能的值：`Merchant`、`Psp`。
 - `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
 - `updated_timestamp`（必填）— 最后更新时间，Unix 时间戳（秒）。
@@ -217,6 +222,7 @@ lang: "zh-hans"
 - `Completed`：所有资金转出已完成。
 - `PartiallyCompleted`：部分资金转出已完成，部分资金转出失败。
 - `Failed`：所有资金转出均失败。
+- `RejectedByBank`：收款银行拒绝了该笔 Off-Ramp 资金转出。
 
 **事件内容：**
 - `payout_id`（必填）— 资金转出 ID。

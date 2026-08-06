@@ -26,12 +26,26 @@ The overall business workflow of the Cobo payments solution is as follows:
 2. **Fund management stage**: Cobo performs compliance screening on received funds to ensure transaction security and compliance. At the same time, Cobo automatically consolidates funds dispersed across different addresses, making it easier for you to centrally manage funds and perform subsequent operations, such as cryptocurrency exchanges, cross-chain transfers, and purchasing financial products.
 3. **Payout stage**: You can convert cryptocurrency to fiat currency and transfer it to your bank account, or directly transfer cryptocurrency to external wallet addresses.
 
+## Order mode vs. Top-up mode
+
+The Cobo payments solution offers two pay-in modes for the payment collection stage. Order mode creates a payment request for a specified amount with a validity period, suited to one-time checkout or invoice collection. Top-up mode assigns a persistent address to a payer for repeated, variable-amount funding, such as ongoing account top-ups.
+
+| Dimension | Order mode | Top-up mode |
+| :-- | :-- | :-- |
+| Payment model | A one-time payment request created for a specific order. | A persistent address assigned to a payer for a specific chain. |
+| Amount behavior | The payable amount is fixed when the order is created, either specified directly or calculated from the price and exchange rate. | The payer can top up any amount to the address at any time. |
+| Validity/expiry | The order has a validity period. The payer must complete payment within that window, or the order expires. | The address does not expire and remains valid for repeated top-ups until you replace it. |
+| Address lifecycle | A receiving address is generated for each order. | A dedicated top-up address is created for each payer and chain, and you can replace it when needed. |
+| Status/transaction tracking | Order status (for example `Pending`, `Completed`, `Underpaid`, `Expired`) plus webhook events such as `payment.status.updated`, `payment.transaction.late`, and `payment.transaction.completed`. | Webhook events such as `payment.transaction.created` and `payment.transaction.completed`, tracked per payer. |
+| Recommended scenario | One-time checkout or invoice collection where the amount and payment window are known in advance. | Recurring or variable-amount funding, such as account or wallet top-ups. |
+
+For implementation details, refer to [Payment collection in order mode](/payments/en/guides/create-orders) and [Payment collection in top-up mode](/payments/en/guides/get-topup-addresses).
+
 
 
 ## Get started
 
 You can refer to the [Integration guide](/payments/en/guides/quick-start) to understand the integration steps for various business scenarios.
-
 
 
 
