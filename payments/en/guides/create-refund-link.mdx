@@ -125,6 +125,10 @@ Call [Create refund link](/payments/en/api-references/payment/create-refund-link
   alt="Refund address collection page - change address"
 />
 
+<Note>
+  The original payment address pre-fill shown on this page is specific to the refund-link address-collection flow. When you create a refund directly using the Create Refund API (`POST /payments/refunds`), the API does not auto-fill the original payment address. You can supply `to_address` in the create request; if you omit it, the refund is created in `PendingConfirmation` status and you must provide the address later using the Update refund order operation before processing can proceed. For Create Refund API behavior, see [Handle refund requests](/payments/en/guides/create-orders).
+</Note>
+
 #### 5. Automatically initiate refund and notification (Cobo backend)
 
 1. Cobo automatically initiates refund tasks (on-chain transactions) using the address information submitted by the user. You can track the progress via Webhook notifications. The relevant event is `payment.refund.status.updated`, which includes the following status changes:
@@ -162,4 +166,3 @@ If the link has been used, call the same API to generate a new URL and send it t
 <Note>
   If you encounter other issues, please contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com).
 </Note>
-

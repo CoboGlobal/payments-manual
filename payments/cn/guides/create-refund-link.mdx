@@ -121,6 +121,10 @@ sequenceDiagram
   alt="退款地址收集页面-更改地址"
 />
 
+<Note>
+  页面中显示的原始付款地址预填功能仅适用于退款链接地址收集流程。当您直接使用 Create Refund API（`POST /payments/refunds`）创建退款时，该 API 不会自动填入原始付款地址。您可以在创建请求中提供 `to_address`；若省略，退款订单将以 `PendingConfirmation` 状态创建，您需在处理前通过 Update refund order 操作提供地址。有关 Create Refund API 行为的详细说明，请参考[处理退款申请](/payments/cn/guides/create-orders)。
+</Note>
+
 #### 5. 自动发起退款与通知（Cobo的后端）
 
 1. Cobo自动使用用户提交的地址信息发起退款任务（链上转账），并通过Webhook通知关键状态，
@@ -160,4 +164,3 @@ sequenceDiagram
 <Note>
   如遇到其他问题，请通过 [help@cobo.com](mailto:help@cobo.com) 联系Cobo支持团队。
 </Note>
-

@@ -302,6 +302,10 @@ sequenceDiagram
 
 #### 创建退款订单
 
+<Info>
+  **退款流程**：`POST /payments/refunds`（Create Refund API）是开发者直接调用 API 发起的退款流程。您可以在创建请求中提供 `to_address`；若省略，退款订单将以 `PendingConfirmation` 状态创建，您需在处理前通过 Update refund order 操作提供地址。该 API 不会自动填入原始收款地址。这与[退款链接](/payments/cn/guides/create-refund-link)流程不同，后者由 Cobo 提供地址收集页面，并为付款方预填原始付款地址。Payout Reversal 及合规驱动的原路退回属于独立的运营和政策流程，不通过 `POST /payments/refunds` 发起。
+</Info>
+
 <Tabs>
   <Tab title="Payments App" icon="pager">
     1. 登录 Cobo Portal [开发环境](https://portal.dev.cobo.com/login)或[生产环境](https://portal.cobo.com/login)。

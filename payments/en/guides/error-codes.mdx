@@ -45,6 +45,20 @@ Payment-specific validation failures — such as a resource not being found or a
 | OTC exchange rate unavailable | `Exchange rate for token {token_id} not found.` | Retry the request. If the error persists, the token may not be supported for OTC conversion. |
 | OTC conversion not found | `Conversion {conversion_code} not found.` | Verify the conversion code or OTC order ID is correct. |
 
+#### Create Refund errors
+
+The following errors are specific to the [Create Refund order](/payments/en/api-references/payment/create-refund-order) operation (`POST /payments/refunds`). All return HTTP 400 with `"error_code": 2006`. Use the `error_message` field to identify the specific cause.
+
+| Scenario | Example `error_message` | Cause | Recommended action |
+|---|---|---|---|
+| Duplicate `request_id` | Message indicates the `request_id` is already in use. | A refund with this `request_id` already exists. | Use a unique `request_id` for each new refund. To retrieve an existing refund, reuse its original `request_id`. |
+| Invalid `to_address` | `Invalid receiving address.` | The `to_address` format is not valid for the specified token and chain. | Verify that `to_address` is correctly formatted for the token's network and chain. |
+| Pay-in order not found | `Order {order_id} not found.` | The `order_id` does not exist or does not belong to the specified merchant. | Verify the `order_id` value and confirm the order belongs to the merchant you specified. |
+| Token mismatch | Message indicates the refund token differs from the pay-in order token. | The `token_id` supplied does not match the token used in the original pay-in order. | Use the same token as the original pay-in order. |
+| Merchant not found | `Merchant {merchant_id} not found.` | The `merchant_id` is not recognized in your organization. | Verify the `merchant_id` value is correct and belongs to your organization. |
+| Merchant mismatch | Message indicates the pay-in order does not belong to the specified merchant. | The `order_id` exists but was created under a different merchant. | Confirm that `order_id` and `merchant_id` refer to the same merchant. |
+| Insufficient balance | Message describes the balance shortfall. | The `refund_type` source (merchant or developer balance) does not have enough balance to cover the refund amount plus any developer fee. | Check available balance before submitting. Call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balance](/payments/en/api-references/payment/get-developer-balance) as applicable. |
+
 #### Authentication and permissions
 
 | Error code | HTTP status | Description | Solution |
