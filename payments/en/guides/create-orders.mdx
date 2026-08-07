@@ -168,6 +168,10 @@ The following three exception situations may occur during the payment process:
 
 You can initiate a refund order through Payments App or Payments API to refund funds to the payer. The following diagram shows the interaction process between payers, merchants, and Cobo during the refund process.
 
+<Note>
+  Create Refund API applies to refunds for pay-in orders. It is not the recovery path for completed payout funds returned on-chain by the recipient. For the differences among pay-in order refunds, payout reversal, and compliance fund disposition, see [Types of fund returns](/payments/en/guides/create-refund-link#types-of-fund-returns).
+</Note>
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }}>
 ```mermaid
 sequenceDiagram
@@ -254,4 +258,3 @@ For isolated or frozen funds:
 
 - To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold is applied. Transactions with a value below **0.05 USDT** (or equivalent) will not be processed for automatic credit.\
   _Note: If you need to manually recover accumulated funds below this threshold, please contact Cobo Support for assistance in extracting them from the consolidation addresses._
-

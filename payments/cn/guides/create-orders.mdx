@@ -149,6 +149,10 @@ lang: "zh-hans"
 
 您可以通过 Payments App 或 Payments API 发起一笔退款订单，将资金退还给付款方。下图展示了退款环节中，付款方、商户以及 Cobo 之间的交互流程。
 
+<Note>
+  Create Refund API 适用于收款订单退款，不是收款方将已完成出金资金在链上退回后的恢复路径。关于收款订单退款、Payout reversal 和合规资金处置的区别，请参考[资金退回类型](/payments/cn/guides/create-refund-link#资金退回类型)。
+</Note>
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }}>
 ```mermaid
 sequenceDiagram
@@ -256,4 +260,3 @@ sequenceDiagram
 
 为优化您的账户成本，避免因粉尘金额产生的入账手续费高于交易金额，系统设定了最小入账阈值。当单笔交易金额低于 **0.05 USDT**（或等值币种）时，系统将不自动进行入账处理。\
 _注：若您需要对此类低于阈值的累积资金进行手动处理，请联系 Cobo 客服或技术支持，我们将协助您从归集地址提取。_
-

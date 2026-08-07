@@ -15,6 +15,16 @@ This document introduces how to create a refund link. When end users complete a 
 2. If the user's refund application is approved, you use the API to obtain Cobo's "refund address collection page URL" and send it to end users via email or other methods (Cobo does not have end user email addresses, so you need to send the URL to users yourself). After end users fill in the address, Cobo completes the "automatic refund transfer" process.
 3. You can monitor Cobo callbacks/status queries through Webhooks to track "address submitted/refund initiated/completed". Confirm the refund is complete and synchronize the order status in your system, closing the ticket.
 
+## Types of fund returns
+
+Use Create Refund API or Create Refund Link only for pay-in order refunds. Other returned-fund situations have different triggers, entry points, fund directions, and status surfaces.
+
+| Type | Trigger | Initiator | Fund direction | Entry point and status |
+| :--- | :------ | :-------- | :------------- | :--------------------- |
+| Payout reversal | A recipient sends completed crypto payout funds back on-chain to a Payment collection or source address. | Recipient action, followed by manual recovery with Cobo support. | External recipient address to a Payment address. | Not Create Refund API or Create Refund Link. See [Payout reversal](/payments/en/guides/crypto-payouts#4-payout-reversal); returned funds are handled as unexpected incoming funds and do not create a payout reversal status on the original payout. |
+| Compliance/frozen-fund return | Compliance handling requires inbound funds to be returned through the compliance fund disposition process. | Compliance workflow. | Frozen inbound funds to the disposition destination. | Not Create Refund API or Create Refund Link; use the compliance fund disposition process. |
+| Pay-in order refund | A payer or merchant needs to refund funds from a completed pay-in order. | Merchant, developer, or user refund flow. | Merchant or developer balance to the refund receiving address. | Use Create Refund API or Create Refund Link and track `payment.refund.status.updated`. |
+
 ## Process overview
 
 The following diagram shows the complete interaction process for refund address collection:
@@ -162,4 +172,3 @@ If the link has been used, call the same API to generate a new URL and send it t
 <Note>
   If you encounter other issues, please contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com).
 </Note>
-

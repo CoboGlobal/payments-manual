@@ -11,6 +11,16 @@ lang: "zh-hans"
 2. 若用户的退款申请审批通过，您使用API获取Cobo"退款地址收集页面URL"，通过邮箱等方式发送给终端用户（Cobo无终端用户邮箱，URL需由您自行发送给用户），终端用户填写地址后，由Cobo完成"自动退款转账"的闭环流程。
 3. 您可以通过Webhook监听Cobo回调/状态查询，跟踪"地址已提交/退款已发起/已完成"。确认退款完成并在您的系统内同步订单状态，关闭工单。
 
+## 资金退回类型
+
+Create Refund API 或 Create Refund Link 仅适用于收款订单退款。其他资金退回场景的触发原因、入口、资金方向和状态展示不同。
+
+| 类型 | 触发原因 | 发起方 | 资金方向 | 入口与状态 |
+| :--- | :------- | :----- | :------- | :--------- |
+| Payout reversal | 收款方将已完成的加密货币转账资金在链上退回到 Payment 收款地址或出金来源地址。 | 收款方链上操作，随后由 Cobo 支持团队协助手动处理。 | 外部收款地址到 Payment 地址。 | 不能使用 Create Refund API 或 Create Refund Link。请参考 [Payout reversal](/payments/cn/guides/crypto-payouts#4-payout-reversal)；退回资金按意外入账处理，不会在原资金转出记录上生成 Payout reversal 状态。 |
+| 合规冻结原路退回 | 合规处理要求将入账资金通过合规资金处置流程退回。 | 合规流程。 | 冻结的入账资金到处置目标地址。 | 不能使用 Create Refund API 或 Create Refund Link；应使用合规资金处置流程。 |
+| 收款订单退款 | 付款方或商户需要对已完成的收款订单退款。 | 商户、开发者或用户退款流程。 | 商户余额或开发者余额到退款收款地址。 | 使用 Create Refund API 或 Create Refund Link，并通过 `payment.refund.status.updated` 跟踪。 |
+
 ## 流程概览
 
 以下流程图展示了退款地址收集的完整交互过程：
@@ -160,4 +170,3 @@ sequenceDiagram
 <Note>
   如遇到其他问题，请通过 [help@cobo.com](mailto:help@cobo.com) 联系Cobo支持团队。
 </Note>
-

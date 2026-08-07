@@ -70,6 +70,10 @@ lang: "zh-hans"
 | 批量下发加密货币 | `payment.bulk_send.status.updated` | 批量下发请求状态变更，会触发的节点包括：<br />- `Completed`：所有下发已完成。<br />- `PartiallyCompleted`：部分下发已完成，部分下发失败。<br />- `Failed`：所有下发均失败。 | 该负载包含以下字段：<br />- `bulk_send_id`（必填）：批量下发 ID。<br />- `request_id`（选填）：创建批量下发时您提供的请求 ID。<br />- `source_account`（必填）：转出来源账户。<br />- `description`（选填）：整批下发的描述。<br />- `execution_mode`（必填）：执行模式。<br />- `status`（必填）：当前批量下发状态。<br />- `created_timestamp`（必填）：创建时间，Unix 时间戳（秒）。<br />- `updated_timestamp`（必填）：最后更新时间，Unix 时间戳（秒）。<br /><br />完整字段说明请参考 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。 |
 | 账户余额 | `payment.account.balance.updated` | 支付账户某币种的可用余额发生变动时触发。 | 该负载包含以下字段：<br />- `source_account`（必填）：余额变动的来源账户。商户账户为商户 ID；开发者账户为 `developer`。<br />- `source_id`（必填）：余额变动的来源 ID。<br />- `source_type`（必填）：余额变动的来源类型（例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`）。<br />- `token_id`（必填）：币种 ID。<br />- `amount`（必填）/ `amount_raw`（必填）：余额变动金额，分别为保留两位小数和按币种精度表示。<br />- `balance_before` / `balance_before_raw`（必填）：变动前的账户余额。<br />- `balance_after` / `balance_after_raw`（必填）：变动后的账户余额。<br />- `flow_direction`（必填）：余额变动方向，可能的值：`in`、`out`。<br />- `update_time`（必填）：余额更新时间，Unix 时间戳（秒）。 |
 
+<Note>
+  `payment.payout.status.updated` 和资金转出状态值仅描述原资金转出请求，不表示已完成出金资金在链上退回后的恢复进度。关于加密货币出金退回资金，请参考 [Payout reversal](/payments/cn/guides/crypto-payouts#4-payout-reversal)。
+</Note>
+
 ### **3. 结算网络相关**
 
 | 功能场景 | 事件名称 | 触发条件 | 事件内容 |

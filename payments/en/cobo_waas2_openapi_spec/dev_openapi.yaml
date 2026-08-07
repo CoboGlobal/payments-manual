@@ -3925,9 +3925,11 @@ paths:
       operationId: create_refund
       summary: Create refund order
       description: |
-        This operation creates a refund order to return cryptocurrency to a specified address. 
+        This operation creates a refund order to return pay-in order funds to a specified address.
 
         When creating a refund order, you can optionally link it to an existing pay-in order for tracking and reconciliation purposes.
+
+        <Note>Create refund applies only to pay-in order refunds. It is not the API entry point for payout reversal when funds are returned to a Payment collection or source address, or for compliance fund disposition.</Note>
       security:
         - CoboAuth: []
         - OAuth2:

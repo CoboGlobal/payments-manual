@@ -88,3 +88,10 @@ lang: "zh-hans"
   </Tab>
 </Tabs>
 
+## 4. Payout reversal
+
+Payout reversal 适用于收款方将已完成的加密货币转账资金在链上退回到 Payment 收款地址或出金来源地址的情况。该场景不能通过 [Create Refund API](/payments/en/api-references/payment/create-refund-order) 发起或处理，因为 Create Refund 仅用于收款订单退款。
+
+退回资金被检测到并通过合规筛查后，会按意外入账处理。您可以接收 `payment.transaction.external.completed` 事件，并在相关 Payment 余额页面核对入账金额。原资金转出记录仍保持已完成的资金转出记录；退回资金不会在该笔资金转出上生成专门的 Payout reversal 状态。
+
+如需处理退回的出金资金，请联系 Cobo 支持团队，并提供原资金转出 ID、退回交易哈希、币种、网络、金额，以及接收退回资金的地址。
