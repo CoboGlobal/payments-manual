@@ -5,7 +5,7 @@ lang: "en"
 ---
 
 <Note>
-  **Disclaimer: This article contains AI translations and should only be used as reference.** Contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com) if you have any questions.
+  **Disclaimer: This article contains AI translations and should only be used as reference.**
 </Note>
 
 Order mode is suitable for scenarios that require specifying a specific payment amount and time limit. In this mode, Cobo creates payment orders with the following characteristics:
@@ -366,7 +366,7 @@ You can also actively query refund order status through Payments App or Payments
   </Tab>
 </Tabs>
 
-### Compliance screening failure
+### Compliance screening and frozen funds
 
 When a transaction receives the `payment.transaction.failed` event , this indicates that the transaction has failed to pass compliance screening by Cobo KYT or Screening App. In this case, you need to follow these steps to handle it:
 
@@ -378,12 +378,39 @@ When a transaction receives the `payment.transaction.failed` event , this indica
   - The order status will remain unchanged
   - The payer needs to redeposit sufficient funds and pass compliance screening within the order validity period for the order to change to `Completed` status
 
-For isolated or frozen funds:
+#### Frozen funds and compliance disposition
 
-- Cobo KYT: Please contact the Cobo support team through [help@cobo.com](mailto:help@cobo.com) for handling
-- Screening App: You can evaluate and handle it yourself within the application
+`Frozen` is a funds and compliance disposition state. It is not a public Payin order status. Public Payin order statuses are `Pending`, `Processing`, `Completed`, `Expired`, and `Underpaid`.
+
+For Payin order status changes and transaction events, use [Status and events](/payments/en/guides/status-and-events). For frozen-funds disposition state, call `get_disposition_status` and inspect `disposition_status`.
+
+#### Compliance disposition operations
+
+The following operations are compliance-managed funds disposition operations. They are separate from developer-initiated Payments refund flows.
+
+| Operation | Purpose | What you can observe |
+| --- | --- | --- |
+| `unfreeze_funds` | Releases frozen funds after compliance review. | Call `get_disposition_status` and inspect `disposition_status` to track the resulting state. |
+| `isolate_funds` | Isolates frozen funds after compliance review. | Call `get_disposition_status` and inspect `disposition_status`; relevant values are `Isolating`, `Isolated`, and `IsolateFailed`. |
+| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Call `get_disposition_status` and inspect `disposition_status` to track the resulting state. This is distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#refund-scenarios). |
+
+#### Risk level observability
+
+Receiving addresses can expose a `risk_level` field that uses the `AddressRiskLevel` enum. You can query address risk information through [List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses). Risk information may be part of the compliance review process.
+
+#### Responsibility boundaries
+
+| Scenario | Developer action |
+| --- | --- |
+| Query a Payin order status. | Call [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) or subscribe to `payment.order.status.updated`. |
+| Query a refund order status. | Call [Get refund order information](/payments/en/api-references/payment/get-refund-order-information), call [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders), or subscribe to `payment.refund.status.updated`. |
+| Create an ordinary refund. | Use Payments App or call [Create refund order](/payments/en/api-references/payment/create-refund-order). |
+| Review a Screening App case. | Use the verified self-service actions available in Screening App. |
+| Release frozen funds with `unfreeze_funds`. | This is a compliance-managed disposition operation. Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
+| Isolate frozen funds with `isolate_funds`. | This is a compliance-managed disposition operation. Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
+| Return frozen Payin funds with `refund_funds`. | This is a compliance-managed disposition operation, distinct from the developer-initiated [Create refund order](/payments/en/api-references/payment/create-refund-order). Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
 
 ### Minimum Deposit Threshold
 
 - To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold is applied. Transactions with a value below **0.05 USDT** (or equivalent) will not be processed for automatic credit.\
-  _Note: If you need to manually recover accumulated funds below this threshold, please contact Cobo Support for assistance in extracting them from the consolidation addresses._
+  _Note: If you need to manually recover accumulated funds below this threshold, submit the request through your account process._

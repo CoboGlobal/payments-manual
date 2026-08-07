@@ -13,6 +13,7 @@ lang: "zh-hans"
 
 | 错误码 | HTTP 状态码 | 描述 | 解决方案 |
 |---|---|---|---|
+| 1006 | 400 | 旧版共享 invalid-parameter 错误码，可能来自共享平台层或较早的集成。当前 Payments REST API 的 invalid-parameter 校验失败返回 `2006`。 | 将其视为 invalid-parameter 错误。检查 `error_message`，然后修正请求参数后重试。 |
 | 2006 | 400 | 一个或多个参数格式无效或包含不支持的值。 | 根据 [API 参考](/payments/cn/api-references/overview)验证请求体。检查参数类型、枚举值以及所有必填字段。`error_message` 字段通常会指明验证失败的具体参数。 |
 | 2010 | 429 | 您已超出 API 访问频率限制。 | 降低请求频率。在重试前实施指数退避加抖动策略。 |
 | 2024 | 401 | API Key 认证失败。 | <ul><li>请使用与当前环境对应的 API Key（例如开发环境使用开发 API Key，生产环境使用生产 API Key）。</li><li>请确保您使用的 API Key 已在 Cobo Portal 上注册并处于活跃状态。</li><li>如果您的 API Key 是永久的，请确保请求来自白名单 IP 地址。</li></ul>详情请参见[发送首个请求](/payments/cn/developer-tools/get-started-with-api)。 |

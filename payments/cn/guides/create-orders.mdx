@@ -371,7 +371,7 @@ sequenceDiagram
   </Tab>
 </Tabs>
 
-### 合规筛查不通过
+### 合规筛查与资金冻结
 
 当某笔交易收到 `payment.transaction.failed` 事件时，这表明该笔交易未能通过 Cobo KYT 或 Screening App 的合规筛查。这种情况下，您需要按照以下步骤进行处理：
 
@@ -383,12 +383,39 @@ sequenceDiagram
   - 订单状态将保持不变
   - 付款方需要在订单有效期内重新充入足额资金并通过合规筛查，订单才能转为 `Completed` 状态
 
-对于被隔离或冻结的资金：
+#### 冻结资金与合规处置
 
-- Cobo KYT：请通过 [help@cobo.com](mailto:help@cobo.com) 联系 Cobo 支持团队处理
-- Screening App：您可以在应用内自行评估和处理
+`Frozen` 是资金与合规处置状态，不是公开的 Payin 订单状态。公开的 Payin 订单状态包括 `Pending`、`Processing`、`Completed`、`Expired` 和 `Underpaid`。
+
+如需跟踪 Payin 订单状态变更和交易事件，请参考[状态与事件](/payments/cn/guides/status-and-events)。如需观察冻结资金的处置状态，请调用 `get_disposition_status` 并检查 `disposition_status`。
+
+#### 合规处置操作
+
+以下操作是合规管理的资金处置操作，与开发者发起的 Payments 退款流程相互独立。
+
+| 操作 | 用途 | 您可以观察的状态 |
+| --- | --- | --- |
+| `unfreeze_funds` | 合规审核后释放冻结资金。 | 调用 `get_disposition_status` 并检查 `disposition_status` 以跟踪结果状态。 |
+| `isolate_funds` | 合规审核后隔离冻结资金。 | 调用 `get_disposition_status` 并检查 `disposition_status`；相关值为 `Isolating`、`Isolated` 和 `IsolateFailed`。 |
+| `refund_funds` | 通过合规管理的返还流程退回冻结的 Payin 资金。 | 调用 `get_disposition_status` 并检查 `disposition_status` 以跟踪结果状态。此流程不同于开发者发起的 [Create Refund API 和退款链接流程](/payments/cn/guides/create-refund-link#退款场景)。 |
+
+#### risk_level 可观察性
+
+收款地址可能公开 `risk_level` 字段，该字段使用 `AddressRiskLevel` enum。您可以通过 [List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses) 查询地址风险信息。风险信息可能是合规审核流程的一部分。
+
+#### 责任边界
+
+| 场景 | 开发者操作 |
+| --- | --- |
+| 查询 Payin 订单状态。 | 调用 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)，或订阅 `payment.order.status.updated`。 |
+| 查询退款订单状态。 | 调用 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)、调用 [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders)，或订阅 `payment.refund.status.updated`。 |
+| 创建普通退款。 | 使用 Payments App，或调用 [Create refund order](/payments/en/api-references/payment/create-refund-order)。 |
+| 审核 Screening App 案例。 | 使用 Screening App 中已验证的自助操作。 |
+| 使用 `unfreeze_funds` 释放冻结资金。 | 这是合规管理的处置操作。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
+| 使用 `isolate_funds` 隔离冻结资金。 | 这是合规管理的处置操作。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
+| 使用 `refund_funds` 退回冻结的 Payin 资金。 | 这是合规管理的处置操作，与开发者发起的 [Create refund order](/payments/en/api-references/payment/create-refund-order) 相互独立。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
 
 ### 最小入账金额限制
 
 为优化您的账户成本，避免因粉尘金额产生的入账手续费高于交易金额，系统设定了最小入账阈值。当单笔交易金额低于 **0.05 USDT**（或等值币种）时，系统将不自动进行入账处理。\
-_注：若您需要对此类低于阈值的累积资金进行手动处理，请联系 Cobo 客服或技术支持，我们将协助您从归集地址提取。_
+_注：若您需要对此类低于阈值的累积资金进行手动处理，请通过您的账户流程提交处理请求。_

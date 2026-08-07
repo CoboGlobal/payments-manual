@@ -4,10 +4,23 @@ lang: "en"
 ---
 
 <Note>
-  **Disclaimer: This article contains AI translations and should only be used as reference.** Contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com) if you have any questions.
+  **Disclaimer: This article contains AI translations and should only be used as reference.**
 </Note>
 
 This document introduces how to create a refund link. When end users complete a cryptocurrency order payment in the Payment Link checkout and need a refund for various reasons, you can use this feature to let end users fill in refund addresses, with Cobo automatically completing the refund transfer process.
+
+## Refund scenarios
+
+| Scenario | How it is initiated | What it is for |
+| --- | --- | --- |
+| Create Refund Order | You create an ordinary refund order through Payments App or the [Create refund order](/payments/en/api-references/payment/create-refund-order) API. | Developer-initiated refunds after you decide to return funds to a payer. |
+| Refund Link | You call [Create refund link](/payments/en/api-references/payment/create-refund-link) so the payer can submit a refund receiving address. | Ordinary refund address collection when you need the payer to provide or confirm the refund address. |
+| Compliance return | `refund_funds` is a compliance-managed funds disposition operation, distinct from the Create Refund Order and Refund Link flows. | Returning frozen Payin funds after compliance review. |
+| Payout Reversal | A separate reversal scenario. | Do not treat it as a Create Refund Order, Refund Link, or `refund_funds` flow. |
+
+<Note>
+  A compliance return through `refund_funds` is not the same as a Create Refund Order or Refund Link.
+</Note>
 
 ## Use cases
 
@@ -146,11 +159,15 @@ You can query refund status through the following method:
 
 ### Regenerate URL
 
-If the link has been used, call the same API to generate a new URL and send it to the user again.
+If an ordinary refund address collection link has been used, call the same API to generate a new URL and send it to the user again. This applies only to the refund-link address-collection flow.
 
 <Info>
   The refund address collection URL is a one-time link that becomes invalid after the user submits the address. If you need to collect the address again, please call the API to generate a new URL.
 </Info>
+
+<Note>
+  Regenerating a refund link is not a retry for a `refund_funds` failure. For ordinary refund orders, you can observe the `Failed` status and `failed_reason` in refund details.
+</Note>
 
 ## Common errors and handling
 
@@ -160,6 +177,5 @@ If the link has been used, call the same API to generate a new URL and send it t
 - **Your KYT rule rejection**: If the original transaction was rejected due to your KYT rules, or if the transaction was not rejected, changing addresses usually does not require additional materials.
 
 <Note>
-  If you encounter other issues, please contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com).
+  For other ordinary refund issues, query the refund order status and inspect `failed_reason` in the refund details.
 </Note>
-
