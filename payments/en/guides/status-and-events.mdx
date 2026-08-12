@@ -11,68 +11,300 @@ This document describes all Webhook events and status transition processes invol
 
 ## Webhook Events
 
+### Which events should you subscribe to?
+
+Subscribe to the events that match how you use Payments. Click any event name for details.
+
+<table>
+  <thead>
+    <tr>
+      <th>Scenario</th>
+      <th>Event</th>
+      <th>Fires when</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowSpan={2}>**Order Mode only**</td>
+      <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
+      <td>The order status changes (`Pending`, `Completed`, `Expired`, `Underpaid`) — your main signal for order fulfillment.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.late`](#payment-transaction-late)</td>
+      <td>A compliant deposit arrives after the order reached a final state.</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**Top-up Mode only**</td>
+      <td>[`payment.transaction.created`](#payment-transaction-created)</td>
+      <td>A top-up address receives a new deposit.</td>
+    </tr>
+    <tr>
+      <td>[`payment.address.updated`](#payment-address-updated)</td>
+      <td>A payer's top-up address is replaced.</td>
+    </tr>
+    <tr>
+      <td rowSpan={5}>**Both pay-in modes**</td>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
+      <td>A deposit passes compliance screening and is credited.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
+      <td>A deposit fails compliance screening.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
+      <td>An unexpected deposit is detected (outside any order/top-up plan, or in an unsupported token).</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed)</td>
+      <td>An unexpected deposit is credited to your developer balance.</td>
+    </tr>
+    <tr>
+      <td>[`payment.account.balance.updated`](#payment-account-balance-updated)</td>
+      <td>An account balance changes for a token — useful for internal accounting.</td>
+    </tr>
+    <tr>
+      <td rowSpan={4}>**Payout**</td>
+      <td>[`payment.payout.status.updated`](#payment-payout-status-updated)</td>
+      <td>A single-destination payout/transfer request's status changes.</td>
+    </tr>
+    <tr>
+      <td>[`payment.refund.status.updated`](#payment-refund-status-updated)</td>
+      <td>A refund order's status changes (only if you issue refunds).</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated)</td>
+      <td>A bulk send request's status changes (only if you use Bulk Send for crypto payouts).</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated)</td>
+      <td>A single bulk send item's status changes (only if you use Bulk Send for crypto payouts).</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**[Settlement Network](/payments/en/guides/settlement-network)**</td>
+      <td>[`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created)</td>
+      <td>A Settlement Network transaction is created.</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed)</td>
+      <td>The transaction completes and settled funds are reflected in your Payment account balance.</td>
+    </tr>
+  </tbody>
+</table>
+
 ### **1. Pay-in Related**
 
-| Scenario               | Event Name                               | Trigger Condition                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Event Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| :--------------------- | :--------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Order Mode             | `payment.order.status.updated`           | Triggered when a payment order status changes. Key nodes include:<br />- `Pending`: Triggered only when an order is successfully created via a payment link.<br />- `Completed`: Full payment received within the order validity period.<br />- `Expired`: No completed deposit transactions within the validity period, or the order was canceled.<br />- `Underpaid`: Completed deposit transactions exist, but the total amount received is less than the expected amount. | This payload includes:<br />- `order_id` (required): The order ID.<br />- `merchant_id` (optional): The merchant ID.<br />- `merchant_order_code` (optional): A unique reference code assigned by the merchant.<br />- `psp_order_code` (required): A unique reference code assigned by the developer to identify this order.<br />- `pricing_currency` (optional): The pricing currency of the order.<br />- `pricing_amount` (optional): The base amount of the order, excluding the developer fee.<br />- `fee_amount` (required): The developer fee for the order.<br />- `payable_currency` (optional): The ID of the cryptocurrency used for payment.<br />- `chain_id` (required): The ID of the blockchain network.<br />- `payable_amount` (required): The cryptocurrency amount to be paid for this order.<br />- `exchange_rate` (required): The exchange rate between `payable_currency` and `pricing_currency`.<br />- `amount_tolerance` (optional): The allowed amount deviation.<br />- `receive_address` (required): The recipient wallet address for the payment transaction.<br />- `status` (required): The current order status. One of: `Pending`, `Processing`, `Completed`, `Expired`, `Underpaid`.<br />- `received_token_amount` (required): The total cryptocurrency amount received for this order.<br />- `expired_at` (optional): The expiration time, in Unix timestamp (seconds).<br />- `created_timestamp` (optional): The creation time, in Unix timestamp (seconds).<br />- `updated_timestamp` (optional): The last update time, in Unix timestamp (seconds).<br />- `transactions` (optional): An array of payment transactions associated with this order.<br /><br />For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information). |
-| Order Mode             | `payment.transaction.late`               | A deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).                                                                                                                                                                                                                                                                                                                 | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section, plus the following Payment-specific fields:<br />- `acquiring_type` (required): The collection type. Value: `Order` (Order Mode only).<br />- `order_id` (optional): The pay-in order ID.<br />- `psp_order_code` (optional): A unique reference code assigned by the developer to identify this order. |
-| Top-up Mode            | `payment.transaction.created`            | A new deposit transaction is detected on a deposit address.                                                                                                                                                                                                                                                                                                                                                                                                                   | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section, plus the following Payment-specific fields:<br />- `acquiring_type` (required): The collection type. Value: `TopUp` (Top-up Mode only).<br />- `payer_id` (optional): A unique identifier assigned by Cobo to track and identify individual payers.<br />- `custom_payer_id` (optional): A unique identifier assigned by the developer to track and identify individual payers. |
-| Top-up Mode            | `payment.address.updated`                | Triggered when the payer's top-up address is replaced.                                                                                                                                                                                                                                                                                                                                                                                                                         | This payload includes:<br />- `custom_payer_id`: Payer identifier in your system.<br />- `payer_id`: Payer identifier assigned by Cobo.<br />- `chain`: The chain of the address.<br />- `previous_address`: Address before replacement.<br />- `updated_address`: Address after replacement.                                                                                                                                                                                                                                              |
-| Order Mode | `payment.transaction.completed`          | For every transaction received within the order's validity period, once the funds pass compliance screening, they are credited and recorded in the **Actual Receipt** amount. | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section, plus the following Payment-specific fields:<br />- `acquiring_type` (required): The collection type. Value: `Order`.<br />- `order_id` (optional): The pay-in order ID.<br />- `psp_order_code` (optional): A unique reference code assigned by the developer to identify this order. |
-| Top-up Mode | `payment.transaction.completed`          | Once a collection transaction passes compliance screening, the funds are credited and recorded in the **Actual Receipt** amount. | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section, plus the following Payment-specific fields:<br />- `acquiring_type` (required): The collection type. Value: `TopUp`.<br />- `payer_id` (optional): A unique identifier assigned by Cobo to track and identify individual payers.<br />- `custom_payer_id` (optional): A unique identifier assigned by the developer to track and identify individual payers. |
-| Unexpected Deposit     | `payment.transaction.external.created`   | An unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).                                                                                                                                                                                                                                                                                                                                | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section. |
-| Unexpected Deposit     | `payment.transaction.external.completed` | The unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.                                                                                                                                                                                                                                                                                                                                                    | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section. |
-| Pay-in Check           | `payment.transaction.failed`             | The collection transaction failed the compliance screening.                                                                                                                                                                                                                                                                                                                                                                                                                   | This payload includes all fields from the [Transaction payload fields](#transaction-payload-fields) section, plus the following Payment-specific fields:<br />- `acquiring_type` (required): The collection type. `Order` for Order Mode, `TopUp` for Top-up Mode.<br />- `order_id` (optional): The pay-in order ID.<br />- `psp_order_code` (optional): A unique reference code assigned by the developer to identify this order.<br />- `payer_id` (optional): A unique identifier assigned by Cobo to track and identify individual payers.<br />- `custom_payer_id` (optional): A unique identifier assigned by the developer to track and identify individual payers. |
+#### `payment.order.status.updated`
 
-### Transaction payload fields
+**Trigger condition:** Triggered when a payment order status changes (Order Mode only). Key nodes include:
+- `Pending`: Triggered only when an order is successfully created via a payment link.
+- `Completed`: Full payment received within the order validity period.
+- `Expired`: No completed deposit transactions within the validity period, or the order was canceled.
+- `Underpaid`: Completed deposit transactions exist, but the total amount received is less than the expected amount.
 
-The following table lists the base fields included in all `payment.transaction.*` event payloads. Not all fields may be populated in every scenario.
+**Event content:**
+- `order_id` (required) — The order ID.
+- `merchant_id` (optional) — The merchant ID.
+- `merchant_order_code` (optional) — A unique reference code assigned by the merchant.
+- `psp_order_code` (required) — A unique reference code assigned by the developer to identify this order.
+- `pricing_currency` (optional) — The pricing currency of the order.
+- `pricing_amount` (optional) — The base amount of the order, excluding the developer fee.
+- `fee_amount` (required) — The developer fee for the order.
+- `payable_currency` (optional) — The ID of the cryptocurrency used for payment.
+- `chain_id` (required) — The ID of the blockchain network.
+- `payable_amount` (required) — The cryptocurrency amount to be paid for this order.
+- `exchange_rate` (required) — The exchange rate between `payable_currency` and `pricing_currency`.
+- `amount_tolerance` (optional) — The allowed amount deviation.
+- `receive_address` (required) — The recipient wallet address for the payment transaction.
+- `status` (required) — The current order status. One of: `Pending`, `Processing`, `Completed`, `Expired`, `Underpaid`.
+- `received_token_amount` (required) — The total cryptocurrency amount received for this order.
+- `expired_at` (optional) — The expiration time, in Unix timestamp (seconds).
+- `created_timestamp` (optional) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (optional) — The last update time, in Unix timestamp (seconds).
+- `transactions` (optional) — An array of payment transactions associated with this order.
 
-| Field | Type | Required | Description |
-|:------|:-----|:---------|:------------|
-| `transaction_id` | string (UUID) | Yes | The transaction ID. |
-| `cobo_id` | string | No | The Cobo ID used to track a transaction. |
-| `request_id` | string | No | The request ID used to track the transaction request. |
-| `wallet_id` | string | Yes | For deposit transactions, the wallet ID of the destination. For other types, the wallet ID of the source. |
-| `type` | string | No | The transaction type. |
-| `status` | string | Yes | The transaction status. |
-| `sub_status` | string | No | The transaction sub-status. |
-| `failed_reason` | string | No | The reason why the transaction failed (applicable to approval and signature failures only). |
-| `chain_id` | string | No | The chain ID. |
-| `token_id` | string | No | The token ID. |
-| `asset_id` | string | No | The asset ID (Exchange Wallets only). |
-| `transaction_hash` | string | No | The transaction hash. |
-| `source` | object | Yes | The transaction source. |
-| `destination` | object | Yes | The transaction destination. |
-| `result` | object | No | The transaction result. |
-| `fee` | object | No | The transaction fee. |
-| `initiator` | string | No | The transaction initiator. |
-| `initiator_type` | string | Yes | The initiator type. |
-| `confirmed_num` | integer | No | The number of confirmations received. |
-| `confirming_threshold` | integer | No | The minimum number of confirmations required. |
-| `block_info` | object | No | The block information. |
-| `raw_tx_info` | object | No | The raw transaction information. |
-| `replacement` | object | No | Replacement transaction information. |
-| `category` | array | No | Custom transaction categories. |
-| `description` | string | No | The transaction description. |
-| `is_loop` | boolean | No | Whether the transaction was executed as a Cobo Loop transfer. |
-| `cobo_category` | array | No | Transaction categories defined by Cobo. |
-| `extra` | array | No | Structured, business-specific extra information for the transaction. |
-| `fueling_info` | object | No | Fueling information. |
-| `created_timestamp` | integer (int64) | Yes | The creation time, in Unix timestamp format (milliseconds). |
-| `updated_timestamp` | integer (int64) | Yes | The last update time, in Unix timestamp format (milliseconds). |
+For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
 
-Each transaction event also includes Payment-specific fields listed in the **Event Content** column of the table above.
+#### `payment.transaction.late`
+
+**Trigger condition:** In Order Mode, a deposit transaction that passed compliance scanning is received after the payment order has reached a final state (`Underpaid`, `Expired`, or `Completed`).
+
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
+- `acquiring_type` (required) — The collection type. Value: `Order` (Order Mode only).
+- `order_id` (optional) — The pay-in order ID.
+- `psp_order_code` (optional) — A unique reference code assigned by the developer to identify this order.
+
+#### `payment.transaction.created`
+
+**Trigger condition:** In Top-up Mode, a new deposit transaction is detected on a deposit address.
+
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
+- `acquiring_type` (required) — The collection type. Value: `TopUp` (Top-up Mode only).
+- `payer_id` (optional) — A unique identifier assigned by Cobo to track and identify individual payers.
+- `custom_payer_id` (optional) — A unique identifier assigned by the developer to track and identify individual payers.
+
+#### `payment.address.updated`
+
+**Trigger condition:** In Top-up Mode, triggered when the payer's top-up address is replaced.
+
+**Event content:**
+- `custom_payer_id` — Payer identifier in your system.
+- `payer_id` — Payer identifier assigned by Cobo.
+- `chain` — The chain of the address.
+- `previous_address` — Address before replacement.
+- `updated_address` — Address after replacement.
+
+#### `payment.transaction.completed`
+
+**Trigger condition:** Applies to both pay-in modes:
+- Order Mode: For every transaction received within the order's validity period, once the funds pass compliance screening, they are credited and recorded in the **Actual Receipt** amount.
+- Top-up Mode: Once a collection transaction passes compliance screening, the funds are credited and recorded in the **Actual Receipt** amount.
+
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
+- Order Mode: `acquiring_type` (required, value `Order`), `order_id` (optional), `psp_order_code` (optional).
+- Top-up Mode: `acquiring_type` (required, value `TopUp`), `payer_id` (optional), `custom_payer_id` (optional).
+
+#### `payment.transaction.external.created`
+
+**Trigger condition:** In either pay-in mode, an unexpected deposit transaction is detected (e.g., transactions not within current orders/deposit plans, or deposits in unsupported tokens).
+
+**Event content:** All fields from [Transaction fields](#transaction-fields).
+
+#### `payment.transaction.external.completed`
+
+**Trigger condition:** In either pay-in mode, the unexpected deposit transaction passed compliance scanning and has been successfully credited to the developer balance.
+
+**Event content:** All fields from [Transaction fields](#transaction-fields).
+
+#### `payment.transaction.failed`
+
+**Trigger condition:** In either pay-in mode, the collection transaction failed the compliance screening.
+
+**Event content:** All fields from [Transaction fields](#transaction-fields), plus these Payment-specific fields:
+- `acquiring_type` (required) — The collection type. `Order` for Order Mode, `TopUp` for Top-up Mode.
+- `order_id` (optional) — The pay-in order ID.
+- `psp_order_code` (optional) — A unique reference code assigned by the developer to identify this order.
+- `payer_id` (optional) — A unique identifier assigned by Cobo to track and identify individual payers.
+- `custom_payer_id` (optional) — A unique identifier assigned by the developer to track and identify individual payers.
+
+<Note>
+  For an order that receives multiple partial transfers before completion, `payment.transaction.completed` fires once per successful receipt as funds are credited, while `payment.order.status.updated` reflects the order's cumulative, terminal outcome (`Completed` or `Underpaid`). See [Partial payments](/payments/en/guides/create-orders#partial-payments) for details.
+
+  `payment.transaction.late` reports a receipt that arrived after the order already reached a terminal status. It does not reopen or otherwise change the order's final status. See [Late payment](/payments/en/guides/create-orders#late-payment) for the full lifecycle.
+</Note>
 
 ### **2. Pay-out Related**
 
-| Scenario                           | Event Name                                                  | Trigger Condition                                                                                                                                                                                                                                                                                                                                                  | Event Content                                                                                                                                            |
-| :--------------------------------- | :---------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Refund                             | `payment.refund.status.updated`                             | Triggered when a refund order status changes. Key nodes include:<br />- `Pending`: Triggered only when a refund order is successfully created via a refund link.<br />- `Completed`: All refund transactions are completed.<br />- `PartiallyCompleted`: Some refund transactions completed, while others failed.<br />- `Failed`: All refund transactions failed. | This payload includes:<br />- `refund_id` (required): The refund order ID.<br />- `request_id` (optional): The request ID you provided when creating the refund.<br />- `order_id` (optional): The ID of the pay-in order corresponding to this refund.<br />- `merchant_id` (optional): The merchant ID.<br />- `token_id` (required): The ID of the cryptocurrency used for the refund.<br />- `chain_id` (required): The ID of the blockchain network.<br />- `amount` (required): The cryptocurrency amount to be returned for this refund.<br />- `to_address` (required): The recipient wallet address.<br />- `status` (required): The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `PartiallyCompleted`, `Failed`, `PendingConfirmation`.<br />- `refund_type` (optional): The source of funds. One of: `Merchant`, `Psp`.<br />- `created_timestamp` (required): The creation time, in Unix timestamp (seconds).<br />- `updated_timestamp` (required): The last update time, in Unix timestamp (seconds).<br />- `initiator` (optional): The initiator of the refund request.<br />- `transactions` (optional): An array of payment transactions associated with this refund.<br />- `charge_merchant_fee` (optional): Whether to charge the developer fee to the merchant.<br />- `merchant_fee_amount` (optional): The developer fee amount to charge the merchant.<br />- `merchant_fee_token_id` (optional): The ID of the cryptocurrency used for the developer fee.<br />- `commission_fee` (optional): Commission fee details.<br /><br />For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information). |
-| Single-Destination Payout/Transfer | `payment.payout.status.updated`                             | Triggered when a payout/transfer request status changes:<br />- `Completed`: All payouts/transfers completed.<br />- `PartiallyCompleted`: Some completed, some failed.<br />- `Failed`: All failed.                                                                                                                                                               | This payload includes:<br />- `payout_id` (required): The payout ID.<br />- `request_id` (required): The request ID you provided when creating the payout.<br />- `payout_channel` (required): The payout channel. One of: `Crypto`, `OffRamp`.<br />- `source_account` (optional): The source account from which the payout is made.<br />- `payout_items` (optional): An array of payout items.<br />- `recipient_info` (optional): The recipient information.<br />- `initiator` (optional): The initiator of the payout request.<br />- `actual_payout_amount` (optional): The actual amount delivered to the recipient.<br />- `commission_fees` (optional): An array of commission fees for this payout.<br />- `remark` (optional): A note or comment about the payout.<br />- `status` (required): The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`.<br />- `created_timestamp` (required): The creation time, in Unix timestamp (seconds).<br />- `updated_timestamp` (required): The last update time, in Unix timestamp (seconds).<br />- `transactions` (optional): An array of payment transactions associated with this payout.<br /><br />For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information). |
-| Bulk Send (Crypto)                 | `payment.bulk_send.status.updated`                          | Triggered when a bulk send request status changes:<br />- `Completed`: All sends completed.<br />- `PartiallyCompleted`: Some completed, some failed.<br />- `Failed`: All failed.                                                                                                                                                                                 | This payload includes:<br />- `bulk_send_id` (required): The bulk send ID.<br />- `request_id` (optional): The request ID you provided when creating the bulk send.<br />- `source_account` (required): The source account from which the bulk send is made.<br />- `description` (optional): The description for the entire bulk send batch.<br />- `execution_mode` (required): The execution mode.<br />- `status` (required): The current bulk send status.<br />- `created_timestamp` (required): The creation time, in Unix timestamp (seconds).<br />- `updated_timestamp` (required): The last update time, in Unix timestamp (seconds).<br /><br />For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information). |
-| Account Balance | `payment.account.balance.updated` | Triggered when the available balance of a Payments account changes for a specific token. | This payload includes:<br />- `source_account` (required): The source account of the balance change. For a merchant account, this is the merchant ID; for the developer account, this is `developer`.<br />- `source_id` (required): The source ID of the balance change.<br />- `source_type` (required): The source type of the balance change (for example, `OrderIn`, `Payout`, `RefundOut`, `BulkSend`).<br />- `token_id` (required): The token ID.<br />- `amount` (required) / `amount_raw` (required): The balance change amount, truncated to two decimal places and in the token's decimal precision respectively.<br />- `balance_before` / `balance_before_raw` (required): The account balance before the change.<br />- `balance_after` / `balance_after_raw` (required): The account balance after the change.<br />- `flow_direction` (required): The direction of the balance change. One of: `in`, `out`.<br />- `update_time` (required): The time when the balance was updated, in Unix timestamp (seconds). |
+#### `payment.refund.status.updated`
+
+**Trigger condition:** Triggered when a refund order status changes. Key nodes include:
+- `Pending`: Triggered only when a refund order is successfully created via a refund link.
+- `Completed`: All refund transactions are completed.
+- `Failed`: All refund transactions failed.
+
+**Event content:**
+- `refund_id` (required) — The refund order ID.
+- `request_id` (optional) — The request ID you provided when creating the refund.
+- `order_id` (optional) — The ID of the pay-in order corresponding to this refund.
+- `merchant_id` (optional) — The merchant ID.
+- `token_id` (required) — The ID of the cryptocurrency used for the refund.
+- `chain_id` (required) — The ID of the blockchain network.
+- `amount` (required) — The cryptocurrency amount to be returned for this refund.
+- `to_address` (required) — The recipient wallet address.
+- `status` (required) — The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`.
+- `refund_type` (optional) — The source of funds. One of: `Merchant`, `Psp`.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+- `initiator` (optional) — The initiator of the refund request.
+- `transactions` (optional) — An array of payment transactions associated with this refund.
+- `charge_merchant_fee` (optional) — Whether to charge the developer fee to the merchant.
+- `merchant_fee_amount` (optional) — The developer fee amount to charge the merchant.
+- `merchant_fee_token_id` (optional) — The ID of the cryptocurrency used for the developer fee.
+- `commission_fee` (optional) — Commission fee details.
+
+For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
+
+#### `payment.payout.status.updated`
+
+**Trigger condition:** Triggered when a payout/transfer request status changes:
+- `Completed`: All payouts/transfers completed.
+- `PartiallyCompleted`: Some completed, some failed.
+- `Failed`: All failed.
+- `RejectedByBank`: The recipient bank rejected the Off-Ramp payout.
+
+**Event content:**
+- `payout_id` (required) — The payout ID.
+- `request_id` (required) — The request ID you provided when creating the payout.
+- `payout_channel` (required) — The payout channel. One of: `Crypto`, `OffRamp`.
+- `source_account` (optional) — The source account from which the payout is made.
+- `payout_items` (optional) — An array of payout items.
+- `recipient_info` (optional) — The recipient information.
+- `initiator` (optional) — The initiator of the payout request.
+- `actual_payout_amount` (optional) — The actual amount delivered to the recipient.
+- `commission_fees` (optional) — An array of commission fees for this payout.
+- `remark` (optional) — A note or comment about the payout.
+- `status` (required) — The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+- `transactions` (optional) — An array of payment transactions associated with this payout.
+
+For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
+
+#### `payment.bulk_send.status.updated`
+
+**Trigger condition:** Triggered when a bulk send request status changes:
+- `Completed`: All sends completed.
+- `PartiallyCompleted`: Some completed, some failed.
+- `Failed`: All failed.
+
+**Event content:**
+- `bulk_send_id` (required) — The bulk send ID.
+- `request_id` (optional) — The request ID you provided when creating the bulk send.
+- `source_account` (required) — The source account from which the bulk send is made.
+- `description` (optional) — The description for the entire bulk send batch.
+- `execution_mode` (required) — The execution mode.
+- `status` (required) — The current bulk send status.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+
+For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
+
+#### `payment.bulk_send.item.status.updated`
+
+**Trigger condition:** Triggered when the status of a single bulk send item changes. Use it to track item-level execution results for a bulk send, especially when a batch completes partially or individual items fail validation or transfer.
+
+**Event content:**
+- `bulk_send_item_id` (required) — The bulk send item ID.
+- `bulk_send_id` (required) — The bulk send ID that this item belongs to.
+- `request_id` (optional) — The request ID of the bulk send batch.
+- `source_account` (required) — The source account ID of the bulk send batch.
+- `token_id` (required) — The token ID of the cryptocurrency sent to the recipient.
+- `receiving_address` (required) — The recipient's cryptocurrency address.
+- `amount` (required) — The cryptocurrency amount sent to the recipient.
+- `description` (optional) — A note or comment about the bulk send item.
+- `tx_hash` (optional) — The transaction hash of the bulk send item.
+- `status` (required) — The item execution status. One of: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`.
+- `validation_status` (required) — The item validation status. One of: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`.
+- `failed_reason` (optional) — The reason why the bulk send item failed.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+
+To test delivery to your registered webhook endpoints, use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) with `event_type` set to `payment.bulk_send.item.status.updated`.
+
+#### `payment.account.balance.updated`
+
+**Trigger condition:** Triggered when the available balance of a Payments account changes for a specific token.
+
+**Event content:**
+- `source_account` (required) — The source account of the balance change. For a merchant account, this is the merchant ID; for the developer account, this is `developer`.
+- `source_id` (required) — The source ID of the balance change.
+- `source_type` (required) — The source type of the balance change (for example, `OrderIn`, `Payout`, `RefundOut`, `BulkSend`).
+- `token_id` (required) — The token ID.
+- `amount` / `amount_raw` (required) — The balance change amount, truncated to two decimal places and in the token's decimal precision respectively.
+- `balance_before` / `balance_before_raw` (required) — The account balance before the change.
+- `balance_after` / `balance_after_raw` (required) — The account balance after the change.
+- `flow_direction` (required) — The direction of the balance change. One of: `in`, `out`.
+- `update_time` (required) — The time when the balance was updated, in Unix timestamp (seconds).
 
 <Note>
   `payment.payout.status.updated` and the payout status values describe the original payout request only. They do not represent recovery progress when completed payout funds are returned on-chain. For returned crypto payout funds, see [Payout reversal](/payments/en/guides/crypto-payouts#4-payout-reversal).
@@ -80,48 +312,70 @@ Each transaction event also includes Payment-specific fields listed in the **Eve
 
 ### **3. Settlement Network Related**
 
-| Scenario | Event Name | Trigger Condition | Event Content |
-| :------- | :--------- | :---------------- | :------------ |
-| Settlement Network | `payment.transaction.settlement_network.created` | Triggered when a Settlement Network transaction is created. | This payload includes the base fields from the [Transaction payload fields](#transaction-payload-fields) section. See the [Settlement Network](/payments/en/guides/settlement-network) guide. |
-| Settlement Network | `payment.transaction.settlement_network.completed` | Triggered when a Settlement Network transaction is completed. On completion, the settled funds are reflected in your Payment account balance with the `SettlementNetwork` `source_type`. | This payload includes the base fields from the [Transaction payload fields](#transaction-payload-fields) section. See the [Settlement Network](/payments/en/guides/settlement-network) guide. |
+#### `payment.transaction.settlement_network.created`
 
-## Webhook event examples
+**Trigger condition:** Triggered when a Settlement Network transaction is created.
+
+**Event content:** The base fields from [Transaction fields](#transaction-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
+
+#### `payment.transaction.settlement_network.completed`
+
+**Trigger condition:** Triggered when a Settlement Network transaction is completed. On completion, the settled funds are reflected in your Payment account balance with the `SettlementNetwork` `source_type`.
+
+**Event content:** The base fields from [Transaction fields](#transaction-fields). See the [Settlement Network](/payments/en/guides/settlement-network) guide.
+
+## Transaction fields
+
+The following fields are included in all `payment.transaction.*` events. Not all fields are populated in every scenario — see the required/optional note on each field. Each `payment.transaction.*` event also adds its own Payment-specific fields, listed under that event above.
 
 <Note>
-  The following examples are illustrative and constructed from the field definitions in the Payment spec. Optional fields may be absent in actual webhook deliveries.
+  This section only covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
 </Note>
 
-### payment.order.status.updated
+- `transaction_id` (string, UUID, required) — The transaction ID.
+- `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
+- `request_id` (string, optional) — The request ID used to track the transaction request.
+- `type` (string, optional) — The transaction type.
+- `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
+- `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
+- `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures.
+- `initiator` (string, optional) — The transaction initiator.
+- `chain_id` (string, optional) — The chain ID.
+- `token_id` (string, optional) — The token ID.
+- `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
+- `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`). Key sub-fields:
+  - `address` — The receiving address.
+  - `amount` — The received amount. For example, if 1.5 USDT was deposited, the value is `1.5`.
+  - `memo` — The memo identifying which account to credit (only on certain chains).
+- `result` (object, optional) — The transaction result.
+- `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
+- `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
+- `confirming_threshold` (integer, optional) — The minimum number of confirmations required to deem a transaction secure (e.g. commonly 6 for a Bitcoin transaction).
+- `block_info` (object, optional) — Details of the block the transaction was included in:
+  - `block_number` — The block number.
+  - `block_timestamp` — When the block was created, in Unix timestamp (milliseconds).
+  - `block_hash` — The block hash.
+- `raw_tx_info` (object, optional) — Details of the raw transaction:
+  - `used_nonce` — The transaction nonce.
+  - `selected_utxos` — The UTXOs consumed in the transaction.
+  - `raw_tx` — The raw transaction data.
+  - `unsigned_raw_tx` — The unsigned raw transaction data.
+  - `utxo_changes` — The UTXO change outputs in the transaction.
+- `replacement` (object, optional) — Populated when this transaction replaced, or was replaced by, another (drop/resend/speed-up):
+  - `replaced_by_type` / `replaced_type` — The replacement type: `Drop`, `Resend`, or `SpeedUp`.
+  - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — The ID/hash of the transaction that replaced this one.
+  - `replaced_transaction_id` / `replaced_transaction_hash` — The ID/hash of the transaction this one replaced.
+- `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
+- `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
 
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b1f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.order.status.updated",
-  "data": {
-    "data_type": "PaymentOrder",
-    "order_id": "O20250304-M1001-1001",
-    "merchant_id": "1001",
-    "psp_order_code": "P20240201001",
-    "pricing_currency": "USD",
-    "pricing_amount": "100.00",
-    "fee_amount": "2.00",
-    "payable_currency": "ETH_USDT",
-    "chain_id": "ETH",
-    "payable_amount": "103.03",
-    "exchange_rate": "0.99",
-    "receive_address": "0x1234567890abcdef1234567890abcdef12345678",
-    "status": "Completed",
-    "received_token_amount": "103.0305",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
+## Webhook message example
 
-### payment.transaction.created
+All webhook messages share the same top-level structure: `event_id`, `url`, `created_timestamp`, `type`, `data` (the event-specific content, with its shape indicated by `data_type`), and `status`. The following example shows a `payment.transaction.created` event.
+
+<Note>
+  This example is illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
+</Note>
 
 ```json
 {
@@ -132,14 +386,12 @@ Each transaction event also includes Payment-specific fields listed in the **Eve
   "data": {
     "data_type": "PaymentTransaction",
     "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
     "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
     "source": { "source_type": "DepositFromAddress" },
     "destination": { "destination_type": "DepositToAddress" },
-    "initiator_type": "API",
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",
@@ -150,60 +402,11 @@ Each transaction event also includes Payment-specific fields listed in the **Eve
 }
 ```
 
-### payment.payout.status.updated
-
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b3f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.payout.status.updated",
-  "data": {
-    "data_type": "PaymentPayout",
-    "payout_id": "123e457-e89b-12d3-a456-426614174004",
-    "request_id": "123e457-e89b-12d3-a456-426614174004",
-    "payout_channel": "Crypto",
-    "source_account": "M1001",
-    "status": "Completed",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
-
-### payment.account.balance.updated
-
-```json
-{
-  "event_id": "9a3f1c2b-7d8e-4f0a-9b2c-5d6e7f8a9b0c",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.account.balance.updated",
-  "data": {
-    "data_type": "PaymentAccountBalanceUpdate",
-    "source_account": "M1001",
-    "source_id": "O202503041234567890",
-    "source_type": "OrderIn",
-    "token_id": "Tron_USDT",
-    "amount": "20.00",
-    "amount_raw": "20",
-    "balance_before": "100.00",
-    "balance_before_raw": "100",
-    "balance_after": "120.00",
-    "balance_after_raw": "120",
-    "flow_direction": "in",
-    "update_time": 1701396866
-  },
-  "status": "Success"
-}
-```
-
 ---
 
 ## Tips
 
-To ensure absolute data accuracy and avoid concurrency conflicts, the Webhook payload does not include real-time balance changes or detailed fee deductions. If your use case requires this information, please refer to the following:
+To ensure absolute data accuracy and avoid concurrency conflicts, the Webhook message does not include real-time balance changes or detailed fee deductions. If your use case requires this information, please refer to the following:
 
 - **To update balances promptly based on Webhook notifications:** Upon receiving a Webhook, immediately call the [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) endpoint to obtain the accurate balance for internal accounting.
 - **To obtain fee details associated with a transaction for reconciliation:** Use the corresponding transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports) to retrieve fee reports for data verification.

@@ -7,68 +7,300 @@ lang: "zh-hans"
 
 ## Webhook 事件
 
-### **1. 入账相关**
+### 应该订阅哪些事件？
 
-| 功能场景 | 事件名称 | 触发条件 | 事件内容 |
-| :------- | :------- | :------- | :------- |
-| 订单模式 | `payment.order.status.updated` | 支付订单状态发生变更，会触发的节点包括：<br />- `Pending`：此状态通知仅限于通过支付链接成功创建订单时触发。<br />- `Completed`：在订单有效期内收到全额付款。<br />- `Expired`：订单有效期内没有已完成的充币交易，或者订单已被取消。<br />- `Underpaid`：订单有效期内存在已完成的充币交易，但实收金额少于应付金额。 | 该负载包含以下字段：<br />- `order_id`（必填）：订单 ID。<br />- `merchant_id`（选填）：商户 ID。<br />- `merchant_order_code`（选填）：商户分配的唯一参考编码。<br />- `psp_order_code`（必填）：开发者用于标识该订单的唯一参考编码。<br />- `pricing_currency`（选填）：订单的计价货币。<br />- `pricing_amount`（选填）：订单的基础金额（不含开发者手续费）。<br />- `fee_amount`（必填）：该订单的开发者手续费。<br />- `payable_currency`（选填）：用于付款的加密货币 ID。<br />- `chain_id`（必填）：区块链网络 ID。<br />- `payable_amount`（必填）：该订单需支付的加密货币金额。<br />- `exchange_rate`（必填）：`payable_currency` 与 `pricing_currency` 之间的汇率。<br />- `amount_tolerance`（选填）：允许的金额偏差。<br />- `receive_address`（必填）：收款钱包地址。<br />- `status`（必填）：当前订单状态，可能的值：`Pending`、`Processing`、`Completed`、`Expired`、`Underpaid`。<br />- `received_token_amount`（必填）：该订单已收到的加密货币总金额。<br />- `expired_at`（选填）：过期时间，Unix 时间戳（秒）。<br />- `created_timestamp`（选填）：创建时间，Unix 时间戳（秒）。<br />- `updated_timestamp`（选填）：最后更新时间，Unix 时间戳（秒）。<br />- `transactions`（选填）：与该订单关联的支付交易数组。<br /><br />完整字段说明请参考 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。 |
-| 订单模式 | `payment.transaction.late` | 在支付订单已处于终态（`Underpaid`、`Expired` 或 `Completed`）后又收到一笔通过合规筛查的充币交易。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，值为 `Order`（仅限订单模式）。<br />- `order_id`（选填）：支付订单 ID。<br />- `psp_order_code`（选填）：开发者用于标识该订单的唯一参考编码。 |
-| 充值模式 | `payment.transaction.created` | 充值地址检测到有新的充币交易。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，值为 `TopUp`（仅限充值模式）。<br />- `payer_id`（选填）：Cobo 分配的用于跟踪和识别付款人的唯一标识符。<br />- `custom_payer_id`（选填）：开发者系统中用于跟踪和识别付款人的唯一标识符。 |
-| 充值模式 | `payment.address.updated` | payer 充值地址被更换。 | 该负载包含以下字段：<br />- `custom_payer_id`：您系统内的付款人唯一标识。<br />- `payer_id`：Cobo 分配的付款人唯一标识。<br />- `chain`：地址所属链。<br />- `previous_address`：更换前地址。<br />- `updated_address`：更换后地址。 |
-| 订单模式 | `payment.transaction.completed` | 订单有效期内收到的每笔交易，通过合规筛查后，资金已成功入账并计入实收金额。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，值为 `Order`。<br />- `order_id`（选填）：支付订单 ID。<br />- `psp_order_code`（选填）：开发者用于标识该订单的唯一参考编码。 |
-| 充值模式 | `payment.transaction.completed` | 充币交易通过合规筛查，资金已成功入账并计入实收金额。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，值为 `TopUp`。<br />- `payer_id`（选填）：Cobo 分配的用于跟踪和识别付款人的唯一标识符。<br />- `custom_payer_id`（选填）：开发者系统中用于跟踪和识别付款人的唯一标识符。 |
-| 意外入账 | `payment.transaction.external.created` | 检测到非预期充币交易（包括：非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段。 |
-| 意外入账 | `payment.transaction.external.completed` | 非预期充币交易已通过合规筛查并成功入账，资金已计入开发者余额。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段。 |
-| 入账检查 | `payment.transaction.failed` | 入账交易合规筛查不通过。 | 该负载包含[交易负载字段](#交易负载字段)部分的所有基础字段，以及以下 Payment 专属字段：<br />- `acquiring_type`（必填）：收款类型，`Order` 表示订单模式，`TopUp` 表示充值模式。<br />- `order_id`（选填）：支付订单 ID。<br />- `psp_order_code`（选填）：开发者用于标识该订单的唯一参考编码。<br />- `payer_id`（选填）：Cobo 分配的用于跟踪和识别付款人的唯一标识符。<br />- `custom_payer_id`（选填）：开发者系统中用于跟踪和识别付款人的唯一标识符。 |
+根据您的使用场景订阅对应事件。点击事件名称可查看详细说明。
 
-### 交易负载字段
+<table>
+  <thead>
+    <tr>
+      <th>使用场景</th>
+      <th>事件</th>
+      <th>触发时机</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowSpan={2}>**仅订单模式**</td>
+      <td>[`payment.order.status.updated`](#payment-order-status-updated)</td>
+      <td>订单状态变更（`Pending`、`Completed`、`Expired`、`Underpaid`），是判断订单是否完成的主要依据。</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.late`](#payment-transaction-late)</td>
+      <td>订单进入终态后又收到合规充币交易。</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**仅充值模式**</td>
+      <td>[`payment.transaction.created`](#payment-transaction-created)</td>
+      <td>充值地址收到新的充币交易。</td>
+    </tr>
+    <tr>
+      <td>[`payment.address.updated`](#payment-address-updated)</td>
+      <td>付款人的充值地址被更换。</td>
+    </tr>
+    <tr>
+      <td rowSpan={5}>**两种收款模式通用**</td>
+      <td>[`payment.transaction.completed`](#payment-transaction-completed)</td>
+      <td>充币交易通过合规筛查并入账。</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.failed`](#payment-transaction-failed)</td>
+      <td>充币交易未通过合规筛查。</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.external.created`](#payment-transaction-external-created)</td>
+      <td>检测到非预期充币（不属于任何订单/充值计划，或币种不支持）。</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.external.completed`](#payment-transaction-external-completed)</td>
+      <td>非预期充币已入账至开发者余额。</td>
+    </tr>
+    <tr>
+      <td>[`payment.account.balance.updated`](#payment-account-balance-updated)</td>
+      <td>账户某币种余额变动，可用于内部记账。</td>
+    </tr>
+    <tr>
+      <td rowSpan={4}>**资金转出**</td>
+      <td>[`payment.payout.status.updated`](#payment-payout-status-updated)</td>
+      <td>单目的地资金转出请求状态变更。</td>
+    </tr>
+    <tr>
+      <td>[`payment.refund.status.updated`](#payment-refund-status-updated)</td>
+      <td>退款单状态变更（仅当您使用退款功能时需订阅）。</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated)</td>
+      <td>批量下发请求状态变更（仅当您使用批量下发加密货币功能时需订阅）。</td>
+    </tr>
+    <tr>
+      <td>[`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated)</td>
+      <td>单条批量下发项目状态变更（仅当您使用批量下发加密货币功能时需订阅）。</td>
+    </tr>
+    <tr>
+      <td rowSpan={2}>**[结算网络](/payments/cn/guides/settlement-network)**</td>
+      <td>[`payment.transaction.settlement_network.created`](#payment-transaction-settlement_network-created)</td>
+      <td>结算网络交易创建。</td>
+    </tr>
+    <tr>
+      <td>[`payment.transaction.settlement_network.completed`](#payment-transaction-settlement_network-completed)</td>
+      <td>结算网络交易完成，结算资金反映到您的 Payment 账户余额中。</td>
+    </tr>
+  </tbody>
+</table>
 
-下表列出所有 `payment.transaction.*` 事件负载中包含的基础字段。在一些场景下，部分字段可能不会返回。
+### **1. 收款相关**
 
-| 字段 | 类型 | 是否必填 | 说明 |
-|:-----|:-----|:---------|:-----|
-| `transaction_id` | string (UUID) | 是 | 交易 ID。 |
-| `cobo_id` | string | 否 | 用于追踪交易的 Cobo ID。 |
-| `request_id` | string | 否 | 用于追踪交易请求的请求 ID。 |
-| `wallet_id` | string | 是 | 充币交易中为目标钱包 ID；其他类型为源钱包 ID。 |
-| `type` | string | 否 | 交易类型。 |
-| `status` | string | 是 | 交易状态。 |
-| `sub_status` | string | 否 | 交易子状态。 |
-| `failed_reason` | string | 否 | 交易失败原因（仅适用于审批和签名失败）。 |
-| `chain_id` | string | 否 | 链 ID。 |
-| `token_id` | string | 否 | 代币 ID。 |
-| `asset_id` | string | 否 | 资产 ID（仅限交易所钱包）。 |
-| `transaction_hash` | string | 否 | 交易哈希。 |
-| `source` | object | 是 | 交易来源。 |
-| `destination` | object | 是 | 交易目标。 |
-| `result` | object | 否 | 交易结果。 |
-| `fee` | object | 否 | 交易手续费。 |
-| `initiator` | string | 否 | 交易发起者。 |
-| `initiator_type` | string | 是 | 发起者类型。 |
-| `confirmed_num` | integer | 否 | 已收到的确认数。 |
-| `confirming_threshold` | integer | 否 | 所需最低确认数。 |
-| `block_info` | object | 否 | 区块信息。 |
-| `raw_tx_info` | object | 否 | 原始交易信息。 |
-| `replacement` | object | 否 | 替换交易信息。 |
-| `category` | array | 否 | 自定义交易分类。 |
-| `description` | string | 否 | 交易描述。 |
-| `is_loop` | boolean | 否 | 是否为 Cobo Loop 转账。 |
-| `cobo_category` | array | 否 | Cobo 定义的交易分类。 |
-| `extra` | array | 否 | 结构化的业务专属附加信息。 |
-| `fueling_info` | object | 否 | 加油信息。 |
-| `created_timestamp` | integer (int64) | 是 | 创建时间，Unix 时间戳（毫秒）。 |
-| `updated_timestamp` | integer (int64) | 是 | 最后更新时间，Unix 时间戳（毫秒）。 |
+#### `payment.order.status.updated`
 
-每个交易事件还包含事件内容列中列出的 Payment 专属字段。
+**触发条件：** 支付订单状态发生变更时触发（仅限订单模式）。会触发的节点包括：
+- `Pending`：此状态通知仅限于通过支付链接成功创建订单时触发。
+- `Completed`：在订单有效期内收到全额付款。
+- `Expired`：订单有效期内没有已完成的充币交易，或者订单已被取消。
+- `Underpaid`：订单有效期内存在已完成的充币交易，但实收金额少于应付金额。
+
+**事件内容：**
+- `order_id`（必填）— 订单 ID。
+- `merchant_id`（选填）— 商户 ID。
+- `merchant_order_code`（选填）— 商户分配的唯一参考编码。
+- `psp_order_code`（必填）— 开发者用于标识该订单的唯一参考编码。
+- `pricing_currency`（选填）— 订单的计价货币。
+- `pricing_amount`（选填）— 订单的基础金额（不含开发者手续费）。
+- `fee_amount`（必填）— 该订单的开发者手续费。
+- `payable_currency`（选填）— 用于付款的加密货币 ID。
+- `chain_id`（必填）— 区块链网络 ID。
+- `payable_amount`（必填）— 该订单需支付的加密货币金额。
+- `exchange_rate`（必填）— `payable_currency` 与 `pricing_currency` 之间的汇率。
+- `amount_tolerance`（选填）— 允许的金额偏差。
+- `receive_address`（必填）— 收款钱包地址。
+- `status`（必填）— 当前订单状态，可能的值：`Pending`、`Processing`、`Completed`、`Expired`、`Underpaid`。
+- `received_token_amount`（必填）— 该订单已收到的加密货币总金额。
+- `expired_at`（选填）— 过期时间，Unix 时间戳（秒）。
+- `created_timestamp`（选填）— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（选填）— 最后更新时间，Unix 时间戳（秒）。
+- `transactions`（选填）— 与该订单关联的支付交易数组。
+
+完整字段说明请参考 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。
+
+#### `payment.transaction.late`
+
+**触发条件：** 在订单模式下，支付订单已处于终态（`Underpaid`、`Expired` 或 `Completed`）后，又收到一笔通过合规筛查的充币交易。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段，以及以下 Payment 专属字段：
+- `acquiring_type`（必填）— 收款类型，值为 `Order`（仅限订单模式）。
+- `order_id`（选填）— 支付订单 ID。
+- `psp_order_code`（选填）— 开发者用于标识该订单的唯一参考编码。
+
+#### `payment.transaction.created`
+
+**触发条件：** 在充值模式下，充值地址检测到新的充币交易。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段，以及以下 Payment 专属字段：
+- `acquiring_type`（必填）— 收款类型，值为 `TopUp`（仅限充值模式）。
+- `payer_id`（选填）— Cobo 分配的用于跟踪和识别付款人的唯一标识符。
+- `custom_payer_id`（选填）— 开发者系统中用于跟踪和识别付款人的唯一标识符。
+
+#### `payment.address.updated`
+
+**触发条件：** 在充值模式下，付款人的充值地址被更换时触发。
+
+**事件内容：**
+- `custom_payer_id` — 您系统内的付款人唯一标识。
+- `payer_id` — Cobo 分配的付款人唯一标识。
+- `chain` — 地址所属链。
+- `previous_address` — 更换前地址。
+- `updated_address` — 更换后地址。
+
+#### `payment.transaction.completed`
+
+**触发条件：** 适用于两种收款模式：
+- 订单模式：订单有效期内收到的每笔交易，通过合规筛查后，资金成功入账并计入**实收金额**。
+- 充值模式：充币交易通过合规筛查后，资金成功入账并计入**实收金额**。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段，以及以下 Payment 专属字段：
+- 订单模式：`acquiring_type`（必填，值为 `Order`）、`order_id`（选填）、`psp_order_code`（选填）。
+- 充值模式：`acquiring_type`（必填，值为 `TopUp`）、`payer_id`（选填）、`custom_payer_id`（选填）。
+
+#### `payment.transaction.external.created`
+
+**触发条件：** 在任一收款模式下，检测到非预期充币交易（包括：非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段。
+
+#### `payment.transaction.external.completed`
+
+**触发条件：** 在任一收款模式下，非预期充币交易已通过合规筛查并成功入账，资金已计入开发者余额。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段。
+
+#### `payment.transaction.failed`
+
+**触发条件：** 在任一收款模式下，入账交易合规筛查不通过。
+
+**事件内容：** 包含[交易字段](#交易字段)中的所有基础字段，以及以下 Payment 专属字段：
+- `acquiring_type`（必填）— 收款类型，`Order` 表示订单模式，`TopUp` 表示充值模式。
+- `order_id`（选填）— 支付订单 ID。
+- `psp_order_code`（选填）— 开发者用于标识该订单的唯一参考编码。
+- `payer_id`（选填）— Cobo 分配的用于跟踪和识别付款人的唯一标识符。
+- `custom_payer_id`（选填）— 开发者系统中用于跟踪和识别付款人的唯一标识符。
+
+<Note>
+  如果订单在完成前收到多笔部分付款，每笔成功入账都会触发一次 `payment.transaction.completed`，而 `payment.order.status.updated` 反映订单累计金额对应的终态结果（`Completed` 或 `Underpaid`）。详情请参考[部分付款](/payments/cn/guides/create-orders#部分付款)。
+
+  `payment.transaction.late` 用于上报订单达到终态后收到的入账。该事件不会重新开启订单，也不会改变订单的终态。完整流程请参考[晚付](/payments/cn/guides/create-orders#晚付)。
+</Note>
 
 ### **2. 资金转出相关**
 
-| 功能场景 | 事件名称 | 触发条件 | 事件内容 |
-| :------- | :------- | :------- | :------- |
-| 退款 | `payment.refund.status.updated` | 退款单状态发生变更，会触发的节点包括：<br />- `Pending`：此状态通知仅限于通过退款链接成功创建退款单时触发。<br />- `Completed`：所有退款交易均已完成。<br />- `PartiallyCompleted`：部分退款交易已完成，部分退款交易失败。<br />- `Failed`：所有退款交易均失败。 | 该负载包含以下字段：<br />- `refund_id`（必填）：退款订单 ID。<br />- `request_id`（选填）：创建退款时您提供的请求 ID。<br />- `order_id`（选填）：该退款对应的收款订单 ID。<br />- `merchant_id`（选填）：商户 ID。<br />- `token_id`（必填）：用于退款的加密货币 ID。<br />- `chain_id`（必填）：区块链网络 ID。<br />- `amount`（必填）：该退款需退还的加密货币金额。<br />- `to_address`（必填）：收款钱包地址。<br />- `status`（必填）：当前退款状态，可能的值：`AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`PartiallyCompleted`、`Failed`、`PendingConfirmation`。<br />- `refund_type`（选填）：资金来源，可能的值：`Merchant`、`Psp`。<br />- `created_timestamp`（必填）：创建时间，Unix 时间戳（秒）。<br />- `updated_timestamp`（必填）：最后更新时间，Unix 时间戳（秒）。<br />- `initiator`（选填）：退款请求发起者。<br />- `transactions`（选填）：与该退款关联的支付交易数组。<br />- `charge_merchant_fee`（选填）：是否向商户收取开发者手续费。<br />- `merchant_fee_amount`（选填）：向商户收取的开发者手续费金额。<br />- `merchant_fee_token_id`（选填）：开发者手续费使用的加密货币 ID。<br />- `commission_fee`（选填）：佣金费用详情。<br /><br />完整字段说明请参考 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。 |
-| 单目的地资金转出 | `payment.payout.status.updated` | 资金转出请求状态变更，会触发的节点包括：<br />- `Completed`：所有资金转出已完成。<br />- `PartiallyCompleted`：部分资金转出已完成，部分资金转出失败。<br />- `Failed`：所有资金转出均失败。 | 该负载包含以下字段：<br />- `payout_id`（必填）：资金转出 ID。<br />- `request_id`（必填）：创建资金转出时您提供的请求 ID。<br />- `payout_channel`（必填）：转出渠道，可能的值：`Crypto`、`OffRamp`。<br />- `source_account`（选填）：转出来源账户。<br />- `payout_items`（选填）：转出条目数组。<br />- `recipient_info`（选填）：收款人信息。<br />- `initiator`（选填）：资金转出请求发起者。<br />- `actual_payout_amount`（选填）：实际到账金额。<br />- `commission_fees`（选填）：该笔转出的佣金费用数组。<br />- `remark`（选填）：备注信息。<br />- `status`（必填）：当前转出状态，可能的值：`Pending`、`Preparing`、`Transferring`、`Completed`、`PartiallyCompleted`、`Failed`、`RejectedByBank`。<br />- `created_timestamp`（必填）：创建时间，Unix 时间戳（秒）。<br />- `updated_timestamp`（必填）：最后更新时间，Unix 时间戳（秒）。<br />- `transactions`（选填）：与该笔转出关联的支付交易数组。<br /><br />完整字段说明请参考 [Get payout information](/payments/en/api-references/payment/get-payout-information)。 |
-| 批量下发加密货币 | `payment.bulk_send.status.updated` | 批量下发请求状态变更，会触发的节点包括：<br />- `Completed`：所有下发已完成。<br />- `PartiallyCompleted`：部分下发已完成，部分下发失败。<br />- `Failed`：所有下发均失败。 | 该负载包含以下字段：<br />- `bulk_send_id`（必填）：批量下发 ID。<br />- `request_id`（选填）：创建批量下发时您提供的请求 ID。<br />- `source_account`（必填）：转出来源账户。<br />- `description`（选填）：整批下发的描述。<br />- `execution_mode`（必填）：执行模式。<br />- `status`（必填）：当前批量下发状态。<br />- `created_timestamp`（必填）：创建时间，Unix 时间戳（秒）。<br />- `updated_timestamp`（必填）：最后更新时间，Unix 时间戳（秒）。<br /><br />完整字段说明请参考 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。 |
-| 账户余额 | `payment.account.balance.updated` | 支付账户某币种的可用余额发生变动时触发。 | 该负载包含以下字段：<br />- `source_account`（必填）：余额变动的来源账户。商户账户为商户 ID；开发者账户为 `developer`。<br />- `source_id`（必填）：余额变动的来源 ID。<br />- `source_type`（必填）：余额变动的来源类型（例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`）。<br />- `token_id`（必填）：币种 ID。<br />- `amount`（必填）/ `amount_raw`（必填）：余额变动金额，分别为保留两位小数和按币种精度表示。<br />- `balance_before` / `balance_before_raw`（必填）：变动前的账户余额。<br />- `balance_after` / `balance_after_raw`（必填）：变动后的账户余额。<br />- `flow_direction`（必填）：余额变动方向，可能的值：`in`、`out`。<br />- `update_time`（必填）：余额更新时间，Unix 时间戳（秒）。 |
+#### `payment.refund.status.updated`
+
+**触发条件：** 退款单状态发生变更时触发。会触发的节点包括：
+- `Pending`：此状态通知仅限于通过退款链接成功创建退款单时触发。
+- `Completed`：所有退款交易均已完成。
+- `Failed`：所有退款交易均失败。
+
+**事件内容：**
+- `refund_id`（必填）— 退款订单 ID。
+- `request_id`（选填）— 创建退款时您提供的请求 ID。
+- `order_id`（选填）— 该退款对应的收款订单 ID。
+- `merchant_id`（选填）— 商户 ID。
+- `token_id`（必填）— 用于退款的加密货币 ID。
+- `chain_id`（必填）— 区块链网络 ID。
+- `amount`（必填）— 该退款需退还的加密货币金额。
+- `to_address`（必填）— 收款钱包地址。
+- `status`（必填）— 当前退款状态，可能的值：`AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation`。
+- `refund_type`（选填）— 资金来源，可能的值：`Merchant`、`Psp`。
+- `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）— 最后更新时间，Unix 时间戳（秒）。
+- `initiator`（选填）— 退款请求发起者。
+- `transactions`（选填）— 与该退款关联的支付交易数组。
+- `charge_merchant_fee`（选填）— 是否向商户收取开发者手续费。
+- `merchant_fee_amount`（选填）— 向商户收取的开发者手续费金额。
+- `merchant_fee_token_id`（选填）— 开发者手续费使用的加密货币 ID。
+- `commission_fee`（选填）— 佣金费用详情。
+
+完整字段说明请参考 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。
+
+#### `payment.payout.status.updated`
+
+**触发条件：** 单目的地资金转出请求状态变更时触发：
+- `Completed`：所有资金转出已完成。
+- `PartiallyCompleted`：部分资金转出已完成，部分资金转出失败。
+- `Failed`：所有资金转出均失败。
+- `RejectedByBank`：收款银行拒绝了该笔 Off-Ramp 资金转出。
+
+**事件内容：**
+- `payout_id`（必填）— 资金转出 ID。
+- `request_id`（必填）— 创建资金转出时您提供的请求 ID。
+- `payout_channel`（必填）— 转出渠道，可能的值：`Crypto`、`OffRamp`。
+- `source_account`（选填）— 转出来源账户。
+- `payout_items`（选填）— 转出条目数组。
+- `recipient_info`（选填）— 收款人信息。
+- `initiator`（选填）— 资金转出请求发起者。
+- `actual_payout_amount`（选填）— 实际到账金额。
+- `commission_fees`（选填）— 该笔转出的佣金费用数组。
+- `remark`（选填）— 备注信息。
+- `status`（必填）— 当前转出状态，可能的值：`Pending`、`Preparing`、`Transferring`、`Completed`、`PartiallyCompleted`、`Failed`、`RejectedByBank`。
+- `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）— 最后更新时间，Unix 时间戳（秒）。
+- `transactions`（选填）— 与该笔转出关联的支付交易数组。
+
+完整字段说明请参考 [Get payout information](/payments/en/api-references/payment/get-payout-information)。
+
+#### `payment.bulk_send.status.updated`
+
+**触发条件：** 批量下发请求状态变更时触发：
+- `Completed`：所有下发已完成。
+- `PartiallyCompleted`：部分下发已完成，部分下发失败。
+- `Failed`：所有下发均失败。
+
+**事件内容：**
+- `bulk_send_id`（必填）— 批量下发 ID。
+- `request_id`（选填）— 创建批量下发时您提供的请求 ID。
+- `source_account`（必填）— 转出来源账户。
+- `description`（选填）— 整批下发的描述。
+- `execution_mode`（必填）— 执行模式。
+- `status`（必填）— 当前批量下发状态。
+- `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）— 最后更新时间，Unix 时间戳（秒）。
+
+完整字段说明请参考 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
+
+#### `payment.bulk_send.item.status.updated`
+
+**触发条件：** 单条批量下发项目的状态发生变更时触发。可用于跟踪批量下发中每一条的执行结果，尤其适用于批次部分完成、或个别条目校验/转账失败的场景。
+
+**事件内容：**
+- `bulk_send_item_id`（必填）— 批量下发项目 ID。
+- `bulk_send_id`（必填）— 该项目所属的批量下发 ID。
+- `request_id`（选填）— 批量下发批次的请求 ID。
+- `source_account`（必填）— 批量下发批次的来源账户 ID。
+- `token_id`（必填）— 下发给收款人的加密货币 ID。
+- `receiving_address`（必填）— 收款人的加密货币地址。
+- `amount`（必填）— 下发给收款人的加密货币金额。
+- `description`（选填）— 该条目的备注信息。
+- `tx_hash`（选填）— 该条目的交易哈希。
+- `status`（必填）— 条目执行状态，可能的值：`Pending`、`Processing`、`Completed`、`Failed`、`NotExecuted`。
+- `validation_status`（必填）— 条目校验状态，可能的值：`Pending`、`Validated`、`ValidationFailed`、`NotExecuted`。
+- `failed_reason`（选填）— 该条目失败的原因。
+- `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）— 最后更新时间，Unix 时间戳（秒）。
+
+如需测试向已注册的 Webhook 端点推送该事件，可调用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设置为 `payment.bulk_send.item.status.updated`。
+
+#### `payment.account.balance.updated`
+
+**触发条件：** 支付账户某币种的可用余额发生变动时触发。
+
+**事件内容：**
+- `source_account`（必填）— 余额变动的来源账户。商户账户为商户 ID；开发者账户为 `developer`。
+- `source_id`（必填）— 余额变动的来源 ID。
+- `source_type`（必填）— 余额变动的来源类型（例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`）。
+- `token_id`（必填）— 币种 ID。
+- `amount` / `amount_raw`（必填）— 余额变动金额，分别为保留两位小数和按币种精度表示。
+- `balance_before` / `balance_before_raw`（必填）— 变动前的账户余额。
+- `balance_after` / `balance_after_raw`（必填）— 变动后的账户余额。
+- `flow_direction`（必填）— 余额变动方向，可能的值：`in`、`out`。
+- `update_time`（必填）— 余额更新时间，Unix 时间戳（秒）。
 
 <Note>
   `payment.payout.status.updated` 和资金转出状态值仅描述原资金转出请求，不表示已完成出金资金在链上退回后的恢复进度。关于加密货币出金退回资金，请参考 [Payout reversal](/payments/cn/guides/crypto-payouts#4-payout-reversal)。
@@ -76,48 +308,70 @@ lang: "zh-hans"
 
 ### **3. 结算网络相关**
 
-| 功能场景 | 事件名称 | 触发条件 | 事件内容 |
-| :------- | :------- | :------- | :------- |
-| Settlement Network | `payment.transaction.settlement_network.created` | 结算网络交易创建时触发。 | 该负载包含[交易负载字段](#交易负载字段)部分的基础字段。详情请参考 [结算网络](/payments/cn/guides/settlement-network) 指南。 |
-| Settlement Network | `payment.transaction.settlement_network.completed` | 结算网络交易完成时触发。交易完成后，结算资金会以 `SettlementNetwork` 这一 `source_type` 反映到您的 Payment 账户余额中。 | 该负载包含[交易负载字段](#交易负载字段)部分的基础字段。详情请参考 [结算网络](/payments/cn/guides/settlement-network) 指南。 |
+#### `payment.transaction.settlement_network.created`
 
-## Webhook 事件示例
+**触发条件：** 结算网络交易创建时触发。
+
+**事件内容：** 包含[交易字段](#交易字段)中的基础字段。详情请参考[结算网络](/payments/cn/guides/settlement-network)指南。
+
+#### `payment.transaction.settlement_network.completed`
+
+**触发条件：** 结算网络交易完成时触发。交易完成后，结算资金会以 `SettlementNetwork` 这一 `source_type` 反映到您的 Payment 账户余额中。
+
+**事件内容：** 包含[交易字段](#交易字段)中的基础字段。详情请参考[结算网络](/payments/cn/guides/settlement-network)指南。
+
+## 交易字段
+
+所有 `payment.transaction.*` 事件均包含以下基础字段。在一些场景下，部分字段可能不会返回——请留意各字段的必填/选填说明。每个 `payment.transaction.*` 事件还会额外包含其专属的 Payment 字段，见上文对应事件的说明。
 
 <Note>
-  以下示例根据 Payment 规范中的字段定义构造，仅供参考。选填字段在实际 Webhook 推送中可能不存在。
+  本节仅列出与支付场景最相关的部分字段。完整的交易字段及含义请参考 [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information)。
 </Note>
 
-### payment.order.status.updated
+- `transaction_id`（string，UUID，必填）— 交易 ID。
+- `cobo_id`（string，选填）— 用于追踪交易的 Cobo ID。
+- `request_id`（string，选填）— 用于追踪交易请求的请求 ID。
+- `type`（string，选填）— 交易类型。
+- `status`（string，必填）— 交易状态（例如 `Submitted`、`PendingScreening`、`Confirming`、`Completed`、`Failed`、`Rejected`）。完整生命周期请参考[交易状态与子状态](https://www.cobo.com/developers/v2/guides/transactions/status)。`PendingAuthorization` 状态既包含人工审批环节，也包含内部自动化的风控/KYT/合规检查——处于该状态不一定需要人工操作。
+- `sub_status`（string，选填）— 比 `status` 更细粒度的子状态（例如 `PendingApproverCheck`、`RejectedKYT`、`FailedOnChain`）。完整列表请参考同一篇[交易状态与子状态](https://www.cobo.com/developers/v2/guides/transactions/status)。
+- `failed_reason`（string，选填）— 交易失败原因。仅在审批失败和签名失败时返回。
+- `initiator`（string，选填）— 交易发起者。
+- `chain_id`（string，选填）— 链 ID。
+- `token_id`（string，选填）— 代币 ID。
+- `transaction_hash`（string，选填）— 链上交易哈希（`txid`）。仅在交易广播上链后才会返回，广播前可能为 `null` 或不存在——与之不同，`transaction_id` 在交易创建时即分配且始终存在。
+- `source`（object，必填）— 充币来源，通常为外部钱包地址（`source_type: DepositFromAddress`）。
+- `destination`（object，必填）— 充币目标，通常为充值地址（`destination_type: DepositToAddress`），主要子字段包括：
+  - `address` — 到账地址。
+  - `amount` — 到账金额。例如充入 1.5 USDT，则该值为 `1.5`。
+  - `memo` — 用于识别交易归属账户的 memo（仅部分链）。
+- `result`（object，选填）— 交易结果。
+- `fee`（object，选填）— 交易手续费，其结构取决于链的手续费模型（例如 EIP-1559、UTXO）。
+- `confirmed_num`（integer，选填）— 该交易已收到的确认数。
+- `confirming_threshold`（integer，选填）— 判定交易安全所需的最低确认数（例如比特币交易通常为 6）。
+- `block_info`（object，选填）— 交易所在区块的信息：
+  - `block_number` — 区块高度。
+  - `block_timestamp` — 区块创建时间，Unix 时间戳（毫秒）。
+  - `block_hash` — 区块哈希。
+- `raw_tx_info`（object，选填）— 原始交易信息：
+  - `used_nonce` — 交易 nonce。
+  - `selected_utxos` — 该交易消耗的 UTXO。
+  - `raw_tx` — 原始交易数据。
+  - `unsigned_raw_tx` — 未签名的原始交易数据。
+  - `utxo_changes` — 交易中的 UTXO 找零输出。
+- `replacement`（object，选填）— 当该交易替换了另一笔交易、或被另一笔交易替换（丢弃/重发/加速）时返回：
+  - `replaced_by_type` / `replaced_type` — 替换类型：`Drop`、`Resend` 或 `SpeedUp`。
+  - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — 替换了该交易的交易 ID/哈希。
+  - `replaced_transaction_id` / `replaced_transaction_hash` — 被该交易替换的交易 ID/哈希。
+- `created_timestamp`（integer，int64，必填）— 创建时间，Unix 时间戳（毫秒）。
+- `updated_timestamp`（integer，int64，必填）— 最后更新时间，Unix 时间戳（毫秒）。
 
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b1f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.order.status.updated",
-  "data": {
-    "data_type": "PaymentOrder",
-    "order_id": "O20250304-M1001-1001",
-    "merchant_id": "1001",
-    "psp_order_code": "P20240201001",
-    "pricing_currency": "USD",
-    "pricing_amount": "100.00",
-    "fee_amount": "2.00",
-    "payable_currency": "ETH_USDT",
-    "chain_id": "ETH",
-    "payable_amount": "103.03",
-    "exchange_rate": "0.99",
-    "receive_address": "0x1234567890abcdef1234567890abcdef12345678",
-    "status": "Completed",
-    "received_token_amount": "103.0305",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
+## Webhook 消息示例
 
-### payment.transaction.created
+所有 Webhook 消息共用同一外层结构：`event_id`、`url`、`created_timestamp`、`type`、`data`（事件专属内容，其结构由 `data_type` 标识）和 `status`。以下示例为一个 `payment.transaction.created` 事件。
+
+<Note>
+  该示例根据 Payment 规范中的字段定义构造，仅供参考。选填字段在实际 Webhook 推送中可能不存在。
+</Note>
 
 ```json
 {
@@ -128,68 +382,17 @@ lang: "zh-hans"
   "data": {
     "data_type": "PaymentTransaction",
     "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
     "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
     "source": { "source_type": "DepositFromAddress" },
     "destination": { "destination_type": "DepositToAddress" },
-    "initiator_type": "API",
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",
     "payer_id": "P20250619T0310056d7aa",
     "custom_payer_id": "user_abc_10001"
-  },
-  "status": "Success"
-}
-```
-
-### payment.payout.status.updated
-
-```json
-{
-  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b3f",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.payout.status.updated",
-  "data": {
-    "data_type": "PaymentPayout",
-    "payout_id": "123e457-e89b-12d3-a456-426614174004",
-    "request_id": "123e457-e89b-12d3-a456-426614174004",
-    "payout_channel": "Crypto",
-    "source_account": "M1001",
-    "status": "Completed",
-    "created_timestamp": 1744689600,
-    "updated_timestamp": 1744689600
-  },
-  "status": "Success"
-}
-```
-
-### payment.account.balance.updated
-
-```json
-{
-  "event_id": "9a3f1c2b-7d8e-4f0a-9b2c-5d6e7f8a9b0c",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1701396866000,
-  "type": "payment.account.balance.updated",
-  "data": {
-    "data_type": "PaymentAccountBalanceUpdate",
-    "source_account": "M1001",
-    "source_id": "O202503041234567890",
-    "source_type": "OrderIn",
-    "token_id": "Tron_USDT",
-    "amount": "20.00",
-    "amount_raw": "20",
-    "balance_before": "100.00",
-    "balance_before_raw": "100",
-    "balance_after": "120.00",
-    "balance_after_raw": "120",
-    "flow_direction": "in",
-    "update_time": 1701396866
   },
   "status": "Success"
 }

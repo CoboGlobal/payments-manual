@@ -6,6 +6,8 @@ lang: "zh-hans"
 
 充值模式下，Cobo 会为每个付款方生成固定的充值地址，付款方可以随时向该地址充值任意金额。下图展示了付款方、商户（您）以及 Cobo 之间的交互流程：
 
+如需对比充值模式与订单模式，选择符合业务需求的模式，请参考[订单模式与充值模式对比](/payments/cn/guides/overview#订单模式与充值模式对比)。
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }}>
 ```mermaid
 sequenceDiagram
@@ -24,6 +26,8 @@ sequenceDiagram
 ```
 
 </div>
+
+充值交易完成后，`developer_fee_rate` 会将该笔充值拆分为商户份额和开发者份额；每笔为正数的份额都会独立计入各自的账户账本，但若开发者份额取整后为 0，则仅记录商户侧账本，不生成开发者侧记录。完整的拆分示例请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances)。如需配置或调整费率，请参考[商户管理](/payments/cn/guides/merchants)。您可以调用 [List payer transactions](/payments/en/api-references/payment/list-payer-transactions) 查看实际到账的总金额，调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 和 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 查看账户余额，调用 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 查看具体的账本明细。
 
 ## 获取充值地址
 
@@ -46,7 +50,7 @@ sequenceDiagram
     3. 在 App 的左侧导航栏中点击**收款** \> **充值**。
     4. 点击右上角的**创建付款方**按钮。
     5. 在弹出的表单中：
-       - 选择商户。该付款方支付的款项会归属于该商户。
+       - 选择商户。该付款方充值地址收到的充币会通过付款方进行归属，并路由到创建该付款方及地址时绑定的商户。完整的资金归属模型请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)。
        - 选择代币和网络。Cobo 会为该付款方创建一个该网络上的专属充值地址。创建付款方后，您还可以为该付款方在其他网络上创建更多充值地址，以支持多链充值。
        - 输入自定义付款方 ID。此 ID 需要是此付款方在您的系统中的唯一标识。
     5. 点击**创建**完成付款方创建。
@@ -82,6 +86,8 @@ sequenceDiagram
        - **商户 ID** (`merchant_id`)：商户在 Cobo 系统中的唯一标识，由 Cobo 分配。
        - **自定义付款方 ID** (`custom_payer_id`)：付款方在您的系统中的唯一标识。
        - **Token ID** (`token_id`)：指定充值地址需要支持的加密货币和区块链网络。
+
+       若指定的付款方和链已存在充值地址，该操作会返回该已有地址，而不会创建新地址，因此您可以为同一付款方和链安全地重复调用。
     2. 若需要同时为多个付款方批量创建充值地址，可调用 [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses) 。
     2. **配置充值事件监听**：通过 Webhook 接收充值相关的事件通知，详情可参考[事件与状态](/payments/cn/guides/status-and-events)。
   </Tab>
@@ -125,7 +131,7 @@ sequenceDiagram
 </Warning>
 
 - **交易监听**：Cobo 会继续监听老地址的交易活动，交易会触发对应的 Webhook 通知。
-- **资金处理**：该地址与商户的关联关系依然存在。按照原有配置，收到的资金会分配到对应的商户余额，如果该商户配置了开发者费率，相应比例的资金会被分配到开发者余额中。
+- **资金处理**：该地址与商户的关联关系依然存在，更换地址后充币仍会归属到同一商户。完整的资金归属与结算模型请参考[账户与资金分配](/payments/cn/guides/amounts-and-balances#充币归属)。在资金转出前，Cobo 还会自动将这些地址中的充值资金进行归集。详情请参考[自动资金归集](/payments/cn/guides/crypto-payouts#2-自动资金归集)。
 - **地址查询**：您在 Payments App 上可以查看付款方历史上所有绑定过的地址。
 
 ### 合规筛查不通过
@@ -144,4 +150,3 @@ sequenceDiagram
 
 为优化您的账户成本，避免因粉尘金额产生的入账手续费高于交易金额，系统设定了最小入账阈值。当单笔交易金额低于 **0.05 USDT**（或等值币种）时，系统将不自动进行入账处理。\
 _注：若您需要对此类低于阈值的累积资金进行手动处理，请联系 Cobo 客服或技术支持，我们将协助您从归集地址提取。_
-
