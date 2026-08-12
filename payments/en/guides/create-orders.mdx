@@ -390,17 +390,17 @@ When a transaction receives the `payment.transaction.failed` event , this indica
 
 `Frozen` is a funds and compliance disposition state. It is not a public Payin order status. Public Payin order statuses are `Pending`, `Processing`, `Completed`, `Expired`, and `Underpaid`.
 
-For Payin order status changes and transaction events, use [Status and events](/payments/en/guides/status-and-events). For frozen-funds disposition state, call `get_disposition_status` and inspect `disposition_status`.
+For Payin order status changes and transaction events, use [Status and events](/payments/en/guides/status-and-events).
 
 #### Compliance disposition operations
 
 The following operations are compliance-managed funds disposition operations. They are separate from developer-initiated Payments refund flows.
 
-| Operation | Purpose | What you can observe |
+| Operation | Purpose | Notes |
 | --- | --- | --- |
-| `unfreeze_funds` | Releases frozen funds after compliance review. | Call `get_disposition_status` and inspect `disposition_status` to track the resulting state. |
-| `isolate_funds` | Isolates frozen funds after compliance review. | Call `get_disposition_status` and inspect `disposition_status`; relevant values are `Isolating`, `Isolated`, and `IsolateFailed`. |
-| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Call `get_disposition_status` and inspect `disposition_status` to track the resulting state. This is distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#refund-scenarios). |
+| `unfreeze_funds` | Releases frozen funds after compliance review. | Compliance-managed. |
+| `isolate_funds` | Isolates frozen funds after compliance review. | Compliance-managed. |
+| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Compliance-managed. Distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#refund-scenarios). |
 
 #### Risk level observability
 
@@ -414,9 +414,9 @@ Receiving addresses can expose a `risk_level` field that uses the `AddressRiskLe
 | Query a refund order status. | Call [Get refund order information](/payments/en/api-references/payment/get-refund-order-information), call [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders), or subscribe to `payment.refund.status.updated`. |
 | Create an ordinary refund. | Use Payments App or call [Create refund order](/payments/en/api-references/payment/create-refund-order). |
 | Review a Screening App case. | Use the verified self-service actions available in Screening App. |
-| Release frozen funds with `unfreeze_funds`. | This is a compliance-managed disposition operation. Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
-| Isolate frozen funds with `isolate_funds`. | This is a compliance-managed disposition operation. Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
-| Return frozen Payin funds with `refund_funds`. | This is a compliance-managed disposition operation, distinct from the developer-initiated [Create refund order](/payments/en/api-references/payment/create-refund-order). Call `get_disposition_status` and inspect `disposition_status` to observe the resulting state. |
+| Release frozen funds with `unfreeze_funds`. | This is a compliance-managed disposition operation, not an ordinary Payments refund flow. |
+| Isolate frozen funds with `isolate_funds`. | This is a compliance-managed disposition operation, not an ordinary Payments refund flow. |
+| Return frozen Payin funds with `refund_funds`. | This is a compliance-managed disposition operation, distinct from the developer-initiated [Create refund order](/payments/en/api-references/payment/create-refund-order). |
 
 ### Minimum Deposit Threshold
 

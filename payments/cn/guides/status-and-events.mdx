@@ -91,7 +91,7 @@ lang: "zh-hans"
 ### **1. 收款相关**
 
 <Note>
-  公开的 Payin 订单状态包括 `Pending`、`Processing`、`Completed`、`Expired` 和 `Underpaid`。`Frozen` 是资金与合规处置状态，不是公开的 Payin 订单状态。公开的 Payment Webhook 事件列表不包含专门的冻结、释放、隔离或返还事件。请调用 `get_disposition_status` 并检查 `disposition_status` 以观察合规处置状态。
+  公开的 Payin 订单状态包括 `Pending`、`Processing`、`Completed`、`Expired` 和 `Underpaid`。`Frozen` 是资金与合规处置状态，不是公开的 Payin 订单状态。公开的 Payment Webhook 事件列表不包含专门的冻结、释放、隔离或返还事件。
 </Note>
 
 #### `payment.order.status.updated`

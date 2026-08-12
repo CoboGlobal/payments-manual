@@ -395,17 +395,17 @@ sequenceDiagram
 
 `Frozen` 是资金与合规处置状态，不是公开的 Payin 订单状态。公开的 Payin 订单状态包括 `Pending`、`Processing`、`Completed`、`Expired` 和 `Underpaid`。
 
-如需跟踪 Payin 订单状态变更和交易事件，请参考[状态与事件](/payments/cn/guides/status-and-events)。如需观察冻结资金的处置状态，请调用 `get_disposition_status` 并检查 `disposition_status`。
+如需跟踪 Payin 订单状态变更和交易事件，请参考[状态与事件](/payments/cn/guides/status-and-events)。
 
 #### 合规处置操作
 
 以下操作是合规管理的资金处置操作，与开发者发起的 Payments 退款流程相互独立。
 
-| 操作 | 用途 | 您可以观察的状态 |
+| 操作 | 用途 | 说明 |
 | --- | --- | --- |
-| `unfreeze_funds` | 合规审核后释放冻结资金。 | 调用 `get_disposition_status` 并检查 `disposition_status` 以跟踪结果状态。 |
-| `isolate_funds` | 合规审核后隔离冻结资金。 | 调用 `get_disposition_status` 并检查 `disposition_status`；相关值为 `Isolating`、`Isolated` 和 `IsolateFailed`。 |
-| `refund_funds` | 通过合规管理的返还流程退回冻结的 Payin 资金。 | 调用 `get_disposition_status` 并检查 `disposition_status` 以跟踪结果状态。此流程不同于开发者发起的 [Create Refund API 和退款链接流程](/payments/cn/guides/create-refund-link#退款场景)。 |
+| `unfreeze_funds` | 合规审核后释放冻结资金。 | 由合规团队管理。 |
+| `isolate_funds` | 合规审核后隔离冻结资金。 | 由合规团队管理。 |
+| `refund_funds` | 通过合规管理的返还流程退回冻结的 Payin 资金。 | 由合规团队管理。此流程不同于开发者发起的 [Create Refund API 和退款链接流程](/payments/cn/guides/create-refund-link#退款场景)。 |
 
 #### risk_level 可观察性
 
@@ -419,9 +419,9 @@ sequenceDiagram
 | 查询退款订单状态。 | 调用 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)、调用 [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders)，或订阅 `payment.refund.status.updated`。 |
 | 创建普通退款。 | 使用 Payments App，或调用 [Create refund order](/payments/en/api-references/payment/create-refund-order)。 |
 | 审核 Screening App 案例。 | 使用 Screening App 中已验证的自助操作。 |
-| 使用 `unfreeze_funds` 释放冻结资金。 | 这是合规管理的处置操作。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
-| 使用 `isolate_funds` 隔离冻结资金。 | 这是合规管理的处置操作。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
-| 使用 `refund_funds` 退回冻结的 Payin 资金。 | 这是合规管理的处置操作，与开发者发起的 [Create refund order](/payments/en/api-references/payment/create-refund-order) 相互独立。调用 `get_disposition_status` 并检查 `disposition_status` 以观察结果状态。 |
+| 使用 `unfreeze_funds` 释放冻结资金。 | 这是合规管理的处置操作，不属于普通的 Payments 退款流程。 |
+| 使用 `isolate_funds` 隔离冻结资金。 | 这是合规管理的处置操作，不属于普通的 Payments 退款流程。 |
+| 使用 `refund_funds` 退回冻结的 Payin 资金。 | 这是合规管理的处置操作，与开发者发起的 [Create refund order](/payments/en/api-references/payment/create-refund-order) 相互独立。 |
 
 ### 最小入账金额限制
 

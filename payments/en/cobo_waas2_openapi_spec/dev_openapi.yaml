@@ -6303,11 +6303,12 @@ paths:
       operationId: refund_funds
       summary: Refund funds
       description: |
-        This operation submits a compliance funds disposition request to return frozen Payin transaction funds to a specified destination address. The disposition type for this operation is `Refund`.
+        This operation creates a request to refund funds for a specific transaction. The funds will be sent to the specified destination address.
 
-        Specify the `transaction_id` of the frozen transaction and the destination address for the return. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Refunding`, `Refunded`, and `RefundFailed`.
+        You need to specify the transaction ID to be refunded and the destination address. 
+        Optional parameters include custom categories for tracking purposes.
 
-        <Note>This is a compliance funds disposition operation for frozen Payin funds. It is distinct from the developer-initiated Create refund order operation (operationId: `create_refund`, scope: `payment_orders_refund.create`), which handles ordinary merchant-initiated refunds.</Note>
+        <Note>The refund will initiate a withdrawal transaction from the compliance-managed address to the specified destination.</Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6332,11 +6333,12 @@ paths:
       operationId: isolate_funds
       summary: Isolate funds
       description: |
-        This operation submits a compliance funds disposition request to isolate frozen transaction funds. The disposition type for this operation is `Isolate`.
+        This operation creates a request to isolate funds for a specific transaction. The funds will be sent to a designated isolation address for compliance purposes.
 
-        Specify the `transaction_id` of the frozen transaction and the destination address for isolation. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Isolating`, `Isolated`, and `IsolateFailed`.
+        You need to specify the transaction ID to be isolated and the destination address. 
+        Optional parameters include custom categories for tracking purposes.
 
-        <Note>This is a compliance funds disposition operation. It is separate from the developer-initiated Create refund order operation (scope: `payment_orders_refund.create`).</Note>
+        <Note>The isolation will initiate a withdrawal transaction from the compliance-managed address to the specified isolation address.</Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6361,11 +6363,11 @@ paths:
       operationId: unfreeze_funds
       summary: Unfreeze frozen funds
       description: |
-        This operation submits a compliance funds disposition request to release frozen transaction funds. The disposition type for this operation is `Unfreeze`.
+        This operation creates a request to unfreeze funds for a previously frozen transaction. It releases the frozen funds back to their original state.
 
-        Specify the `transaction_id` of the frozen transaction. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Unfreezing`, `Unfrozen`, and `UnfreezeFailed`.
+        You only need to specify the transaction ID to be unfrozen. Once unfrozen, the funds will be available for normal operations.
 
-        <Note>This is a compliance funds disposition operation. It is separate from the developer-initiated Create refund order operation (scope: `payment_orders_refund.create`).</Note>
+        <Note>The unfreeze process will release the compliance hold on the transaction, allowing it to proceed normally.</Note>
       security:
         - CoboAuth: []
         - OAuth2:

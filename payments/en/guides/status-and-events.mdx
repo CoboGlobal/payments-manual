@@ -95,7 +95,7 @@ Subscribe to the events that match how you use Payments. Click any event name fo
 ### **1. Pay-in Related**
 
 <Note>
-  Public Payin order statuses are `Pending`, `Processing`, `Completed`, `Expired`, and `Underpaid`. `Frozen` is a funds and compliance disposition state, not a public Payin order status. The public Payment webhook event list does not include a dedicated frozen, release, isolate, or return event. Observe compliance disposition state by calling `get_disposition_status` and inspecting `disposition_status`.
+  Public Payin order statuses are `Pending`, `Processing`, `Completed`, `Expired`, and `Underpaid`. `Frozen` is a funds and compliance disposition state, not a public Payin order status. The public Payment webhook event list does not include a dedicated frozen, release, isolate, or return event.
 </Note>
 
 #### `payment.order.status.updated`
