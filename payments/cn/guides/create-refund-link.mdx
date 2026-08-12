@@ -5,6 +5,19 @@ lang: "zh-hans"
 
 本文介绍如何创建一个退款链接。当终端用户在Payment Link收银台中完成一笔数币订单的付款后，因各种原因需要退款时，您可以通过该功能让终端用户填写退款地址，由Cobo自动完成退款转账的闭环流程。
 
+## 退款场景
+
+| 场景 | 发起方式 | 适用用途 |
+| --- | --- | --- |
+| Create Refund Order | 您通过 Payments App 或 [Create refund order](/payments/en/api-references/payment/create-refund-order) API 创建普通退款订单。 | 当您决定向付款方退回资金时，发起开发者管理的退款。 |
+| Refund Link | 您调用 [Create refund link](/payments/en/api-references/payment/create-refund-link)，让付款方提交退款收款地址。 | 在普通退款中需要付款方提供或确认退款地址时，用于收集退款地址。 |
+| Compliance return | `refund_funds` 是合规管理的资金处置操作，与 Create Refund Order 和 Refund Link 流程相互独立。 | 合规审核后退回冻结的 Payin 资金。 |
+| Payout Reversal | 独立的 reversal 场景。 | 不要将其视为 Create Refund Order、Refund Link 或 `refund_funds` 流程。 |
+
+<Note>
+  通过 `refund_funds` 执行的 compliance return 不同于 Create Refund Order 或 Refund Link。
+</Note>
+
 ## 适用场景
 
 1. 终端用户在收银台中完成一笔数币订单的付款后，因各种原因需要退款，在您的App/平台内主动申请退款。您的客服在内部系统审批，通过或拒绝。
@@ -158,11 +171,15 @@ sequenceDiagram
 
 ### 重新获取URL
 
-若链接已用，调用同一接口生成新URL，再次发送给用户。
+如果普通退款地址收集链接已被使用，请调用同一接口生成新的 URL，并再次发送给用户。此操作仅适用于退款链接地址收集流程。
 
 <Info>
   退款地址收集URL为一次性链接，用户提交地址后即失效。如需重新收集地址，请调用接口生成新的URL。
 </Info>
+
+<Note>
+  重新生成退款链接不是对 `refund_funds` 失败的重试。对于普通退款订单，您可以在退款详情中观察 `Failed` 状态和 `failed_reason`。
+</Note>
 
 ## 常见错误与处理
 
@@ -172,5 +189,5 @@ sequenceDiagram
 - **您设置的KYT规则被拒绝**：若原交易因您设置的KYT规则被拒绝、或未拒绝的交易，更换地址通常无需额外材料。
 
 <Note>
-  如遇到其他问题，请通过 [help@cobo.com](mailto:help@cobo.com) 联系Cobo支持团队。
+  对于其他普通退款问题，请查询退款订单状态，并查看退款详情中的 `failed_reason`。
 </Note>

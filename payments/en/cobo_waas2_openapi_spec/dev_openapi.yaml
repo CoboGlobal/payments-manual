@@ -4044,7 +4044,7 @@ paths:
       operationId: get_refunds
       summary: List all refund orders
       description: |
-        This operation retrieves the information of all refund orders.
+        This operation retrieves the information of all refund orders created via the Create refund order operation. These are developer-initiated refund orders and do not include compliance funds disposition operations.
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6303,12 +6303,11 @@ paths:
       operationId: refund_funds
       summary: Refund funds
       description: |
-        This operation creates a request to refund funds for a specific transaction. The funds will be sent to the specified destination address.
+        This operation submits a compliance funds disposition request to return frozen Payin transaction funds to a specified destination address. The disposition type for this operation is `Refund`.
 
-        You need to specify the transaction ID to be refunded and the destination address. 
-        Optional parameters include custom categories for tracking purposes.
+        Specify the `transaction_id` of the frozen transaction and the destination address for the return. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Refunding`, `Refunded`, and `RefundFailed`.
 
-        <Note>The refund will initiate a withdrawal transaction from the compliance-managed address to the specified destination.</Note>
+        <Note>This is a compliance funds disposition operation for frozen Payin funds. It is distinct from the developer-initiated Create refund order operation (operationId: `create_refund`, scope: `payment_orders_refund.create`), which handles ordinary merchant-initiated refunds.</Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6333,12 +6332,11 @@ paths:
       operationId: isolate_funds
       summary: Isolate funds
       description: |
-        This operation creates a request to isolate funds for a specific transaction. The funds will be sent to a designated isolation address for compliance purposes.
+        This operation submits a compliance funds disposition request to isolate frozen transaction funds. The disposition type for this operation is `Isolate`.
 
-        You need to specify the transaction ID to be isolated and the destination address. 
-        Optional parameters include custom categories for tracking purposes.
+        Specify the `transaction_id` of the frozen transaction and the destination address for isolation. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Isolating`, `Isolated`, and `IsolateFailed`.
 
-        <Note>The isolation will initiate a withdrawal transaction from the compliance-managed address to the specified isolation address.</Note>
+        <Note>This is a compliance funds disposition operation. It is separate from the developer-initiated Create refund order operation (scope: `payment_orders_refund.create`).</Note>
       security:
         - CoboAuth: []
         - OAuth2:
@@ -6363,11 +6361,11 @@ paths:
       operationId: unfreeze_funds
       summary: Unfreeze frozen funds
       description: |
-        This operation creates a request to unfreeze funds for a previously frozen transaction. It releases the frozen funds back to their original state.
+        This operation submits a compliance funds disposition request to release frozen transaction funds. The disposition type for this operation is `Unfreeze`.
 
-        You only need to specify the transaction ID to be unfrozen. Once unfrozen, the funds will be available for normal operations.
+        Specify the `transaction_id` of the frozen transaction. The response returns the `transaction_id` and an initial `status` reflecting submission. To track the ongoing outcome, call `get_disposition_status` and inspect `disposition_status`; the relevant statuses for this operation are `Unfreezing`, `Unfrozen`, and `UnfreezeFailed`.
 
-        <Note>The unfreeze process will release the compliance hold on the transaction, allowing it to proceed normally.</Note>
+        <Note>This is a compliance funds disposition operation. It is separate from the developer-initiated Create refund order operation (scope: `payment_orders_refund.create`).</Note>
       security:
         - CoboAuth: []
         - OAuth2:

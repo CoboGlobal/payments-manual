@@ -13,6 +13,7 @@ When a request fails, the response body contains an `error_code` field (integer)
 
 | Error code | HTTP status | Description | Solution |
 |---|---|---|---|
+| 1006 | 400 | Legacy shared invalid-parameter error code that may appear from shared platform layers or older integrations. Current Payments REST API invalid-parameter validation failures return `2006`. | Treat this as an invalid-parameter error. Check `error_message`, then correct the request parameters before retrying. |
 | 2006 | 400 | One or more parameters are in an invalid format or contain unsupported values. | Validate your request body against the [API reference](/payments/en/api-references/overview). Check parameter types, enum values, and all required fields. The `error_message` field usually names the specific parameter that failed validation. |
 | 2010 | 429 | You have exceeded the API access rate limit. | Reduce request frequency. Implement exponential backoff with jitter before retrying. |
 | 2024 | 401 | API key authentication failed. | <ul><li>Use the API key that corresponds to the current environment (for example, use a development API key in the development environment and a production API key in the production environment).</li><li>Ensure that the API key you are using is registered in Cobo Portal and is in active status.</li><li>If your API key is permanent, make sure the request originates from a whitelisted IP address.</li></ul>For details, see [Send your first request](/payments/en/developer-tools/get-started-with-api). |
