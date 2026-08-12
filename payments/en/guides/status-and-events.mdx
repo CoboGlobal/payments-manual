@@ -411,3 +411,29 @@ To ensure absolute data accuracy and avoid concurrency conflicts, the Webhook me
 - **To update balances promptly based on Webhook notifications:** Upon receiving a Webhook, immediately call the [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) endpoint to obtain the accurate balance for internal accounting.
 - **To obtain fee details associated with a transaction for reconciliation:** Use the corresponding transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports) to retrieve fee reports for data verification.
 - **To monitor Fee Station balance changes and prevent business disruption:** Periodically call [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and set up internal alerting based on your consumption rate to avoid service interruptions due to insufficient fees.
+
+---
+
+## Troubleshoot refund orders
+
+If a refund order created through the Create Refund API (`POST /payments/refunds`) is not progressing as expected, use the following self-service steps to diagnose the issue.
+
+### PendingConfirmation
+
+A refund order in `PendingConfirmation` status means `to_address` has not been supplied. The Create Refund API does not automatically fill in the original pay-in address — you must provide the destination address explicitly in the request or through a subsequent update.
+
+To resolve:
+
+1. Call [Get refund order information](/payments/en/api-references/payment/get-refund-order-information) or [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders) to confirm `status` is `PendingConfirmation` and `to_address` is absent.
+2. Call [Update refund order](/payments/en/api-references/payment/update-refund-order) to supply a valid `to_address`. Processing cannot proceed until a destination address is provided.
+3. Subscribe to the `payment.refund.status.updated` webhook event to receive status updates as processing advances.
+
+### Pending
+
+A refund order in `Pending` status is in asynchronous preparation before the on-chain transfer is initiated. No action is required at this stage.
+
+To monitor progress:
+
+1. Call [Get refund order information](/payments/en/api-references/payment/get-refund-order-information) and review the `status`, `failed_reason`, and `updated_timestamp` fields.
+2. If the `transactions` array is populated, review each entry for individual transfer status.
+3. Subscribe to the `payment.refund.status.updated` webhook event. The refund transitions to `Processing`, `Completed`, or `Failed` as processing advances.
