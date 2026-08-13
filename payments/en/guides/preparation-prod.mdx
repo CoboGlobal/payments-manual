@@ -47,11 +47,13 @@ For more details, see [User roles and permissions](https://manuals.cobo.com/en/p
 
 #### Transaction Policies
 
-Transaction Policies are one of the important security safeguards for your team. It is recommended that you strictly configure Transaction Policies rules, especially in large-amount withdrawal scenarios. Special attention should be paid to token transfer policies in off-chain Transaction Policies to avoid high-risk situations such as:
+Transaction Policies are one of the important security safeguards for your team. It is recommended that you strictly configure Transaction Policies rules, especially in large-amount withdrawal scenarios. Special attention should be paid to token transfer policies and the Contract Call Transaction Policy in off-chain Transaction Policies to avoid high-risk situations such as:
 - No risk control rules are set
 - There are transactions not covered by Transaction Policies
 - All transactions are automatically approved
 - The same role can both withdraw and approve
+
+If your Bulk Send items execute through the smart contract batch-payout path, they are evaluated against the Contract Call Transaction Policy instead of token transfer policies. See [Risk control prerequisites](/payments/en/guides/bulk-send#14-risk-control-prerequisites) in the Bulk Send guide for details.
 
 For more details, see [Introduction to Transaction Policies](https://manuals.cobo.com/en/portal/risk-controls/tx-policies-overview).
 
@@ -151,7 +153,5 @@ For more details, see [Mobile Co-Signer backup key shares instructions](https://
 - **Holder group configuration**: In addition to the Main Group, you need to create at least one Signing Group and one Recovery Group separately. It is strongly recommended not to have the same key share holder belong to different types of holder groups at the same time, for example, belonging to both the Main Group and a Signing Group. If this situation occurs, please ensure that there is more than one Signing Group.
 - **Signer type**: Since a large number of fund sweeping transactions may occur before settlement and the transaction times are concentrated, please ensure that you set up a [Server Co-Signer](https://www.cobo.com/developers/v2/guides/mpc-wallets/server-co-signer/tss-node-overview) in your [Main Group](https://manuals.cobo.com/en/portal/mpc-wallets/ocw/holder-group-main-group) or [Signing Group](https://manuals.cobo.com/en/portal/mpc-wallets/ocw/holder-group-signing-group) to achieve automated signing.
 - **Risk control configuration**: If you choose to use [TSS Node callback](https://www.cobo.com/developers/v2/guides/mpc-wallets/server-co-signer/callback-server-overview) as the risk control mechanism for your Server Co-Signer, you need to add your wallet's sweep-to destination address to the whitelist of the callback server. After adding, the Server Co-Signer will automatically sign withdrawal transactions from the sweep-to destination address when performing payouts or refunds. For detailed whitelist configuration methods, refer to [Risk control best practices - Auto sweeping implementation](https://www.cobo.com/developers/v2/guides/mpc-wallets/server-co-signer/risk-control-best-practices#auto-sweeping-implementation). You can view the sweep-to destination address of a wallet under the **Addresses** → **Sweep To** tab of the wallet.<img src="/payments/en/images/payments/auto-sweep-address-list.png" className="screenshot_modal" alt="Wallet sweep-to destination address list" />
-
-
 
 
