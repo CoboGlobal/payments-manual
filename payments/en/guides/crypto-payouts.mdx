@@ -125,7 +125,7 @@ You can also actively query transfer request status through Payments App or Paym
 
 ## 5. Payout reversal
 
-Payout reversal applies when a recipient sends funds from a completed crypto payout back on-chain to a Payment collection or source address. This situation is not initiated or resolved with the [Create Refund API](/payments/en/api-references/payment/create-refund-order), because Create Refund is for pay-in order refunds.
+Payout reversal is when funds from a crypto payout you already completed are sent back on-chain to a Payment collection or source address. This situation is not initiated or resolved with the [Create Refund API](/payments/en/api-references/payment/create-refund-order), because Create Refund is for pay-in order refunds.
 
 Returned funds are credited automatically. After the returned funds are detected and pass compliance screening, they are handled as an unexpected incoming transaction and credited to your developer balance. Cobo does not need to intervene manually.
 

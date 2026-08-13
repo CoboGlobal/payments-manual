@@ -30,7 +30,7 @@ Create Refund API 或 Create Refund Link 仅适用于收款订单退款。其他
 
 | 类型 | 触发原因 | 发起方 | 资金方向 | 入口与状态 |
 | :--- | :------- | :----- | :------- | :--------- |
-| 资金转出被退回（Payout reversal） | 收款方将已完成的加密货币转账资金在链上退回到 Payment 收款地址或出金来源地址。 | 收款方链上操作。退回资金会自动入账，无需人工介入。 | 外部收款地址到 Payment 地址。 | 不能使用 Create Refund API 或 Create Refund Link。请参考 [资金转出被退回](/payments/cn/guides/crypto-payouts#5-资金转出被退回)；退回资金按意外入账处理，不会在原资金转出记录上生成专门的退回状态。 |
+| 资金转出被退回（Payout reversal） | 您发起的资金转出已完成后，该笔资金又在链上被退回到 Payment 收款地址或出金来源地址。 | 由对方在链上发起，您无需操作。退回资金会自动入账，无需人工介入。 | 外部收款地址到 Payment 地址。 | 不能使用 Create Refund API 或 Create Refund Link。请参考 [资金转出被退回](/payments/cn/guides/crypto-payouts#5-资金转出被退回)；退回资金按意外入账处理，不会在原资金转出记录上生成专门的退回状态。 |
 | 合规冻结原路退回 | 合规处理要求将入账资金通过合规资金处置流程退回。 | 合规流程。 | 冻结的入账资金到处置目标地址。 | 不能使用 Create Refund API 或 Create Refund Link；应使用合规资金处置流程。 |
 | 收款订单退款 | 付款方或商户需要对已完成的收款订单退款。 | 商户、开发者或用户退款流程。 | 商户余额或开发者余额到退款收款地址。 | 使用 Create Refund API 或 Create Refund Link，并通过 `payment.refund.status.updated` 跟踪。 |
 
