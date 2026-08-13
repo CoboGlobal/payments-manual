@@ -323,7 +323,7 @@ sequenceDiagram
 #### Create refund order
 
 <Info>
-  **Refund flows**: `POST /payments/refunds` (the Create Refund API) is the developer-initiated direct API flow. You can supply `to_address` in the create request; if you omit it, the refund is created in `PendingConfirmation` status and you must provide the address later using the Update refund order operation before processing can proceed. The API does not auto-fill the original pay-in address. This is separate from the [refund link](/payments/en/guides/create-refund-link) flow, where Cobo provides an address-collection page that pre-fills the original payment address for the payer. Payout Reversal and compliance-driven original-route returns are separate operational and policy workflows that are not initiated through `POST /payments/refunds`.
+  **Refund flows**: `POST /payments/refunds` (the Create Refund API) is the developer-initiated direct API flow. You can supply `to_address` in the create request; if you omit it, the refund is created in `PendingConfirmation` status and you must provide the address later using the Update refund order operation before processing can proceed. The API does not auto-fill the original pay-in address. This is separate from the [refund link](/payments/en/guides/create-refund-link) flow, where Cobo provides an address-collection page that pre-fills the original payment address for the payer. Two further scenarios are not initiated through `POST /payments/refunds`, and they differ from each other: **payout reversal** is when funds from a payout you already completed are sent back to a Payment address, so funds flow in — see [Crypto payouts](/payments/en/guides/crypto-payouts#5-payout-reversal); **returning compliance-frozen funds** is when a frozen incoming payment is sent out again through the compliance funds disposition flow, so funds flow out, using `refund_funds`.
 </Info>
 
 <Tabs>
@@ -400,7 +400,7 @@ The following operations are compliance-managed funds disposition operations. Th
 | --- | --- | --- |
 | `unfreeze_funds` | Releases frozen funds after compliance review. | Compliance-managed. |
 | `isolate_funds` | Isolates frozen funds after compliance review. | Compliance-managed. |
-| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Compliance-managed. Distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#refund-scenarios). |
+| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Compliance-managed. Distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#types-of-fund-returns). |
 
 #### Risk level observability
 
