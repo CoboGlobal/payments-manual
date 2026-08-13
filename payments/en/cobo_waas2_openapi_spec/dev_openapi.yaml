@@ -16032,7 +16032,7 @@ components:
         - BalanceChange
         - Summary
         - BulkSend
-      example: OrderIn
+      example: Order
       description: |
         The type of the report.
         - `Order`: Summary of all pay-in orders.
@@ -16092,7 +16092,7 @@ components:
           example: 123e4567-e89b-12d3-a456-426614174004
         report_types:
           type: array
-          description: The types of the report.
+          description: The report types selected for this generated report.
           items:
             $ref: '#/components/schemas/ReportType'
         start_time:
@@ -16109,7 +16109,7 @@ components:
           example: 1744689600
         report_url:
           type: string
-          description: The URL of the report.
+          description: The URL for downloading the generated report. This field is returned only when the download is available for a completed report.
           example: 'https://cobo.com/reports/123e4567-e89b-12d3-a456-426614174004'
         report_export_format:
           $ref: '#/components/schemas/ReportExportFormat'

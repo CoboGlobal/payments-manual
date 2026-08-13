@@ -8,15 +8,29 @@ This page explains Payments report types, the shared inputs used to define repor
 
 ## Generate report scope
 
-When you generate a report, you define the report scope with these shared inputs:
+When you call the Generate Reports API, use these parameters to define the report scope. These are API request fields and do not appear as columns in the exported CSV or XLSX file.
 
-- `start_time`: Start of the reporting time range
-- `end_time`: End of the reporting time range
-- `report_export_format`: Export format for the generated file
-- `report_types`: One or more report types to generate
-- `token_ids`: Optional token filter for narrowing the report content
+- `report_types`: One or more report types to include in the generated file. Required; at least one value must be provided.
+- `export_format`: Export format for the generated file.
+- `start_timestamp`: Start of the reporting time range, as a Unix timestamp in seconds. Defaults to one year before the request time when omitted.
+- `end_timestamp`: End of the reporting time range, as a Unix timestamp in seconds. Defaults to the current time when omitted.
+- `token_ids`: Optional token filter. When omitted, all tokens are included.
+- `chain_ids`: Optional network filter. When omitted, all networks are included.
 
-Use these inputs to define the time range, output format, and report scope. For detailed request and response mechanics, see the related API operations below.
+## Generated report metadata
+
+When you list reports using the List All Reports API, each entry includes the following metadata fields. These describe the generated report record and do not appear as columns in the exported CSV or XLSX file.
+
+| Field | Description |
+| --- | --- |
+| `report_id` | Unique ID of the generated report. |
+| `report_types` | Report types included in this generated report. |
+| `export_format` | Export format of the generated file. |
+| `export_status` | Generation status. `Completed` means the file is ready for download; `Failed` means generation did not succeed. |
+| `download_url` | URL to download the generated file. Present only when `export_status` is `Completed`. |
+| `size` | File size of the generated report. |
+| `generated_timestamp` | Time when the report was generated, as a Unix timestamp in seconds. |
+| `fail_reason` | Reason for failure. Present only when `export_status` is `Failed`. |
 
 ## Report types and when to use them
 
@@ -44,14 +58,24 @@ Different report types cover different business scopes, so the exported columns 
 
 ## Common enum value reference
 
-The following enum values come from the Payments OpenAPI definitions and help explain status-like and type-like fields in exported report rows.
+The following enum values help explain status-like and type-like fields in generated report metadata and exported report rows.
 
-### `report_status`
+### `export_status`
 
 | Value | Meaning |
 | --- | --- |
 | `Completed` | The report was generated successfully and is available for download or retrieval. |
 | `Failed` | The report could not be generated. |
+
+### `payment_type`
+
+| Value | Meaning |
+| --- | --- |
+| `Crypto Pay-In` | The row represents a pay-in transaction. |
+| `Crypto Top-up` | The row represents a top-up transaction. |
+| `Crypto Payout` | The row represents a crypto payout. |
+| `Refund` | The row represents a refund. |
+| `Bulk Send` | The row represents a Bulk Send item. |
 
 ### `acquiring_type`
 
@@ -284,7 +308,7 @@ Each row represents one daily pay-in statement entry across order mode and top-u
 
 Each row represents one crypto payout record.
 
-This report is always exported as an XLSX file. The first sheet, `payout crypto`, covers standard crypto payouts. When a payout is routed through a cross-chain bridge, the export includes a second sheet, `payout crypto with bridge`, that repeats the first sheet's columns and adds the bridge columns listed after it.
+The export is an XLSX file. The first sheet, `payout crypto`, covers standard crypto payouts. When a payout is routed through a cross-chain bridge, the export includes a second sheet, `payout crypto with bridge`, that repeats the first sheet's columns and adds the bridge columns listed after it.
 
 Sheet `payout crypto`:
 
@@ -456,7 +480,63 @@ Balance changes with the `SettlementNetwork` `source_type` come from Settlement 
 
 Each `Summary` report aggregates activity across pay-ins, payouts, and commission fees.
 
-The `Summary` report is always exported as an XLSX file containing four sheets: `pay-in`, `pay-out`, `commission-fee`, and `cobo-bill`. Each sheet aggregates the corresponding activity for the selected time range.
+The `Summary` export is an XLSX file containing four sheets: `pay-in`, `pay-out`, `commission-fee`, and `cobo-bill`. Each sheet aggregates the corresponding activity for the selected time range.
+
+Sheet `pay-in`:
+
+| Column | Description |
+| --- | --- |
+| `period` | Reporting period covered by the aggregated pay-in row. |
+| `token` | Token used to denominate the pay-in amounts in the row. |
+| `transaction_number` | Total number of pay-in transactions in the period. |
+| `total_payin_amount` | Total pay-in amount for the period. |
+| `order_transaction_number` | Number of order-mode pay-in transactions in the period. |
+| `total_order_amount` | Total order-mode pay-in amount for the period. |
+| `topup_transaction_number` | Number of top-up transactions in the period. |
+| `total_topup_amount` | Total top-up amount for the period. |
+| `unexpected_transaction_number` | Number of unexpected incoming transactions in the period. |
+| `total_unexpected_amount` | Total unexpected incoming amount for the period. |
+| `total_payin_commission_fee` | Total pay-in commission fee charged for the period. |
+
+Sheet `pay-out`:
+
+| Column | Description |
+| --- | --- |
+| `period` | Reporting period covered by the aggregated payout row. |
+| `token` | Token used to denominate the payout amounts in the row. |
+| `transaction_number` | Total number of payout transactions in the period. |
+| `total_payout_amount` | Total payout amount for the period. |
+| `withdraw_crypto_transaction_number` | Number of crypto payout transactions in the period. |
+| `total_withdraw_crypto_amount` | Total crypto payout amount for the period. |
+| `off_ramp_transaction_number` | Number of off-ramp payout transactions in the period. |
+| `total_off_ramp_amount` | Total off-ramp payout amount for the period. |
+| `refund_transaction_number` | Number of refund transactions in the period. |
+| `total_refund_amount` | Total refund amount for the period. |
+| `unexpected_transaction_number` | Number of unexpected outgoing transactions in the period. |
+| `total_unexpected_amount` | Total unexpected outgoing amount for the period. |
+| `total_payout_commission_fee` | Total payout commission fee charged for the period. |
+
+Sheet `commission-fee`:
+
+| Column | Description |
+| --- | --- |
+| `merchant_id` | Merchant the commission fee is attributed to. |
+| `transaction_type` | Type of transaction the fee applies to. |
+| `source` | Business source of the charged transaction. |
+| `billing_date` | Date when the commission fee was billed. |
+| `transaction_amount` | Amount of the underlying transaction used to calculate the fee. |
+| `fee_rate` | Rate applied to compute the commission fee. |
+| `fee_amount` | Commission fee amount charged by Cobo. |
+| `fee_type` | Category of the commission fee. |
+
+Sheet `cobo-bill`:
+
+| Column | Description |
+| --- | --- |
+| `billing_date` | Date when the Cobo bill was billed. |
+| `transaction_amount` | Amount of the underlying billed transaction. |
+| `fee_amount` | Fee amount charged on the Cobo bill. |
+| `fee_type` | Category of the billed fee. |
 
 ### `BulkSend`
 
