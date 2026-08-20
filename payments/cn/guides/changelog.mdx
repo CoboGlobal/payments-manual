@@ -7,6 +7,10 @@ lang: "zh-hans"
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
+| **资金管理** | (SDK v1.42.0) 新增虚拟账户银行转出能力：<br />・[Get bank account balance](/payments/en/api-references/payment/get-payment-bank-account-balance)：查询带 `VA` 标签的转出目的地银行账户余额。<br />・[Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal)：从 VA 映射的来源银行账户向目标银行账户发起银行转出。<br />・[List bank withdrawals](/payments/en/api-references/payment/list-bank-withdrawals) 和 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)：按分页、`request_id` 和状态查询银行转出，并获取包含来源/目标银行账户、银行交易手续费和状态时间线的详情。 | 2026-08-19 |
+| **转出目的地** | (SDK v1.42.0) 转出目的地元数据增强：<br />・[List destination entries](/payments/en/api-references/payment/list-destination-entries)：新增可选 `bank_account_tag` 过滤条件，当前支持 `VA`。<br />・转出目的地银行账户响应新增可空的 `tag` 字段，当前取值为 `VA`。<br />・Destination 和 DestinationDetail 响应新增 `source` 字段，支持 `Client` 和 `System` 枚举值。 | 2026-08-19 |
+| **Webhook** | (SDK v1.42.0) 新增 PaymentBankWithdrawal Webhook 数据和 `payment.bank_withdrawal.status.updated` 事件类型。详见 [状态与事件](/payments/cn/guides/status-and-events)。 | 2026-08-19 |
+| **商户管理（不兼容变更）** | (SDK v1.42.0) [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)：公司附件 `file_id` 现在需传入上传文件 UUID（`uuid` 格式），不再接受上传后的 AWS 文件链接字符串。请使用 [Upload file](/payments/en/api-references/payment/upload-file) 返回的文件 ID。 | 2026-08-19 |
 | **Webhook** | (SDK v1.41.0) 新增 `payment.bulk_send.item.status.updated` Webhook 事件，用于通知单条批量下发项目的状态更新。事件负载新增 `PaymentBulkSendItem` 数据类型及对应事件数据 Schema、discriminator 映射和事件类型枚举值。详见 [状态与事件](/payments/cn/guides/status-and-events)。 | 2026-08-05 |
 | **报表** | (SDK v1.41.0) [Generate reports](/payments/en/api-references/payment/generate-reports) 和 [List all reports](/payments/en/api-references/payment/list-all-reports)：`ReportExportFormat` 新增 `PDF`。PDF 导出仅支持余额快照报表。 | 2026-08-05 |
 
@@ -162,4 +166,3 @@ lang: "zh-hans"
 | **支付链接**   | (SDK v1.17.0) 新增以下操作，用于完成 Checkout SDK 的 OAuth 认证：[Get Access Token](/v2/api-references/oauth/get-access-token)、[Refresh Access Token](/v2/api-references/oauth/refresh-access-token)。                            | 2025-06-18 |
 | **资金管理**   | 新增支持加密货币出金的结算方式。                                                                                                                                                                                                  | 2025-06-10 |
 | **支付链接**   | (Checkout SDK v1.1.0) Checkout SDK 提供开箱即用的收单前端组件，支持 iframe 嵌入方式快速集成。                                                                                                                                              | 2025-06-09 |
-

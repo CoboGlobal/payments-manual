@@ -169,6 +169,7 @@
                       "payments/en/api-references/payment/get-developer-balance",
                       "payments/en/api-references/payment/get-withdrawable-balances",
                       "payments/en/api-references/payment/list-payment-wallet-balances",
+                      "payments/en/api-references/payment/get-payment-bank-account-balance",
                       "payments/en/api-references/payment/list-balance-changes"
                     ]
                   },
@@ -188,6 +189,9 @@
                       "payments/en/api-references/payment/create-payout",
                       "payments/en/api-references/payment/get-payout-information",
                       "payments/en/api-references/payment/list-all-payouts",
+                      "payments/en/api-references/payment/create-bank-withdrawal",
+                      "payments/en/api-references/payment/list-bank-withdrawals",
+                      "payments/en/api-references/payment/get-bank-withdrawal-by-id",
                       "payments/en/api-references/payment/create-bulk-send",
                       "payments/en/api-references/payment/get-bulk-send-information",
                       "payments/en/api-references/payment/list-bulk-send-items",
