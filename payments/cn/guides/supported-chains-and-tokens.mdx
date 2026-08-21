@@ -35,8 +35,8 @@ description: "了解收款和 Off-Ramp 场景下支持的币种、公链和定�
 | | Polygon | MATIC_USDC2 | 128 | 0.05 USDC | MATIC |
 | | BNB Smart Chain | BSC_USDC | 15 | 0.05 USDC | BNB |
 | | Solana | SOL_USDC | 1 | 0.05 USDC | SOL |
-| | Avalanche C-Chain | AVALANCHE_C_USDC | 18 | 0.05 USDC | AVAX |
-| | Morph | MORPH_USDC | 100 | 0 USDC | MORPH |
+| | Avalanche C-Chain | AVAXC_USDC2 | 18 | 0.05 USDC | AVAX |
+| | Morph | MORPH_USDC1 | 100 | 0 USDC | MORPH |
 | | Aptos | APT_USDC | 1 | 0 USDC | APT |
 | **USDT** | TRON | TRON_USDT | 20 | 0.05 USDT | TRX |
 | | Ethereum | ETH_USDT | 64 | 0.05 USDT | ETH |
@@ -46,9 +46,10 @@ description: "了解收款和 Off-Ramp 场景下支持的币种、公链和定�
 | | BNB Smart Chain | BSC_USDT | 15 | 0.05 USDT | BNB |
 | | Solana | SOL_USDT | 1 | 0.05 USDT | SOL |
 | | TON | TON_USDT | 5 | 0.05 USDT | TON |
-| | Avalanche C-Chain | AVALANCHE_C_USDT | 18 | 0.05 USDT | AVAX |
-| | Morph | MORPH_USDT | 100 | 0 USDT | MORPH |
+| | Avalanche C-Chain | AVAXC_USDT | 18 | 0.05 USDT | AVAX |
+| | Morph | MORPH_USDT0 | 100 | 0 USDT | MORPH |
 | | Aptos | APT_USDT | 1 | 0 USDT | APT |
+| | X Layer | XLAYER_USDT0 | 100 | 0.05 USDT | OKB |
 
 ### 如何选择合适的公链
 
@@ -62,7 +63,7 @@ description: "了解收款和 Off-Ramp 场景下支持的币种、公链和定�
 
 每条支持的公链都有一个 `chain_id` 标识，它是一个字符串标识符（例如 `ETH` 或 `TRON`），而非数字 ID。Payments API 中使用的 `token_id` 由链标识符与代币符号组合而成，格式为 `{chain_id}_{token_symbol}`（例如 `ETH_USDC` 或 `TRON_USDT`）。
 
-部分链标识符本身包含下划线（例如 `AVALANCHE_C`），且部分代币符号并非简单的币种代码。请始终使用上方支持的代币表中列出的准确 `token_id` 值，而不要自行拼接。
+代币符号部分并非总是简单的币种代码，可能带有后缀或采用其他写法，例如 `ARBITRUM_USDCOIN`、`MATIC_USDC2`、`MORPH_USDC1` 和 `MORPH_USDT0`。请始终使用上方支持代币表中列出的 `token_id` 原值，不要自行拼接。
 
 下表列出了各 `chain_id` 对应的完整公链名称及网络。以下公链在 Starter Live 和 Enterprise 套餐的收款场景中受支持。
 
@@ -74,11 +75,12 @@ description: "了解收款和 Off-Ramp 场景下支持的币种、公链和定�
 | `MATIC` | Polygon | 主网 |
 | `BSC` | BNB Smart Chain | 主网 |
 | `SOL` | Solana | 主网 |
-| `AVALANCHE_C` | Avalanche C-Chain | 主网 |
+| `AVAXC` | Avalanche C-Chain | 主网 |
 | `MORPH` | Morph | 主网 |
 | `APT` | Aptos | 主网 |
 | `TRON` | TRON | 主网 |
 | `TON` | TON | 主网 |
+| `XLAYER` | X Layer | 主网 |
 
 如需通过 API 查询实时支持的公链和代币列表，请使用 List supported chains 和 [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) 操作。
 
@@ -159,8 +161,8 @@ Payments API 的订单和交易金额以显示单位的字符串形式表示（�
 | MATIC_USDC2 | 不支持 | 支持（需跨链费用）|
 | BSC_USDC | 不支持 | 支持（需跨链费用）|
 | SOL_USDC | 不支持 | 支持（需跨链费用）|
-| AVALANCHE_C_USDC | 不支持 | 不支持 |
-| MORPH_USDC | 不支持 | 不支持 |
+| AVAXC_USDC2 | 不支持 | 不支持 |
+| MORPH_USDC1 | 不支持 | 支持（需要跨链费用） |
 | APT_USDC | 不支持 | 不支持 |
 | TRON_USDT | 支持 | 支持 |
 | ETH_USDT | 支持 | 支持 |
@@ -170,9 +172,10 @@ Payments API 的订单和交易金额以显示单位的字符串形式表示（�
 | BSC_USDT | 支持（需跨链费用）| 支持（需跨链费用）|
 | SOL_USDT | 不支持 | 支持（需跨链费用）|
 | TON_USDT | 不支持 | 不支持 |
-| AVALANCHE_C_USDT | 不支持 | 不支持 |
-| MORPH_USDT | 不支持 | 不支持 |
+| AVAXC_USDT | 不支持 | 不支持 |
+| MORPH_USDT0 | 不支持 | 支持（需要跨链费用） |
 | APT_USDT | 不支持 | 不支持 |
+| XLAYER_USDT0 | 不支持 | 不支持 |
 
 ## 测试网
 

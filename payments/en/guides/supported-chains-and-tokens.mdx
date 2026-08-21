@@ -35,8 +35,8 @@ The following stablecoin and chain combinations are available for Starter Live a
 | | Polygon | MATIC_USDC2 | 128 | 0.05 USDC | MATIC |
 | | BNB Smart Chain | BSC_USDC | 15 | 0.05 USDC | BNB |
 | | Solana | SOL_USDC | 1 | 0.05 USDC | SOL |
-| | Avalanche C-Chain | AVALANCHE_C_USDC | 18 | 0.05 USDC | AVAX |
-| | Morph | MORPH_USDC | 100 | 0 USDC | MORPH |
+| | Avalanche C-Chain | AVAXC_USDC2 | 18 | 0.05 USDC | AVAX |
+| | Morph | MORPH_USDC1 | 100 | 0 USDC | MORPH |
 | | Aptos | APT_USDC | 1 | 0 USDC | APT |
 | **USDT** | TRON | TRON_USDT | 20 | 0.05 USDT | TRX |
 | | Ethereum | ETH_USDT | 64 | 0.05 USDT | ETH |
@@ -46,9 +46,10 @@ The following stablecoin and chain combinations are available for Starter Live a
 | | BNB Smart Chain | BSC_USDT | 15 | 0.05 USDT | BNB |
 | | Solana | SOL_USDT | 1 | 0.05 USDT | SOL |
 | | TON | TON_USDT | 5 | 0.05 USDT | TON |
-| | Avalanche C-Chain | AVALANCHE_C_USDT | 18 | 0.05 USDT | AVAX |
-| | Morph | MORPH_USDT | 100 | 0 USDT | MORPH |
+| | Avalanche C-Chain | AVAXC_USDT | 18 | 0.05 USDT | AVAX |
+| | Morph | MORPH_USDT0 | 100 | 0 USDT | MORPH |
 | | Aptos | APT_USDT | 1 | 0 USDT | APT |
+| | X Layer | XLAYER_USDT0 | 100 | 0.05 USDT | OKB |
 
 ### How to choose the right chain
 
@@ -62,7 +63,7 @@ The following stablecoin and chain combinations are available for Starter Live a
 
 Each supported chain is identified by a `chain_id`, which is a string identifier (for example, `ETH` or `TRON`), not a numeric ID. The `token_id` used throughout the Payments API combines the chain identifier with the token symbol in the format `{chain_id}_{token_symbol}` (for example, `ETH_USDC` or `TRON_USDT`).
 
-Some chain identifiers themselves contain underscores (for example, `AVALANCHE_C`), and some token symbols are not the plain ticker. Always use the exact `token_id` values listed in the supported tokens table above rather than constructing them by hand.
+The token symbol part is not always the plain ticker — it can carry a suffix or an alternative spelling, as in `ARBITRUM_USDCOIN`, `MATIC_USDC2`, `MORPH_USDC1`, and `MORPH_USDT0`. Always use the exact `token_id` values listed in the supported tokens table above rather than constructing them by hand.
 
 The following table maps each `chain_id` to its full chain name and network. These chains are supported for payment collection on the Starter Live and Enterprise plans.
 
@@ -74,11 +75,12 @@ The following table maps each `chain_id` to its full chain name and network. The
 | `MATIC` | Polygon | Mainnet |
 | `BSC` | BNB Smart Chain | Mainnet |
 | `SOL` | Solana | Mainnet |
-| `AVALANCHE_C` | Avalanche C-Chain | Mainnet |
+| `AVAXC` | Avalanche C-Chain | Mainnet |
 | `MORPH` | Morph | Mainnet |
 | `APT` | Aptos | Mainnet |
 | `TRON` | TRON | Mainnet |
 | `TON` | TON | Mainnet |
+| `XLAYER` | X Layer | Mainnet |
 
 To retrieve the live set of supported chains and tokens programmatically, use the List supported chains and [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) operations.
 
@@ -159,8 +161,8 @@ The following table lists the supported token and chain combinations for Off-Ram
 | MATIC_USDC2 | Not supported | Supported (bridging fee required) |
 | BSC_USDC | Not supported | Supported (bridging fee required) |
 | SOL_USDC | Not supported | Supported (bridging fee required) |
-| AVALANCHE_C_USDC | Not supported | Not supported |
-| MORPH_USDC | Not supported | Not supported |
+| AVAXC_USDC2 | Not supported | Not supported |
+| MORPH_USDC1 | Not supported | Supported (bridging fee required) |
 | APT_USDC | Not supported | Not supported |
 | TRON_USDT | Supported | Supported |
 | ETH_USDT | Supported | Supported |
@@ -170,9 +172,10 @@ The following table lists the supported token and chain combinations for Off-Ram
 | BSC_USDT | Supported (bridging fee required) | Supported (bridging fee required) |
 | SOL_USDT | Not supported | Supported (bridging fee required) |
 | TON_USDT | Not supported | Not supported |
-| AVALANCHE_C_USDT | Not supported | Not supported |
-| MORPH_USDT | Not supported | Not supported |
+| AVAXC_USDT | Not supported | Not supported |
+| MORPH_USDT0 | Not supported | Supported (bridging fee required) |
 | APT_USDT | Not supported | Not supported |
+| XLAYER_USDT0 | Not supported | Not supported |
 
 ## Testnet
 
