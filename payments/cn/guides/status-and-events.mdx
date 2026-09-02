@@ -60,9 +60,13 @@ lang: "zh-hans"
       <td>账户某币种余额变动，可用于内部记账。</td>
     </tr>
     <tr>
-      <td rowSpan={4}>**资金转出**</td>
+      <td rowSpan={5}>**资金转出**</td>
       <td>[`payment.payout.status.updated`](#payment-payout-status-updated)</td>
       <td>单目的地资金转出请求状态变更。</td>
+    </tr>
+    <tr>
+      <td>[`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated)</td>
+      <td>银行提款状态变更（仅当您将法币从虚拟账户提款至银行账户时需订阅）。</td>
     </tr>
     <tr>
       <td>[`payment.refund.status.updated`](#payment-refund-status-updated)</td>
@@ -245,6 +249,36 @@ lang: "zh-hans"
 - `transactions`（选填）— 与该笔转出关联的支付交易数组。
 
 完整字段说明请参考 [Get payout information](/payments/en/api-references/payment/get-payout-information)。
+
+#### `payment.bank_withdrawal.status.updated`
+
+**触发条件：** 银行提款状态变更时触发。银行提款是指将法币从您的某个虚拟账户提取到目标银行账户，通过 [Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal) 创建。状态流转如下：
+- `Pending`：银行提款已创建，等待处理。
+- `Processing`：银行提款正在处理中。
+- `Completed`：银行提款已完成，资金已从虚拟账户转出。
+- `Failed`：银行提款失败，失败原因见 `failed_reason`。
+
+**事件内容：** `data` 对象的 `data_type` 为 `PaymentBankWithdrawal`，包含以下字段：
+- `bank_withdrawal_id`（必填）— Cobo 生成的银行提款 ID。
+- `request_id`（必填）— 创建银行提款时您提供的请求 ID。
+- `source_bank_account_id`（必填）— 转出来源银行账户 ID，该账户必须是虚拟账户（标记为 `VA`）。
+- `target_bank_account_id`（必填）— 接收该笔提款的目标银行账户 ID。
+- `source_bank_account`（必填）— 来源银行账户的完整信息。
+- `target_bank_account`（必填）— 目标银行账户的完整信息。
+- `currency`（必填）— 银行提款的法币币种，例如 `USD`。
+- `amount`（必填）— 银行提款金额，以该币种显示单位的字符串形式表示，例如 `100.00`。
+- `bank_tx_fee`（选填）— 该笔银行提款收取的银行交易费用。
+- `status`（必填）— 当前状态，可能的值：`Pending`、`Processing`、`Completed`、`Failed`。
+- `remark`（选填）— 银行提款备注。
+- `failed_reason`（选填）— 银行提款失败原因，仅当 `status` 为 `Failed` 时返回。
+- `timeline`（必填）— 银行提款的状态时间线。每个条目包含一个 `status` 及进入该状态的时间 `timestamp`，Unix 时间戳（秒）。
+- `created_timestamp`（必填）— 创建时间，Unix 时间戳（秒）。
+
+<Note>
+  银行提款事件内容中不包含 `updated_timestamp`。如需判断该笔提款进入当前状态的时间，请读取 `timeline` 中的最后一个条目。
+</Note>
+
+完整字段说明请参考 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
 
 #### `payment.bulk_send.status.updated`
 
