@@ -3,6 +3,17 @@ title: "发布历史"
 lang: "zh-hans"
 ---
 
+## 2026 年 09 月
+
+| 功能 | 变更说明 | 发布时间 |
+| ----- | ----- | ----- |
+| **商户管理** | (SDK v1.43.0) 新增 [Upload file v2](/payments/en/api-references/payment/upload-file-v2) 操作，支持通过 JSON 上传支付相关文件。请求体需提供 Base64 编码的 `file_content` 和 `file_name`。现有的 [Upload file](/payments/en/api-references/payment/upload-file) 操作已废弃，请改用此操作。<br />・[Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) 和 [Get merchant KYC](/payments/en/api-references/payment/get-merchant-kyc) 新增支持 `individual_info`、`Disabled` KYC 状态，以及 `ID_Hand` 和 `POA` 个人附件文件类型。 | 2026-09-02 |
+| **商户管理（不兼容变更）** | (SDK v1.43.0) [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) 请求体移除 `email` 和 `phone` 字段，`company_info` 不再必填。[Get merchant KYC](/payments/en/api-references/payment/get-merchant-kyc) 响应不再返回 `email` 和 `phone`，且不再保证返回 `merchant_type`、`country`、`industry` 或 `company_info`。 | 2026-09-02 |
+| **报表** | (SDK v1.43.0) 新增 [Download report](/payments/en/api-references/payment/download-report) 操作，可根据 `report_id` 获取已完成报表的临时下载链接。[Generate reports](/payments/en/api-references/payment/generate-reports) 和 [List all reports](/payments/en/api-references/payment/list-all-reports) 新增支持 `Processing` 报表状态。 | 2026-09-02 |
+| **支持的链** | (SDK v1.43.0) [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) 响应中新增 `confirming_threshold` 和 `deposit_threshold` 字段，用于返回支持代币的确认阈值和充值阈值。 | 2026-09-02 |
+| **转出目的地** | (SDK v1.43.0) 银行账户负载新增 `bank_city` 和 `routing_value` 字段，`holder_type` 新增支持 `Personal`。受影响的接口：<br />・[Create destination](/payments/en/api-references/payment/create-destination)、[Get destination information](/payments/en/api-references/payment/get-destination-information)、[Create destination entry](/payments/en/api-references/payment/create-destination-entry)、[List destination entries](/payments/en/api-references/payment/list-destination-entries)、[Get destination entry information](/payments/en/api-references/payment/get-destination-entry-information)、[Update destination entry](/payments/en/api-references/payment/update-destination-entry) 和 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。 | 2026-09-02 |
+
+
 ## 2026 年 08 月
 
 | 功能 | 变更说明 | 发布时间 |
