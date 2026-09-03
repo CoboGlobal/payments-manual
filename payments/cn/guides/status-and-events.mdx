@@ -94,6 +94,10 @@ lang: "zh-hans"
 
 ### **1. 收款相关**
 
+<Note>
+  公开的 Payin 订单状态包括 `Pending`、`Processing`、`Completed`、`Expired` 和 `Underpaid`。`Frozen` 是资金与合规处置状态，不是公开的 Payin 订单状态。公开的 Payment Webhook 事件列表不包含专门的冻结、释放、隔离或返还事件。
+</Note>
+
 #### `payment.order.status.updated`
 
 **触发条件：** 支付订单状态发生变更时触发（仅限订单模式）。会触发的节点包括：
@@ -336,6 +340,10 @@ lang: "zh-hans"
 - `flow_direction`（必填）— 余额变动方向，可能的值：`in`、`out`。
 - `update_time`（必填）— 余额更新时间，Unix 时间戳（秒）。
 
+<Note>
+  `payment.payout.status.updated` 和资金转出状态值仅描述原资金转出请求，不反映该笔资金转出完成后又被退回的情况。详情请参考[资金转出被退回](/payments/cn/guides/crypto-payouts#5-资金转出被退回)。
+</Note>
+
 ### **3. 结算网络相关**
 
 #### `payment.transaction.settlement_network.created`
@@ -437,3 +445,29 @@ lang: "zh-hans"
 - 若需要根据 Webhook 通知及时更新余额，您可以：在接收到 Webhook 时，立即调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance) 接口获得准确的余额信息，再进行内部记账。
 - 若需要及时知道 Webhook 所指交易引发的扣费信息，以便于关联交易和扣费进行对账，您可以：使用对应的查询交易信息接口和 [Generate reports](/payments/en/api-references/payment/generate-reports) 获取扣费报表，来做数据的核对。
 - 若需要及时知道 Webhook 所指交易引发的 Fee Station 余额的变动情况，保证后续不因 Fee Station 余额不足而影响业务，您可以：定期调用 [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) 查询 Fee Station 余额，并根据业务的消耗频率做内部报警策略，避免欠费影响正常业务运行。
+
+---
+
+## 退款订单故障排查
+
+如果通过 Create Refund API（`POST /payments/refunds`）创建的退款订单没有正常推进，请按照以下自助步骤排查问题。
+
+### PendingConfirmation
+
+退款订单处于 `PendingConfirmation` 状态，表示尚未提供 `to_address`。Create Refund API 不会自动填入原始收款地址，您必须在请求中或通过后续更新操作明确提供目标地址。
+
+解决步骤：
+
+1. 调用 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information) 或 [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders)，确认 `status` 为 `PendingConfirmation` 且 `to_address` 为空。
+2. 调用 [Update refund order](/payments/en/api-references/payment/update-refund-order) 提供有效的 `to_address`。在提供目标地址之前，退款无法继续处理。
+3. 订阅 `payment.refund.status.updated` Webhook 事件，接收后续状态更新通知。
+
+### Pending
+
+退款订单处于 `Pending` 状态，表示系统正在进行链上转账前的异步准备，此阶段无需您进行任何操作。
+
+监控进度：
+
+1. 调用 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)，查看 `status`、`failed_reason` 和 `updated_timestamp` 字段。
+2. 如果 `transactions` 数组已有数据，查看每条记录以了解各笔转账的进度。
+3. 订阅 `payment.refund.status.updated` Webhook 事件。随着处理推进，退款将流转至 `Processing`、`Completed` 或 `Failed` 状态。

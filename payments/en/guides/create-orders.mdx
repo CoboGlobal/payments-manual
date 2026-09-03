@@ -5,7 +5,7 @@ lang: "en"
 ---
 
 <Note>
-  **Disclaimer: This article contains AI translations and should only be used as reference.** Contact Cobo's support team through [help@cobo.com](mailto:help@cobo.com) if you have any questions.
+  **Disclaimer: This article contains AI translations and should only be used as reference.**
 </Note>
 
 Order mode is suitable for scenarios that require specifying a specific payment amount and time limit. In this mode, Cobo creates payment orders with the following characteristics:
@@ -301,6 +301,10 @@ Before a payout, Cobo also automatically collects funds received through orders 
 
 You can initiate a refund order through Payments App or Payments API to refund funds to the payer. The following diagram shows the interaction process between payers, merchants, and Cobo during the refund process.
 
+<Note>
+  Create Refund API applies to refunds for pay-in orders. It is not the recovery path for completed payout funds returned on-chain by the recipient. For the differences among pay-in order refunds, payout reversal, and compliance fund disposition, see [Types of fund returns](/payments/en/guides/create-refund-link#types-of-fund-returns).
+</Note>
+
 <div style={{ maxWidth:"600px",margin:"0 auto" }}>
 ```mermaid
 sequenceDiagram
@@ -317,6 +321,10 @@ sequenceDiagram
 </div>
 
 #### Create refund order
+
+<Info>
+  **Refund flows**: `POST /payments/refunds` (the Create Refund API) is the developer-initiated direct API flow. You can supply `to_address` in the create request; if you omit it, the refund is created in `PendingConfirmation` status and you must provide the address later using the Update refund order operation before processing can proceed. The API does not auto-fill the original pay-in address. This is separate from the [refund link](/payments/en/guides/create-refund-link) flow, where Cobo provides an address-collection page that pre-fills the original payment address for the payer. Two further scenarios are not initiated through `POST /payments/refunds`, and they differ from each other: **payout reversal** is when funds from a payout you already completed are sent back to a Payment address, so funds flow in — see [Crypto payouts](/payments/en/guides/crypto-payouts#5-payout-reversal); **returning compliance-frozen funds** is when a frozen incoming payment is sent out again through the compliance funds disposition flow, so funds flow out, using `refund_funds`.
+</Info>
 
 <Tabs>
   <Tab title="Payments App" icon="pager">
@@ -366,7 +374,7 @@ You can also actively query refund order status through Payments App or Payments
   </Tab>
 </Tabs>
 
-### Compliance screening failure
+### Compliance screening and frozen funds
 
 When a transaction receives the `payment.transaction.failed` event , this indicates that the transaction has failed to pass compliance screening by Cobo KYT or Screening App. In this case, you need to follow these steps to handle it:
 
@@ -378,10 +386,37 @@ When a transaction receives the `payment.transaction.failed` event , this indica
   - The order status will remain unchanged
   - The payer needs to redeposit sufficient funds and pass compliance screening within the order validity period for the order to change to `Completed` status
 
-For isolated or frozen funds:
+#### Frozen funds and compliance disposition
 
-- Cobo KYT: Please contact the Cobo support team through [help@cobo.com](mailto:help@cobo.com) for handling
-- Screening App: You can evaluate and handle it yourself within the application
+`Frozen` is a funds and compliance disposition state. It is not a public Payin order status. Public Payin order statuses are `Pending`, `Processing`, `Completed`, `Expired`, and `Underpaid`.
+
+For Payin order status changes and transaction events, use [Status and events](/payments/en/guides/status-and-events).
+
+#### Compliance disposition operations
+
+The following operations are compliance-managed funds disposition operations. They are separate from developer-initiated Payments refund flows.
+
+| Operation | Purpose | Notes |
+| --- | --- | --- |
+| `unfreeze_funds` | Releases frozen funds after compliance review. | Compliance-managed. |
+| `isolate_funds` | Isolates frozen funds after compliance review. | Compliance-managed. |
+| `refund_funds` | Returns frozen Payin funds through a compliance-managed return flow. | Compliance-managed. Distinct from the developer-initiated [Create Refund API and refund link flows](/payments/en/guides/create-refund-link#types-of-fund-returns). |
+
+#### Risk level observability
+
+Receiving addresses can expose a `risk_level` field that uses the `AddressRiskLevel` enum. You can query address risk information through [List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses). Risk information may be part of the compliance review process.
+
+#### Responsibility boundaries
+
+| Scenario | Developer action |
+| --- | --- |
+| Query a Payin order status. | Call [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) or subscribe to `payment.order.status.updated`. |
+| Query a refund order status. | Call [Get refund order information](/payments/en/api-references/payment/get-refund-order-information), call [List all refund orders](/payments/en/api-references/payment/list-all-refund-orders), or subscribe to `payment.refund.status.updated`. |
+| Create an ordinary refund. | Use Payments App or call [Create refund order](/payments/en/api-references/payment/create-refund-order). |
+| Review a Screening App case. | Use the verified self-service actions available in Screening App. |
+| Release frozen funds with `unfreeze_funds`. | This is a compliance-managed disposition operation, not an ordinary Payments refund flow. |
+| Isolate frozen funds with `isolate_funds`. | This is a compliance-managed disposition operation, not an ordinary Payments refund flow. |
+| Return frozen Payin funds with `refund_funds`. | This is a compliance-managed disposition operation, distinct from the developer-initiated [Create refund order](/payments/en/api-references/payment/create-refund-order). |
 
 ### Minimum Deposit Threshold
 

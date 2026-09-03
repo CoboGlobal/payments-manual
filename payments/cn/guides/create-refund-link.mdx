@@ -11,6 +11,16 @@ lang: "zh-hans"
 2. 若用户的退款申请审批通过，您使用API获取Cobo"退款地址收集页面URL"，通过邮箱等方式发送给终端用户（Cobo无终端用户邮箱，URL需由您自行发送给用户），终端用户填写地址后，由Cobo完成"自动退款转账"的闭环流程。
 3. 您可以通过Webhook监听Cobo回调/状态查询，跟踪"地址已提交/退款已发起/已完成"。确认退款完成并在您的系统内同步订单状态，关闭工单。
 
+## 资金退回类型
+
+Create Refund API 或 Create Refund Link 仅适用于收款订单退款。其他资金退回场景的触发原因、入口、资金方向和状态展示不同。
+
+| 类型 | 触发原因 | 发起方 | 资金方向 | 入口与状态 |
+| :--- | :------- | :----- | :------- | :--------- |
+| 资金转出被退回（Payout reversal） | 您发起的资金转出已完成后，该笔资金又在链上被退回到 Payment 收款地址或出金来源地址。 | 由对方在链上发起，您无需操作。退回资金会自动入账至您的开发者余额，无需人工介入。 | 资金流入：由外部收款地址退回至 Payment 地址。 | 不能使用 Create Refund API 或 Create Refund Link。请参考 [资金转出被退回](/payments/cn/guides/crypto-payouts#5-资金转出被退回)；退回资金按意外入账处理，不会在原资金转出记录上生成专门的退回状态。 |
+| 合规冻结资金退回 | 入账资金被合规冻结，需通过合规资金处置流程退回。 | 合规流程，您无法自助发起。 | 资金流出：由冻结的入账资金退至处置目标地址。 | 不能使用 Create Refund API 或 Create Refund Link；应使用合规资金处置流程。 |
+| 收款订单退款 | 付款方或商户需要对已完成的收款订单退款。 | 商户、开发者或用户退款流程。 | 商户余额或开发者余额到退款收款地址。 | 使用 Create Refund API 或 Create Refund Link，并通过 `payment.refund.status.updated` 跟踪。 |
+
 ## 流程概览
 
 以下流程图展示了退款地址收集的完整交互过程：
@@ -121,6 +131,10 @@ sequenceDiagram
   alt="退款地址收集页面-更改地址"
 />
 
+<Note>
+  页面中显示的原始付款地址预填功能仅适用于退款链接地址收集流程。当您直接使用 Create Refund API（`POST /payments/refunds`）创建退款时，该 API 不会自动填入原始付款地址。您可以在创建请求中提供 `to_address`；若省略，退款订单将以 `PendingConfirmation` 状态创建，您需在处理前通过 Update refund order 操作提供地址。有关 Create Refund API 行为的详细说明，请参考[处理退款申请](/payments/cn/guides/create-orders)。
+</Note>
+
 #### 5. 自动发起退款与通知（Cobo的后端）
 
 1. Cobo自动使用用户提交的地址信息发起退款任务（链上转账），并通过Webhook通知关键状态，
@@ -144,11 +158,15 @@ sequenceDiagram
 
 ### 重新获取URL
 
-若链接已用，调用同一接口生成新URL，再次发送给用户。
+如果普通退款地址收集链接已被使用，请调用同一接口生成新的 URL，并再次发送给用户。此操作仅适用于退款链接地址收集流程。
 
 <Info>
   退款地址收集URL为一次性链接，用户提交地址后即失效。如需重新收集地址，请调用接口生成新的URL。
 </Info>
+
+<Note>
+  重新生成退款链接不是对 `refund_funds` 失败的重试。对于普通退款订单，您可以在退款详情中观察 `Failed` 状态和 `failed_reason`。
+</Note>
 
 ## 常见错误与处理
 
@@ -158,6 +176,5 @@ sequenceDiagram
 - **您设置的KYT规则被拒绝**：若原交易因您设置的KYT规则被拒绝、或未拒绝的交易，更换地址通常无需额外材料。
 
 <Note>
-  如遇到其他问题，请通过 [help@cobo.com](mailto:help@cobo.com) 联系Cobo支持团队。
+  对于其他普通退款问题，请查询退款订单状态，并查看退款详情中的 `failed_reason`。
 </Note>
-

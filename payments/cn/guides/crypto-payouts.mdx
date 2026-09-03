@@ -103,3 +103,11 @@ lang: "zh-hans"
     - [List all payouts](/payments/en/api-references/payment/list-all-payouts) - 查询所有转账请求的详细信息
   </Tab>
 </Tabs>
+
+## 5. 资金转出被退回
+
+资金转出被退回（Payout reversal）指您发起的加密货币资金转出已经完成后，该笔资金又在链上被退回到 Payment 收款地址或出金来源地址。该场景不能通过 [Create Refund API](/payments/en/api-references/payment/create-refund-order) 发起或处理，因为 Create Refund 仅用于收款订单退款。
+
+退回资金会自动入账。退回资金被检测到并通过合规筛查后，会按意外入账处理，并入账至您的开发者余额，无需 Cobo 人工介入。
+
+退回交易完成时，Cobo 会发送 `payment.transaction.external.completed` 事件，您可据此核对入账金额。原资金转出记录仍保持已完成状态；退回资金不会在该笔资金转出上生成专门的退回状态。
