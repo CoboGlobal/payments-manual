@@ -24579,10 +24579,13 @@ components:
       name: source_account
       in: query
       required: true
-      description: 'The source account for which to retrieve balance changes. Currently, use `developer`.'
+      description: |
+        The source account for which to retrieve balance changes.
+        - If the source account is a merchant account, provide the merchant's ID (e.g., "M1001").
+        - If the source account is the developer account, use the string `"developer"`.
       schema:
         type: string
-      example: developer
+      example: M1001
     PaymentBalanceChangesTokenIdOptionalParam:
       name: token_id
       in: query
