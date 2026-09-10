@@ -152,4 +152,14 @@ For isolated or frozen funds:
 
 ### Minimum Deposit Threshold
 
-- To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold is applied. Transactions with a value below **0.05 USDT** (or equivalent) will not be processed for automatic credit.
+To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a minimum deposit threshold of **0.05 USDT** (or equivalent) is applied.
+
+**Only a transaction strictly greater than the threshold is credited.** A transaction equal to or below the threshold is treated as dust: it is not credited, and no webhook notification is sent.
+
+For example:
+
+| Transaction amount | Credited | Webhook sent |
+|---|---|---|
+| 0.06 USDT | Yes | Yes |
+| **0.05 USDT** | **No** — equal to the threshold, treated as dust | **No** |
+| 0.04 USDT | No | No |
