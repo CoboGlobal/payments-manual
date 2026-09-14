@@ -91,7 +91,7 @@ If the total funds are sufficient but part of that amount is still held at payme
 While collection is in progress, the payout request remains in `Pending` status. If a collection attempt fails, Cobo automatically retries it; you do not need to resubmit the payout or take any manual action. If the payout remains `Pending` longer than expected, call [Get payout information](/payments/en/api-references/payment/get-payout-information) to requery its status.
 
 <Note>
-  This automatic collection happens as an internal step of the payout process. It is separate from the (deprecated) [Create forced sweep](/payments/en/api-references/payment/create-forced-sweep) and [List forced sweeps](/payments/en/api-references/payment/list-forced-sweeps) operations, which previously let you trigger fund collection manually and are no longer necessary.
+  This automatic collection happens as an internal step of the payout process. It is separate from the (deprecated) `Create forced sweep` and `List forced sweeps` operations, which previously let you trigger fund collection manually and are no longer necessary.
 </Note>
 
 ## 3. Complete secondary confirmation, risk control review, and transaction signing
