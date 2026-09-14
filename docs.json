@@ -237,13 +237,6 @@
                       "payments/en/api-references/payment/delete-crypto-address",
                       "payments/en/api-references/payment/list-crypto-addresses"
                     ]
-                  },
-                  {
-                    "group": "Forced Sweeps (Deprecated)",
-                    "pages": [
-                      "payments/en/api-references/payment/create-forced-sweep",
-                      "payments/en/api-references/payment/list-forced-sweeps"
-                    ]
                   }
                 ]
               },
