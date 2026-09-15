@@ -13,6 +13,7 @@ lang: "zh-hans"
 
 | 错误码 | HTTP 状态码 | 描述 | 解决方案 |
 |---|---|---|---|
+| 1006 | 400 | 旧版共享 invalid-parameter 错误码，可能来自共享平台层或较早的集成。当前 Payments REST API 的 invalid-parameter 校验失败返回 `2006`。 | 将其视为 invalid-parameter 错误。检查 `error_message`，然后修正请求参数后重试。 |
 | 2006 | 400 | 一个或多个参数格式无效或包含不支持的值。 | 根据 [API 参考](/payments/cn/api-references/overview)验证请求体。检查参数类型、枚举值以及所有必填字段。`error_message` 字段通常会指明验证失败的具体参数。 |
 | 2010 | 429 | 您已超出 API 访问频率限制。 | 降低请求频率。在重试前实施指数退避加抖动策略。 |
 | 2024 | 401 | API Key 认证失败。 | <ul><li>请使用与当前环境对应的 API Key（例如开发环境使用开发 API Key，生产环境使用生产 API Key）。</li><li>请确保您使用的 API Key 已在 Cobo Portal 上注册并处于活跃状态。</li><li>如果您的 API Key 是永久的，请确保请求来自白名单 IP 地址。</li></ul>详情请参见[发送首个请求](/payments/cn/developer-tools/get-started-with-api)。 |
@@ -44,6 +45,20 @@ lang: "zh-hans"
 | OTC 金额低于最低限额 | 消息中包含最低金额。 | 将兑换金额增加至错误信息中显示的最低限额以上。 |
 | OTC 汇率不可用 | `Exchange rate for token {token_id} not found.` | 重试请求。如果错误持续，该 token 可能不支持 OTC 兑换。 |
 | OTC 兑换未找到 | `Conversion {conversion_code} not found.` | 验证兑换代码或 OTC 订单 ID 是否正确。 |
+
+#### Create Refund 错误
+
+以下错误专属于 [Create Refund order](/payments/en/api-references/payment/create-refund-order) 操作（`POST /payments/refunds`）。所有错误均返回 HTTP 400 且 `"error_code": 2006`。使用响应中的 `error_message` 字段识别具体原因。
+
+| 场景 | `error_message` 示例 | 原因 | 建议操作 |
+|---|---|---|---|
+| 重复的 `request_id` | 消息表明该 `request_id` 已被使用。 | 已存在使用此 `request_id` 的退款订单。 | 每次新建退款请求使用唯一的 `request_id`。如需查询已有退款，复用原 `request_id` 即可。 |
+| `to_address` 无效 | `Invalid receiving address.` | `to_address` 格式与指定的 token 及链不兼容。 | 验证 `to_address` 是否符合该 token 所在网络的地址格式要求。 |
+| 收款订单未找到 | `Order {order_id} not found.` | `order_id` 不存在或不属于指定的商户。 | 验证 `order_id` 是否正确，并确认该订单属于您指定的商户。 |
+| Token 不匹配 | 消息表明退款 token 与收款订单 token 不一致。 | 请求中的 `token_id` 与原收款订单使用的 token 不同。 | 使用与原收款订单相同的 token。 |
+| 商户未找到 | `Merchant {merchant_id} not found.` | `merchant_id` 在您的组织中不存在。 | 验证 `merchant_id` 是否正确，且属于您的组织。 |
+| 商户不匹配 | 消息表明收款订单不属于指定的商户。 | `order_id` 存在，但属于不同的商户。 | 确认 `order_id` 和 `merchant_id` 指向同一商户。 |
+| 余额不足 | 消息描述余额缺口。 | 指定的 `refund_type` 来源（商户余额或开发者余额）不足以覆盖退款金额及开发者费用。 | 提交前检查可用余额。根据情况调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balance](/payments/en/api-references/payment/get-developer-balance)。 |
 
 #### 认证与权限错误
 
