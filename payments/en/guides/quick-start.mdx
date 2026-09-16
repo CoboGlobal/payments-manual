@@ -24,7 +24,7 @@ The following table lists typical requirements for different business types and 
     <tr>
       <td rowspan="2"><strong>Platform service providers</strong></td>
       <td><strong>Payment service providers (PSP) or e-commerce platforms</strong><br/>Provide services for multiple merchants, need to settle separately and share revenue with merchants</td>
-      <td><a href="/payments/en/guides/merchants">Merchant management</a> + <a href="/payments/en/guides/create-orders">Order</a>/<a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/allocate-funds">Allocate funds</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a></td>
+      <td><a href="/payments/en/guides/merchants">Merchant management</a> + <a href="/payments/en/guides/create-orders">Order</a>/<a href="/payments/en/guides/get-topup-addresses">Top-up mode</a> + <a href="/payments/en/guides/allocate-funds">Allocate funds</a> + <a href="/payments/en/guides/fiat-payouts">Off-ramp</a> / <a href="/payments/en/guides/enterprise-third-party-payouts">Enterprise third-party payouts</a></td>
     </tr>
     <tr>
       <td><strong>Advertising platforms</strong><br/>Provide payment collection services for merchants. After merchants receive top-ups from end users, part of the funds is used for platform advertising, and the remaining funds can be withdrawn</td>
@@ -77,7 +77,7 @@ As a payment service provider (PSP), you need to provide payment collection serv
  
   4. Fund management: Use the [Allocate funds](/payments/en/guides/allocate-funds) feature to adjust allocation between accounts (such as collecting developer fees or handling overpayment, underpayment, late payment, and other abnormal situations).
 
-  5. Payouts: Supports [Off-ramp](/payments/en/guides/fiat-payouts) and [Crypto payouts](/payments/en/guides/crypto-payouts). Off-ramp requires pre-configuring bank accounts in [Destinations](/payments/en/guides/destinations).
+  5. Payouts: Supports [Off-ramp](/payments/en/guides/fiat-payouts), [Enterprise third-party payouts](/payments/en/guides/enterprise-third-party-payouts), and [Crypto payouts](/payments/en/guides/crypto-payouts). Off-ramp and Enterprise third-party payouts require preconfigured, approved bank accounts in [Destinations](/payments/en/guides/destinations).
 
   6. Production environment launch: After testing is complete, refer to [Production environment preparation](/payments/en/guides/preparation-prod) to complete configuration and go live
 
@@ -98,6 +98,4 @@ As a gaming platform, you directly serve end-user players, with the main revenue
   4. Payouts: Supports [Off-ramp](/payments/en/guides/fiat-payouts) and [Crypto payouts](/payments/en/guides/crypto-payouts). Off-ramp requires pre-configuring bank accounts in [Destinations](/payments/en/guides/destinations).
 
   5. Production environment launch: After testing is complete, refer to [Production environment preparation](/payments/en/guides/preparation-prod) to complete configuration and go live
-
-
 
