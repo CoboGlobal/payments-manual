@@ -23,7 +23,6 @@
                   "payments/en/guides/features",
                   "payments/en/guides/quick-start",
                   "payments/en/guides/cobo-payment-skill",
-                  "payments/en/guides/payments-ai-assistant",
                   "payments/en/guides/glossary"
                 ]
               },
@@ -317,7 +316,6 @@
                   "payments/cn/guides/features",
                   "payments/cn/guides/quick-start",
                   "payments/cn/guides/cobo-payment-skill",
-                  "payments/cn/guides/payments-ai-assistant",
                   "payments/cn/guides/glossary"
                 ]
               },
@@ -509,6 +507,14 @@
     },
     {
       "source": "/payments/cn/guides/billing",
+      "destination": "/payments/cn/guides/overview"
+    },
+    {
+      "source": "/payments/en/guides/payments-ai-assistant",
+      "destination": "/payments/en/guides/overview"
+    },
+    {
+      "source": "/payments/cn/guides/payments-ai-assistant",
       "destination": "/payments/cn/guides/overview"
     }
   ]
