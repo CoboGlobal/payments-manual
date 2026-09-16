@@ -16,16 +16,9 @@ This document helps you understand which tokens, chains, and currencies are supp
 The tokens listed in this document are specifically supported for Cobo Payments. While Cobo Portal supports a broader range of tokens, only the stablecoins listed below will be automatically credited when received. Other tokens sent to Payment addresses will not be automatically processed.
 </Note>
 
-## Plans and Supported Scope
-
-Supported tokens and chains vary by plan:
-
-- **Starter Test**: TRON Nile testnet only — accepts USDT test tokens. Test tokens have no real value and are intended for validating your business flow.
-- **Starter Live / Enterprise**: Supports all mainnet tokens and chain combinations listed below.
-
 ## Supported tokens and chains for payment collection
 
-The following stablecoin and chain combinations are available for Starter Live and Enterprise plans:
+The following stablecoin and chain combinations are available for payment collection:
 
 | Stablecoin | Chain | Token ID | Confirmations | Min Amount | Gas Token |
 |------------|-------|----------|---------------|------------|-----------|
@@ -65,7 +58,7 @@ Each supported chain is identified by a `chain_id`, which is a string identifier
 
 The token symbol part is not always the plain ticker — it can carry a suffix or an alternative spelling, as in `ARBITRUM_USDCOIN`, `MATIC_USDC2`, `MORPH_USDC1`, and `MORPH_USDT0`. Always use the exact `token_id` values listed in the supported tokens table above rather than constructing them by hand.
 
-The following table maps each `chain_id` to its full chain name and network. These chains are supported for payment collection on the Starter Live and Enterprise plans.
+The following table maps each `chain_id` to its full chain name and network. These chains are supported for payment collection.
 
 | chain_id | Chain | Network |
 |----------|-------|---------|

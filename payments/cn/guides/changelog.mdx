@@ -82,7 +82,7 @@ lang: "zh-hans"
 
 | 功能 | 变更说明 | 发布时间 |
 | :---- | :---- | :---- |
-| **Cobo Payments AI 助手** | [Cobo Payments AI 助手](/payments/cn/guides/payments-ai-assistant)是嵌入在 Cobo Portal 中的智能对话助手，可帮助您完成初始配置、方案设计、回答问题与排查。 | 2026-02-05 |
+| **Cobo Payments AI 助手** | Cobo Payments AI 助手是嵌入在 Cobo Portal 中的智能对话助手，可帮助您完成初始配置、方案设计、回答问题与排查。 | 2026-02-05 |
 | **资金管理** | App 端新增支持[批量下发](/payments/cn/guides/bulk-send)功能。 | 2026-02-05 |
 | **SDK & API** | (SDK v1.31.0) Webhook 事件有如下调整：<br /><br />- 新增以下事件：<br />　- `payment.transaction.external.created`<br />　- `payment.transaction.external.completed`<br />- 移除了 `payment.transaction.held` 事件<br />- `payment.status.updated` 调整为 `payment.order.status.updated`（**需重新订阅**）<br />　- 不再推送：`Processing`<br />　- 仅推送：`Completed` / `Expired` / `Underpaid`<br />- `payment.refund.status.updated`<br />　- 不再推送：`Processing`<br />　- 仅推送：`Completed` / `PartiallyCompleted` / `Failed`<br />- `payment.payout.status.updated` 增加了 `RejectedByBank` 状态 | 2026-02-05 |
 | **支持的链** | (SDK v1.31.0) 新增查询支持的代币：[List supported tokens](/payments/en/api-references/payment/list-supported-tokens)。 | 2026-02-05 |

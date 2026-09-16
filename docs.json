@@ -23,7 +23,6 @@
                   "payments/en/guides/features",
                   "payments/en/guides/quick-start",
                   "payments/en/guides/cobo-payment-skill",
-                  "payments/en/guides/payments-ai-assistant",
                   "payments/en/guides/glossary"
                 ]
               },
@@ -80,8 +79,6 @@
               {
                 "group": "Reference",
                 "pages": [
-                  "payments/en/guides/packages",
-                  "payments/en/guides/billing",
                   "payments/en/guides/supported-chains-and-tokens",
                   "payments/en/guides/status-and-events",
                   "payments/en/guides/roles-and-permissions",
@@ -319,7 +316,6 @@
                   "payments/cn/guides/features",
                   "payments/cn/guides/quick-start",
                   "payments/cn/guides/cobo-payment-skill",
-                  "payments/cn/guides/payments-ai-assistant",
                   "payments/cn/guides/glossary"
                 ]
               },
@@ -376,8 +372,6 @@
               {
                 "group": "索引信息",
                 "pages": [
-                  "payments/cn/guides/packages",
-                  "payments/cn/guides/billing",
                   "payments/cn/guides/supported-chains-and-tokens",
                   "payments/cn/guides/status-and-events",
                   "payments/cn/guides/roles-and-permissions",
@@ -498,6 +492,30 @@
     {
       "source": "/payments/cn/api-references/overview",
       "destination": "/payments/en/api-references"
+    },
+    {
+      "source": "/payments/en/guides/packages",
+      "destination": "/payments/en/guides/overview"
+    },
+    {
+      "source": "/payments/cn/guides/packages",
+      "destination": "/payments/cn/guides/overview"
+    },
+    {
+      "source": "/payments/en/guides/billing",
+      "destination": "/payments/en/guides/overview"
+    },
+    {
+      "source": "/payments/cn/guides/billing",
+      "destination": "/payments/cn/guides/overview"
+    },
+    {
+      "source": "/payments/en/guides/payments-ai-assistant",
+      "destination": "/payments/en/guides/overview"
+    },
+    {
+      "source": "/payments/cn/guides/payments-ai-assistant",
+      "destination": "/payments/cn/guides/overview"
     }
   ]
 }
