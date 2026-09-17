@@ -43,6 +43,8 @@ lang: "zh-hans"
     7. 按照页面提示确认并提交出金信息。
   </Tab>
   <Tab title="Payments API" icon="code">
+    如需使用 Python SDK 实现 Off-Ramp 下发流程，请参阅[三方下发 Python SDK 集成](/payments/cn/developer-tools/third-party-payout-python-sdk)。
+
     1. 在创建出金请求前，您可以调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 分别查询商户和开发者余额，用于确定可出金的最大金额。
     3. 调用 [Create payout](/payments/en/api-references/payment/create-payout) 创建出金请求。
 

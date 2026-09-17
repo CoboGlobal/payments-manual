@@ -280,6 +280,7 @@
                 "group": "Payments API SDKs",
                 "pages": [
                   "payments/en/developer-tools/quickstart-python",
+                  "payments/en/developer-tools/third-party-payout-python-sdk",
                   "payments/en/developer-tools/quickstart-java",
                   "payments/en/developer-tools/quickstart-go",
                   "payments/en/developer-tools/quickstart-javascript"
@@ -407,6 +408,7 @@
                 "group": "Payments API SDKs",
                 "pages": [
                   "payments/cn/developer-tools/quickstart-python",
+                  "payments/cn/developer-tools/third-party-payout-python-sdk",
                   "payments/cn/developer-tools/quickstart-java",
                   "payments/cn/developer-tools/quickstart-go",
                   "payments/cn/developer-tools/quickstart-javascript"
