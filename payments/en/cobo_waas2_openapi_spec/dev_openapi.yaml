@@ -11256,7 +11256,7 @@ components:
           format: uuid
           example: aff0e1cb-15b2-4e1f-9b9d-a9133715986f
         result:
-          $ref: '#/components/schemas/ApprovalResult'
+          $ref: '#/components/schemas/ApprovalTransactionResult'
         approval_result_code:
           type: integer
           description: Integer value representing the result of the approval.
@@ -17591,8 +17591,8 @@ components:
       properties:
         country:
           type: string
-          description: The country.
-          example: HK
+          description: 'The country, in ISO 3166-1 alpha-3 format.'
+          example: HKG
         state:
           type: string
           description: The state or province.
