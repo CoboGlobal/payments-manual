@@ -5,6 +5,8 @@ lang: "zh-hans"
 
 如果您是支付服务提供商（PSP）等平台机构，需要为多个下游商户提供服务，可以通过商户管理功能为每个商户独立进行收支管理，并通过设置开发者费率，实现与商户的自动化收入分成。
 
+如需查看在第三方资金转出流程中提交 merchant KYC 的 Python SDK 示例，请参阅[第三方资金转出 Python SDK 集成](/payments/cn/developer-tools/third-party-payouts-python-sdk)。
+
 当付款方完成一笔充值交易后，系统会根据该笔充值关联的商户及其配置的开发者费率，自动将资金结算至对应的商户账户和开发者账户。下图展示了充值模式下，系统自动将资金结算至对应账户的流程。订单模式使用独立的订单级费用，详见[订单模式收款](/payments/cn/guides/create-orders)和[账户与资金分配](/payments/cn/guides/amounts-and-balances)。
 ```mermaid
 %%{init: {'themeVariables': { 'fontSize': '12px'}}}%%
