@@ -1,0 +1,324 @@
+---
+title: "POBO（全球付款）"
+lang: "zh-hans"
+---
+
+POBO（Payouts on Behalf Of，全球付款）用于向与您不同主体的收款方支付法币，例如您的供应商、承包商或合作伙伴。您无需在当地自行持有银行账户：付款主体完成 [KYC](/payments/cn/guides/glossary#kyc) 审核后，Cobo 为其开立同名虚拟账户（VA），付款从该 VA 账户发出，收款方看到的汇款人即该主体本身。您从 Cobo 余额发起付款，资金经兑换后由该 VA 账户汇入收款方银行账户。
+
+发起 POBO 付款前需完成两项审核，两者互相独立：
+
+- **KYC 审核**：核验付款主体的身份与实际控制人，审核通过后为该主体开立同名 VA 账户。每个付款主体需单独提交。
+- **转出目的地审核**：提交收款银行账户的转账信息，每个收款银行账户单独审核。
+
+两项均可通过 API 提交；通过 Payments App 网页端提交预计于 2026 年 10 月支持。
+
+本指南介绍 POBO 流程在 Cobo WaaS 2.0 Python SDK（`cobo_waas2`）上的实现顺序：SDK 初始化、KYC 文件上传与信息提交（付款方）、收款银行账号文件上传与转出目的地创建（收款方），以及 Off-ramp 出金创建。
+
+本指南聚焦 SDK 集成顺序。概念说明和 API 操作字段规格请参考各章节链接的相关指南和 API 参考。
+
+## 前提条件
+
+- 您已完成 [Python SDK 快速入门](/payments/cn/developer-tools/quickstart-python)。
+- 您已获得初始化 SDK 所需的 API Private Key。
+- 您已获得 Payments API Host，例如开发环境 `https://api.dev.cobo.com/v2`。
+- 您已准备好付款主体和转出目的地所需的 KYC 文件及银行账户文件。
+
+## 配置 Python SDK
+
+使用您的 API Private Key 和 Payments API Host 初始化 `PaymentApi`。
+
+```python
+import cobo_waas2
+from cobo_waas2 import ApiClient
+from cobo_waas2.api.payment_api import PaymentApi
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="your_api_private_key",
+    host="https://api.dev.cobo.com/v2",
+)
+
+api_client = ApiClient(configuration)
+api_instance = PaymentApi(api_client)
+```
+
+## 集成流程
+
+<img src="/payments/cn/images/guides/pobo-flow.svg" className="diagram" alt="POBO 接入流程：一次性接入准备（登记汇款主体、登记收款银行账户），以及每次出金执行的循环" />
+
+1. 通过 [Upload file v2](/payments/en/api-references/payment/upload-file-v2) 上传 KYC 与银行账户文件，并保存返回的 `file_id`。
+2. 通过 [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) 提交 KYC 信息。
+3. 通过 [Create destination](/payments/en/api-references/payment/create-destination) 创建银行账户转出目的地。转出目的地概念和审核要求请参考[转出目的地](/payments/cn/guides/destinations)。
+4. 通过 [Create payout](/payments/en/api-references/payment/create-payout) 创建 Off-ramp 出金。出金行为说明请参考 [Off-Ramp 对接](/payments/cn/guides/fiat-payouts)。
+
+## 上传 KYC 与银行账户文件
+
+这一步把后续两步需要的文件一次性全部上传，并拿到每个文件的 `file_id`：提交 KYC 信息时引用公司与个人证明文件，创建银行账户转出目的地时引用银行账户文件。
+
+逐个读取本地文件，将内容编码为 Base64，通过 `upload_payment_file_v2` 上传，并保存响应返回的 `file_id`。
+
+请求和响应 Schema 请参考 [Upload file v2](/payments/en/api-references/payment/upload-file-v2)。
+
+```python
+import base64
+import os
+
+def create_file(file_path: str):
+    with open(file_path, "rb") as f:
+        file_bytes = f.read()
+
+    file_content = base64.b64encode(file_bytes).decode("ascii")
+    print(f"file size = {len(file_bytes)} bytes")
+    print(f"file_content size = {len(file_content)} bytes")
+
+    response = api_instance.upload_payment_file_v2(
+        payment_upload_file_v2=PaymentUploadFileV2(
+            file_name=os.path.basename(file_path),
+            file_content=file_content,
+        )
+    )
+    print(response)
+    return response
+```
+
+## 提交 KYC 信息
+
+KYC（Know Your Customer）核验的是发起出金的主体：确认它真实存在、由谁实际控制，以及是否可以经由 Cobo 出金。
+
+调用 `submit_merchant_kyc` 提交 KYC 信息。以下示例提交：
+
+- B2B 主体信息
+- 公司附件
+- 法人信息
+- 最终受益人信息
+
+完整 Schema 请参考 [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)。
+
+```python
+def submit_merchant_kyc():
+    file_id = "44444444-4444-4444-4444-444444444444"
+    card_front_file_id = "55555555-5555-5555-5555-555555555555"
+    card_back_file_id = "33333333-3333-3333-3333-333333333333"
+    fic_file_id = "11111111-1111-1111-1111-111111111111"
+
+    response = api_instance.submit_merchant_kyc(
+        merchant_id="M1001",
+        submit_merchant_kyc=SubmitMerchantKyc(
+            merchant_type=MerchantKycMerchantType.B2B,
+            country="HKG",
+            industry=["Tangibles Goods", "Automotive"],
+            company_info=MerchantKycCompanyInfo(
+                company_type=MerchantKycCompanyType.LIMITED_COMPANY,
+                listed=False,
+                attachments=[
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.CI,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.BR,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.NNC1,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.ANNUAL_RETURN,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.AOA,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.BAP,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.SSC,
+                    ),
+                ],
+                operation_address=MerchantKycAddress(
+                    country="HKG",
+                    state="New Territories",
+                    city="示例区",
+                    postcode="999077",
+                    line1="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+                ),
+                identify_no="12345678-000-11-25-A",
+                company_name="示例贸易有限公司",
+                company_name_en="Example Trading Limited",
+                establish_date="20200101",
+                commencement_date="20200101",
+                valid_period="20300101",
+                register_address=MerchantKycAddress(
+                    country="HKG",
+                    state="Hong Kong Island",
+                    city="示例区",
+                    postcode="999077",
+                    line1="Room 202, 2/F, Example Tower, 2 Example Street",
+                ),
+                legal_info=MerchantKycPersonInfo(
+                    name="陈大文",
+                    name_en="CHAN TAI MAN",
+                    attachments=[
+                        MerchantKycPersonAttachment(
+                            file_id=card_front_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.HK_PID,
+                        ),
+                        MerchantKycPersonAttachment(
+                            file_id=card_back_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.BACK,
+                        ),
+                        MerchantKycPersonAttachment(
+                            file_id=fic_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.FIC,
+                        ),
+                    ],
+                    id_number="A123456(7)",
+                    date_of_birth="19800101",
+                    issue_date="20200101",
+                    expiration_date="20300101",
+                    residential_address=MerchantKycAddress(
+                        country="HKG",
+                        state="New Territories",
+                        city="示例区",
+                        postcode="999077",
+                        line1="Flat A, 3/F, Example Court, 3 Example Avenue",
+                    ),
+                ),
+                ubo_infos=[
+                    MerchantKycPersonInfo(
+                        name="黄小明",
+                        name_en="WONG SIU MING",
+                        attachments=[
+                            MerchantKycPersonAttachment(
+                                file_id=card_front_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.HK_PID,
+                            ),
+                            MerchantKycPersonAttachment(
+                                file_id=card_back_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.BACK,
+                            ),
+                            MerchantKycPersonAttachment(
+                                file_id=fic_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.FIC,
+                            ),
+                        ],
+                        id_number="B234567(8)",
+                        date_of_birth="19900101",
+                        issue_date="20200101",
+                        expiration_date="20300101",
+                        residential_address=MerchantKycAddress(
+                            country="HKG",
+                            state="New Territories",
+                            city="示例区",
+                            postcode="999077",
+                            line1="Flat B, 4/F, Example Garden, 4 Example Lane",
+                        ),
+                    ),
+                ],
+                online_store_url="https://www.example.com",
+            ),
+        ),
+    )
+    print(response)
+    return response
+```
+
+<Note>提交后请联系 Cobo。Cobo 收到通知后才会启动 KYC 审核，审核通过后方可发起出金。</Note>
+
+## 创建银行账户转出目的地
+
+调用 `create_destination` 创建出金/下发的目标银行账户（Destination）。
+
+关键配置项：
+
+- **账户信息**：账号（`account_number`）、SWIFT Code、IBAN、币种（USD）、开户名（`beneficiary_name`）。
+- **银行详情**：银行名称、分行代码（`bank_branch_code`）、银行所在地址/国家/省份/城市。
+- **支付方式与持有者类型**：设置 `BankAccountPaymentMethod.SWIFT` 及 `BankAccountHolderType.COMPANY`。
+
+完整 Schema 请参考 [Create destination](/payments/en/api-references/payment/create-destination)。
+
+```python
+def create_bank_account():
+    response = api_instance.create_destination(
+        create_destination_request=CreateDestinationRequest(
+            destination_name="Example Trading USD payout",
+            destination_type=DestinationType.ORGANIZATION,
+            bank_accounts=[
+                CreateDestinationBankAccount(
+                    account_alias="example-trading-usd",
+                    account_number="0123456789012",
+                    swift_code="EXAMHKHHXXX",
+                    currency="USD",
+                    beneficiary_name="Example Trading Limited",
+                    beneficiary_address="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+                    bank_name="EXAMPLE BANK LIMITED",
+                    bank_address="1 Example Road, Example District, Hong Kong",
+                    iban_code="HK010123456789012345",
+                    country="HKG",
+                    city="Example District",
+                    payment_method=BankAccountPaymentMethod.SWIFT,
+                    holder_type=BankAccountHolderType.COMPANY,
+                    beneficiary_province="New Territories",
+                    beneficiary_post_code="999077",
+                    bank_account_name="Example Trading Limited",
+                    bank_branch_code="001",
+                    bank_country="HKG",
+                    bank_province="Hong Kong Island",
+                    bank_city="Example District",
+                    contract_file_id="11111111-1111-1111-1111-111111111111",
+                )
+            ],
+            merchant_id="M1008",
+            country="HKG",
+            email="finance@example.com",
+            contact_address="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+        )
+    )
+    print(response)
+    return response
+```
+
+<Note>提交后请联系 Cobo。Cobo 收到通知后才会启动 KYC 审核，审核通过后方可发起出金。</Note>
+
+## 发起 Off-ramp 出金
+
+调用 `create_payout` 提交出金请求。
+
+关键配置项：
+
+- **幂等控制**：生成唯一 `request_id`。
+- **出金渠道**：将 `payout_channel` 设置为 `PayoutChannel.OFFRAMP`。
+- **付款来源**：传入付款来源账户。
+- **收款账户**：在 `recipient_info.bank_account_id` 中引用目标银行账户。
+
+完整 Schema 请参考 [Create payout](/payments/en/api-references/payment/create-payout)。
+
+```python
+import uuid
+
+def create_payout():
+    response = api_instance.create_payout(
+        create_payout_request=CreatePayoutRequest(
+            request_id=str(uuid.uuid4()),
+            payout_channel=PayoutChannel.OFFRAMP,
+            source_account="M1001",
+            payout_params=[
+                PaymentPayoutParam(
+                    token_id="TTRON_USDT",
+                    amount="90",
+                )
+            ],
+            remark="test",
+            recipient_info=PaymentPayoutRecipientInfo(
+                currency="USD",
+                bank_account_id="22222222-2222-2222-2222-222222222222",
+            ),
+        )
+    )
+    print(response)
+    return response
+```

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="424" viewBox="0 0 960 424" role="img" aria-label="POBO integration flow: phase one is a one-time setup where you register the entity you pay from and complete its KYC and register the recipient bank account, which needs no KYC; phase two repeats for every payout, where you submit the instruction, Cobo reviews it, and the recipient bank account receives USD.">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8A94A6"/></marker></defs>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<rect x="10" y="10" width="940" height="400" rx="14" fill="#FFFFFF" stroke="#DBE0EA" stroke-width="1"/>
+<text x="480" y="44" text-anchor="middle" font-size="15" font-weight="600" fill="#1F32D6">1. One-time setup</text>
+
+<rect x="60" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="250" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">Register the entity you pay from</text>
+<text x="250" y="112" text-anchor="middle" font-size="12" fill="#5A6490">KYC review required</text>
+<text x="250" y="129" text-anchor="middle" font-size="12" fill="#5A6490">Documents submitted via API</text>
+
+<rect x="520" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="710" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">Register the recipient bank account</text>
+<text x="710" y="112" text-anchor="middle" font-size="12" fill="#5A6490">No KYC for the recipient</text>
+<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">Cobo verifies the bank, no sanctioned regions</text>
+
+<line x1="480" y1="140" x2="480" y2="174" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+
+<text x="480" y="200" text-anchor="middle" font-size="15" font-weight="600" fill="#1F32D6">2. Each payout (repeats)</text>
+
+<rect x="50" y="218" width="240" height="70" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="170" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">Submit instruction</text>
+<text x="170" y="269" text-anchor="middle" font-size="12" fill="#5A6490">Choose entity + recipient</text>
+
+<rect x="360" y="218" width="240" height="70" rx="9" fill="#1F32D6" stroke="#1F32D6" stroke-width="1"/>
+<text x="480" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#FFFFFF">Cobo reviews</text>
+<text x="480" y="269" text-anchor="middle" font-size="12" fill="#D6DBFA">Checks registered details</text>
+
+<rect x="670" y="218" width="240" height="70" rx="9" fill="#E8F5EE" stroke="#A8D8BE" stroke-width="1"/>
+<text x="790" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#1D6B46">Recipient bank account</text>
+<text x="790" y="269" text-anchor="middle" font-size="12" fill="#3E8A67">Receives USD</text>
+
+<line x1="290" y1="253" x2="360" y2="253" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="600" y1="253" x2="670" y2="253" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M790 288L790 316L170 316L170 288" fill="none" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="480" y="335" text-anchor="middle" font-size="12" font-style="italic" fill="#5A6490">Repeats for every payout</text>
+
+<rect x="60" y="352" width="840" height="44" rx="8" fill="#F4F6FA" stroke="#DBE0EA" stroke-width="1"/>
+<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">The remitting entity submits its KYC information through Cobo. Recipients hold no Cobo account and do no KYC.</text>
+</g>
+</svg>
