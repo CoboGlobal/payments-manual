@@ -77,7 +77,12 @@ def create_file(file_path: str):
 
 KYC (Know Your Customer) verifies the entity the payout comes from: that it is real, who ultimately controls it, and whether it can pay out through Cobo.
 
-Call `submit_merchant_kyc` to submit KYC information. The example submits B2B entity information, company attachments, legal representative information, and ultimate beneficial owner information.
+Call `submit_merchant_kyc` to submit KYC information. The example submits:
+
+- B2B entity information
+- Company attachments
+- Legal representative information
+- Ultimate beneficial owner information
 
 See [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) for the complete schema.
 
@@ -274,7 +279,14 @@ def create_bank_account():
 
 ## Create an Off-ramp payout
 
-Call `create_payout` to submit the payout request. Generate a unique `request_id` for idempotency, set `payout_channel` to `PayoutChannel.OFFRAMP`, provide the source account, and reference the destination bank account in `recipient_info.bank_account_id`.
+Call `create_payout` to submit the payout request.
+
+Key settings:
+
+- **Idempotency**: generate a unique `request_id`.
+- **Payout channel**: set `payout_channel` to `PayoutChannel.OFFRAMP`.
+- **Source account**: provide the account the funds come from.
+- **Destination account**: reference the destination bank account in `recipient_info.bank_account_id`.
 
 See [Create payout](/payments/en/api-references/payment/create-payout) for the complete schema.
 
@@ -303,13 +315,3 @@ def create_payout():
     print(response)
     return response
 ```
-
-## Related documentation
-
-- [Python SDK quickstart](/payments/en/developer-tools/quickstart-python)
-- [Destinations](/payments/en/guides/destinations)
-- [Off-ramp](/payments/en/guides/fiat-payouts)
-- [Upload file v2](/payments/en/api-references/payment/upload-file-v2)
-- [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)
-- [Create destination](/payments/en/api-references/payment/create-destination)
-- [Create payout](/payments/en/api-references/payment/create-payout)

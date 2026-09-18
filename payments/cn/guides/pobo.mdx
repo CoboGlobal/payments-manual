@@ -79,7 +79,12 @@ def create_file(file_path: str):
 
 KYC（Know Your Customer）核验的是发起出金的主体：确认它真实存在、由谁实际控制，以及是否可以经由 Cobo 出金。
 
-调用 `submit_merchant_kyc` 提交 KYC 信息。以下示例提交 B2B 主体信息、公司附件、法人信息和最终受益人信息。
+调用 `submit_merchant_kyc` 提交 KYC 信息。以下示例提交：
+
+- B2B 主体信息
+- 公司附件
+- 法人信息
+- 最终受益人信息
 
 完整 Schema 请参考 [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)。
 
@@ -137,7 +142,7 @@ def submit_merchant_kyc():
                     line1="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
                 ),
                 identify_no="12345678-000-11-25-A",
-                company_name="示例貿易有限公司",
+                company_name="示例贸易有限公司",
                 company_name_en="Example Trading Limited",
                 establish_date="20200101",
                 commencement_date="20200101",
@@ -150,7 +155,7 @@ def submit_merchant_kyc():
                     line1="Room 202, 2/F, Example Tower, 2 Example Street",
                 ),
                 legal_info=MerchantKycPersonInfo(
-                    name="陳大文",
+                    name="陈大文",
                     name_en="CHAN TAI MAN",
                     attachments=[
                         MerchantKycPersonAttachment(
@@ -180,7 +185,7 @@ def submit_merchant_kyc():
                 ),
                 ubo_infos=[
                     MerchantKycPersonInfo(
-                        name="黃小明",
+                        name="黄小明",
                         name_en="WONG SIU MING",
                         attachments=[
                             MerchantKycPersonAttachment(
@@ -276,7 +281,14 @@ def create_bank_account():
 
 ## 发起 Off-ramp 出金
 
-调用 `create_payout` 提交出金请求。生成唯一 `request_id` 用于幂等控制，将 `payout_channel` 设置为 `PayoutChannel.OFFRAMP`，传入付款来源账户，并在 `recipient_info.bank_account_id` 中引用目标银行账户。
+调用 `create_payout` 提交出金请求。
+
+关键配置项：
+
+- **幂等控制**：生成唯一 `request_id`。
+- **出金渠道**：将 `payout_channel` 设置为 `PayoutChannel.OFFRAMP`。
+- **付款来源**：传入付款来源账户。
+- **收款账户**：在 `recipient_info.bank_account_id` 中引用目标银行账户。
 
 完整 Schema 请参考 [Create payout](/payments/en/api-references/payment/create-payout)。
 
@@ -305,13 +317,3 @@ def create_payout():
     print(response)
     return response
 ```
-
-## 相关文档
-
-- [Python SDK 快速入门](/payments/cn/developer-tools/quickstart-python)
-- [转出目的地](/payments/cn/guides/destinations)
-- [Off-Ramp 对接](/payments/cn/guides/fiat-payouts)
-- [Upload file v2](/payments/en/api-references/payment/upload-file-v2)
-- [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)
-- [Create destination](/payments/en/api-references/payment/create-destination)
-- [Create payout](/payments/en/api-references/payment/create-payout)
