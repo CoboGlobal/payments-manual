@@ -12,14 +12,14 @@ Two reviews must pass before you can create a POBO payout, and they are independ
 
 Both can be submitted through the API. Submission through the Payments App web interface is expected in October 2026.
 
-This guide shows the POBO implementation sequence with the Cobo WaaS 2.0 Python SDK (`cobo_waas2`): SDK initialization, KYC and bank account document upload, KYC submission, bank-account destination creation, and Off-ramp payout creation. For concept details and operation-specific schemas, use the related guides and API references linked from each section.
+This guide shows the POBO implementation sequence with the Cobo WaaS 2.0 Python SDK (`cobo_waas2`): SDK initialization, merchant KYC document upload and submission (the payer side), recipient bank account document upload and destination creation (the payee side), and Off-ramp payout creation. For concept details and operation-specific schemas, use the related guides and API references linked from each section.
 
 ## Prerequisites
 
 - You have completed the [Python SDK quickstart](/payments/en/developer-tools/quickstart-python).
 - You have the API private key required to initialize the SDK.
-- You have a Payments API host, such as `https://api.sandbox.cobo.com/v2` for Sandbox.
-- You have prepared the KYC documents and bank account documents required for the entity and payout destination.
+- You have a Payments API host, such as `https://api.dev.cobo.com/v2` for Development.
+- You have prepared the KYC documents and bank account documents required for the merchant entity and the payout destination.
 
 ## Configure the Python SDK
 
@@ -32,7 +32,7 @@ from cobo_waas2.api.payment_api import PaymentApi
 
 configuration = cobo_waas2.Configuration(
     api_private_key="your_api_private_key",
-    host="https://api.sandbox.cobo.com/v2",
+    host="https://api.dev.cobo.com/v2",
 )
 
 api_client = ApiClient(configuration)
