@@ -1,0 +1,309 @@
+---
+title: "Payouts on behalf of (POBO)"
+lang: "en"
+---
+
+Payouts on behalf of (POBO) lets you pay your counterparties in fiat without holding bank accounts or local payment rails yourself. You instruct the payout from your Cobo balance, and the funds are converted and transferred to the recipient's bank account. Both sides are verified first: your business through [KYC](/payments/en/guides/glossary#kyc) (verifying the entity's identity and who controls it), and each recipient bank account through destination review.
+
+Typical uses are paying suppliers, contractors, or partners in markets where you have no banking presence.
+
+This guide shows the POBO implementation sequence with the Cobo WaaS 2.0 Python SDK (`cobo_waas2`): SDK initialization, KYC and bank account document upload, KYC submission, bank-account destination creation, and Off-ramp payout creation. For concept details and operation-specific schemas, use the related guides and API references linked from each section.
+
+## Prerequisites
+
+- You have completed the [Python SDK quickstart](/payments/en/developer-tools/quickstart-python).
+- You have the API private key required to initialize the SDK.
+- You have a Payments API host, such as `https://api.sandbox.cobo.com/v2` for Sandbox.
+- You have prepared the KYC documents and bank account documents required for the entity and payout destination.
+
+## Configure the Python SDK
+
+Initialize `PaymentApi` with your API private key and Payments API host.
+
+```python
+import cobo_waas2
+from cobo_waas2 import ApiClient
+from cobo_waas2.api.payment_api import PaymentApi
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="your_api_private_key",
+    host="https://api.sandbox.cobo.com/v2",
+)
+
+api_client = ApiClient(configuration)
+api_instance = PaymentApi(api_client)
+```
+
+## Integration workflow
+
+<img src="/payments/en/images/guides/pobo-flow.svg" className="diagram" alt="POBO integration flow: a one-time setup registering the entity you pay from and the recipient bank account, then a per-payout loop" />
+
+1. Upload KYC and bank account documents with [Upload file v2](/payments/en/api-references/payment/upload-file-v2) and save the returned `file_id` values.
+2. Submit KYC information with [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc).
+3. Create a bank-account destination with [Create destination](/payments/en/api-references/payment/create-destination). For destination concepts and review requirements, see [Destinations](/payments/en/guides/destinations).
+4. Create an Off-ramp payout with [Create payout](/payments/en/api-references/payment/create-payout). For payout behavior, see [Off-ramp](/payments/en/guides/fiat-payouts).
+
+## Upload KYC and bank account documents
+
+This step uploads every document the next two steps need and collects a `file_id` for each: the company and personal documents referenced when you submit KYC information, and the bank account documents referenced when you create a bank-account destination.
+
+Read each local document, encode it as Base64, upload it with `upload_payment_file_v2`, and save the `file_id` from the response.
+
+See [Upload file v2](/payments/en/api-references/payment/upload-file-v2) for the request and response schema.
+
+```python
+import base64
+import os
+
+def create_file(file_path: str):
+    with open(file_path, "rb") as f:
+        file_bytes = f.read()
+
+    file_content = base64.b64encode(file_bytes).decode("ascii")
+    print(f"file size = {len(file_bytes)} bytes")
+    print(f"file_content size = {len(file_content)} bytes")
+
+    response = api_instance.upload_payment_file_v2(
+        payment_upload_file_v2=PaymentUploadFileV2(
+            file_name=os.path.basename(file_path),
+            file_content=file_content,
+        )
+    )
+    print(response)
+    return response
+```
+
+## Submit KYC information
+
+KYC (Know Your Customer) verifies the entity the payout comes from: that it is real, who ultimately controls it, and whether it can pay out through Cobo.
+
+Call `submit_merchant_kyc` to submit KYC information. The example submits B2B entity information, company attachments, legal representative information, and ultimate beneficial owner information.
+
+See [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) for the complete schema.
+
+```python
+def submit_merchant_kyc():
+    file_id = "44444444-4444-4444-4444-444444444444"
+    card_front_file_id = "55555555-5555-5555-5555-555555555555"
+    card_back_file_id = "33333333-3333-3333-3333-333333333333"
+    fic_file_id = "11111111-1111-1111-1111-111111111111"
+
+    response = api_instance.submit_merchant_kyc(
+        merchant_id="M1001",
+        submit_merchant_kyc=SubmitMerchantKyc(
+            merchant_type=MerchantKycMerchantType.B2B,
+            country="HKG",
+            industry=["Tangibles Goods", "Automotive"],
+            company_info=MerchantKycCompanyInfo(
+                company_type=MerchantKycCompanyType.LIMITED_COMPANY,
+                listed=False,
+                attachments=[
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.CI,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.BR,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.NNC1,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.ANNUAL_RETURN,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.AOA,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.BAP,
+                    ),
+                    MerchantKycCompanyAttachment(
+                        file_id=file_id,
+                        file_type=MerchantKycCompanyAttachmentFileType.SSC,
+                    ),
+                ],
+                operation_address=MerchantKycAddress(
+                    country="HKG",
+                    state="New Territories",
+                    city="Example District",
+                    postcode="999077",
+                    line1="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+                ),
+                identify_no="12345678-000-11-25-A",
+                company_name="Example Trading Limited",
+                company_name_en="Example Trading Limited",
+                establish_date="20200101",
+                commencement_date="20200101",
+                valid_period="20300101",
+                register_address=MerchantKycAddress(
+                    country="HKG",
+                    state="Hong Kong Island",
+                    city="Example District",
+                    postcode="999077",
+                    line1="Room 202, 2/F, Example Tower, 2 Example Street",
+                ),
+                legal_info=MerchantKycPersonInfo(
+                    name="Chan Tai Man",
+                    name_en="CHAN TAI MAN",
+                    attachments=[
+                        MerchantKycPersonAttachment(
+                            file_id=card_front_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.HK_PID,
+                        ),
+                        MerchantKycPersonAttachment(
+                            file_id=card_back_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.BACK,
+                        ),
+                        MerchantKycPersonAttachment(
+                            file_id=fic_file_id,
+                            file_type=MerchantKycPersonAttachmentFileType.FIC,
+                        ),
+                    ],
+                    id_number="A123456(7)",
+                    date_of_birth="19800101",
+                    issue_date="20200101",
+                    expiration_date="20300101",
+                    residential_address=MerchantKycAddress(
+                        country="HKG",
+                        state="New Territories",
+                        city="Example District",
+                        postcode="999077",
+                        line1="Flat A, 3/F, Example Court, 3 Example Avenue",
+                    ),
+                ),
+                ubo_infos=[
+                    MerchantKycPersonInfo(
+                        name="Wong Siu Ming",
+                        name_en="WONG SIU MING",
+                        attachments=[
+                            MerchantKycPersonAttachment(
+                                file_id=card_front_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.HK_PID,
+                            ),
+                            MerchantKycPersonAttachment(
+                                file_id=card_back_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.BACK,
+                            ),
+                            MerchantKycPersonAttachment(
+                                file_id=fic_file_id,
+                                file_type=MerchantKycPersonAttachmentFileType.FIC,
+                            ),
+                        ],
+                        id_number="B234567(8)",
+                        date_of_birth="19900101",
+                        issue_date="20200101",
+                        expiration_date="20300101",
+                        residential_address=MerchantKycAddress(
+                            country="HKG",
+                            state="New Territories",
+                            city="Example District",
+                            postcode="999077",
+                            line1="Flat B, 4/F, Example Garden, 4 Example Lane",
+                        ),
+                    ),
+                ],
+                online_store_url="https://www.example.com",
+            ),
+        ),
+    )
+    print(response)
+    return response
+```
+
+<Note>Contact Cobo after you submit. Cobo starts the KYC review once notified, and you can only create payouts after it passes.</Note>
+
+## Create a bank-account destination
+
+Call `create_destination` to create the bank-account destination used by an Off-ramp payout. The example uses a company bank account with `BankAccountPaymentMethod.SWIFT` and `BankAccountHolderType.COMPANY`.
+
+See [Create destination](/payments/en/api-references/payment/create-destination) for the complete schema.
+
+```python
+def create_bank_account():
+    response = api_instance.create_destination(
+        create_destination_request=CreateDestinationRequest(
+            destination_name="Example Trading USD payout",
+            destination_type=DestinationType.ORGANIZATION,
+            bank_accounts=[
+                CreateDestinationBankAccount(
+                    account_alias="example-trading-usd",
+                    account_number="0123456789012",
+                    swift_code="EXAMHKHHXXX",
+                    currency="USD",
+                    beneficiary_name="Example Trading Limited",
+                    beneficiary_address="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+                    bank_name="EXAMPLE BANK LIMITED",
+                    bank_address="1 Example Road, Example District, Hong Kong",
+                    iban_code="HK010123456789012345",
+                    country="HKG",
+                    city="Example District",
+                    payment_method=BankAccountPaymentMethod.SWIFT,
+                    holder_type=BankAccountHolderType.COMPANY,
+                    beneficiary_province="New Territories",
+                    beneficiary_post_code="999077",
+                    bank_account_name="Example Trading Limited",
+                    bank_branch_code="001",
+                    bank_country="HKG",
+                    bank_province="Hong Kong Island",
+                    bank_city="Example District",
+                    contract_file_id="11111111-1111-1111-1111-111111111111",
+                )
+            ],
+            merchant_id="M1008",
+            country="HKG",
+            email="finance@example.com",
+            contact_address="Unit 101, 1/F, Example Commercial Building, 1 Example Road",
+        )
+    )
+    print(response)
+    return response
+```
+
+<Note>Contact Cobo after you submit. Cobo starts the KYC review once notified, and you can only create payouts after it passes.</Note>
+
+## Create an Off-ramp payout
+
+Call `create_payout` to submit the payout request. Generate a unique `request_id` for idempotency, set `payout_channel` to `PayoutChannel.OFFRAMP`, provide the source account, and reference the destination bank account in `recipient_info.bank_account_id`.
+
+See [Create payout](/payments/en/api-references/payment/create-payout) for the complete schema.
+
+```python
+import uuid
+
+def create_payout():
+    response = api_instance.create_payout(
+        create_payout_request=CreatePayoutRequest(
+            request_id=str(uuid.uuid4()),
+            payout_channel=PayoutChannel.OFFRAMP,
+            source_account="M1001",
+            payout_params=[
+                PaymentPayoutParam(
+                    token_id="TTRON_USDT",
+                    amount="90",
+                )
+            ],
+            remark="test",
+            recipient_info=PaymentPayoutRecipientInfo(
+                currency="USD",
+                bank_account_id="22222222-2222-2222-2222-222222222222",
+            ),
+        )
+    )
+    print(response)
+    return response
+```
+
+## Related documentation
+
+- [Python SDK quickstart](/payments/en/developer-tools/quickstart-python)
+- [Destinations](/payments/en/guides/destinations)
+- [Off-ramp](/payments/en/guides/fiat-payouts)
+- [Upload file v2](/payments/en/api-references/payment/upload-file-v2)
+- [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)
+- [Create destination](/payments/en/api-references/payment/create-destination)
+- [Create payout](/payments/en/api-references/payment/create-payout)

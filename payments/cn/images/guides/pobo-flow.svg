@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="424" viewBox="0 0 960 424" role="img" aria-label="POBO 接入流程：第一阶段一次性接入准备，登记汇款主体并完成其 KYC 审核，登记收款银行账户且收款方无需 KYC；第二阶段每次出金循环执行，提交下发指令、Cobo 审核、收款方银行账户收到 USD 款项。">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8A94A6"/></marker></defs>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<rect x="10" y="10" width="940" height="400" rx="14" fill="#FFFFFF" stroke="#DBE0EA" stroke-width="1"/>
+<text x="480" y="44" text-anchor="middle" font-size="15" font-weight="600" fill="#1F32D6">① 一次性接入准备</text>
+
+<rect x="60" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="250" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">登记汇款主体</text>
+<text x="250" y="112" text-anchor="middle" font-size="12" fill="#5A6490">需完成 KYC 审核</text>
+<text x="250" y="129" text-anchor="middle" font-size="12" fill="#5A6490">基础材料可通过 API 提交</text>
+
+<rect x="520" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="710" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">登记收款银行账户</text>
+<text x="710" y="112" text-anchor="middle" font-size="12" fill="#5A6490">收款方无需 KYC，由 Cobo 核验该银行</text>
+<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">且不可为受限地区</text>
+
+<line x1="480" y1="140" x2="480" y2="174" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+
+<text x="480" y="200" text-anchor="middle" font-size="15" font-weight="600" fill="#1F32D6">② 每次出金执行（循环进行）</text>
+
+<rect x="50" y="218" width="240" height="70" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
+<text x="170" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">提交下发指令</text>
+<text x="170" y="269" text-anchor="middle" font-size="12" fill="#5A6490">选定汇款主体 + 收款方</text>
+
+<rect x="360" y="218" width="240" height="70" rx="9" fill="#1F32D6" stroke="#1F32D6" stroke-width="1"/>
+<text x="480" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#FFFFFF">Cobo 审核</text>
+<text x="480" y="269" text-anchor="middle" font-size="12" fill="#D6DBFA">核对登记信息</text>
+
+<rect x="670" y="218" width="240" height="70" rx="9" fill="#E8F5EE" stroke="#A8D8BE" stroke-width="1"/>
+<text x="790" y="248" text-anchor="middle" font-size="14" font-weight="600" fill="#1D6B46">收款方银行账户</text>
+<text x="790" y="269" text-anchor="middle" font-size="12" fill="#3E8A67">收到 USD 款项</text>
+
+<line x1="290" y1="253" x2="360" y2="253" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<line x1="600" y1="253" x2="670" y2="253" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<path d="M790 288L790 316L170 316L170 288" fill="none" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
+<text x="480" y="335" text-anchor="middle" font-size="12" font-style="italic" fill="#5A6490">每笔出金重复此流程</text>
+
+<rect x="60" y="352" width="840" height="44" rx="8" fill="#F4F6FA" stroke="#DBE0EA" stroke-width="1"/>
+<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">需要 KYC 的是您用于出金的主体；收款方不在 Cobo 开户，也不做 KYC。</text>
+</g>
+</svg>
