@@ -221,7 +221,13 @@ def submit_merchant_kyc():
 
 ## 创建银行账户转出目的地
 
-调用 `create_destination` 创建 Off-ramp 出金使用的银行账户转出目的地。以下示例使用公司银行账户，并设置 `BankAccountPaymentMethod.SWIFT` 和 `BankAccountHolderType.COMPANY`。
+调用 `create_destination` 创建出金/下发的目标银行账户（Destination）。
+
+关键配置项：
+
+- **账户信息**：账号（`account_number`）、SWIFT Code、IBAN、币种（USD）、开户名（`beneficiary_name`）。
+- **银行详情**：银行名称、分行代码（`bank_branch_code`）、银行所在地址/国家/省份/城市。
+- **支付方式与持有者类型**：设置 `BankAccountPaymentMethod.SWIFT` 及 `BankAccountHolderType.COMPANY`。
 
 完整 Schema 请参考 [Create destination](/payments/en/api-references/payment/create-destination)。
 

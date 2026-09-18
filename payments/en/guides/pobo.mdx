@@ -219,7 +219,13 @@ def submit_merchant_kyc():
 
 ## Create a bank-account destination
 
-Call `create_destination` to create the bank-account destination used by an Off-ramp payout. The example uses a company bank account with `BankAccountPaymentMethod.SWIFT` and `BankAccountHolderType.COMPANY`.
+Call `create_destination` to create the destination bank account for a payout.
+
+Key settings:
+
+- **Account details**: account number (`account_number`), SWIFT code, IBAN, currency (USD), and account holder name (`beneficiary_name`).
+- **Bank details**: bank name, branch code (`bank_branch_code`), and the bank's address, country, province, and city.
+- **Payment method and holder type**: set `BankAccountPaymentMethod.SWIFT` and `BankAccountHolderType.COMPANY`.
 
 See [Create destination](/payments/en/api-references/payment/create-destination) for the complete schema.
 
