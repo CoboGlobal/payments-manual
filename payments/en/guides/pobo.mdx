@@ -3,23 +3,23 @@ title: "Payouts on behalf of (POBO)"
 lang: "en"
 ---
 
-Payouts on behalf of (POBO) pays fiat to recipients that are separate entities from you, such as your suppliers, contractors, or partners. You do not need to hold a local bank account yourself: once a merchant passes [KYC](/payments/en/guides/glossary#kyc) review, Cobo opens a virtual account (VA) in that merchant's own name, payouts are sent from that VA, and the recipient sees the merchant entity itself as the remitter. You instruct the payout from your Cobo balance, and the funds are converted and transferred from that VA to the recipient's bank account.
+Payouts on behalf of (POBO) pays fiat to recipients that are separate entities from you, such as your suppliers, contractors, or partners. You do not need to hold a local bank account yourself: once the paying entity passes [KYC](/payments/en/guides/glossary#kyc) review, Cobo opens a virtual account (VA) in that entity's own name, payouts are sent from that VA, and the recipient sees that entity itself as the remitter. You instruct the payout from your Cobo balance, and the funds are converted and transferred from that VA to the recipient's bank account.
 
 Two reviews must pass before you can create a POBO payout, and they are independent of each other:
 
-- **Merchant KYC**: verifies the paying merchant's identity and who ultimately controls it. On approval, Cobo opens a VA in that merchant's name. Submit it separately for each paying merchant.
+- **KYC review**: verifies the paying entity's identity and who ultimately controls it. On approval, Cobo opens a VA in that entity's name. Submit it separately for each paying entity.
 - **Destination review**: submit the recipient bank account's transfer details. Each recipient bank account is reviewed separately.
 
 Both can be submitted through the API. Submission through the Payments App web interface is expected in October 2026.
 
-This guide shows the POBO implementation sequence with the Cobo WaaS 2.0 Python SDK (`cobo_waas2`): SDK initialization, merchant KYC document upload and submission (the payer side), recipient bank account document upload and destination creation (the payee side), and Off-ramp payout creation. For concept details and operation-specific schemas, use the related guides and API references linked from each section.
+This guide shows the POBO implementation sequence with the Cobo WaaS 2.0 Python SDK (`cobo_waas2`): SDK initialization, KYC document upload and submission (the payer side), recipient bank account document upload and destination creation (the payee side), and Off-ramp payout creation. For concept details and operation-specific schemas, use the related guides and API references linked from each section.
 
 ## Prerequisites
 
 - You have completed the [Python SDK quickstart](/payments/en/developer-tools/quickstart-python).
 - You have the API private key required to initialize the SDK.
 - You have a Payments API host, such as `https://api.dev.cobo.com/v2` for Development.
-- You have prepared the KYC documents and bank account documents required for the merchant entity and the payout destination.
+- You have prepared the KYC documents and bank account documents required for the paying entity and the payout destination.
 
 ## Configure the Python SDK
 
