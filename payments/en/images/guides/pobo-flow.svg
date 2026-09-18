@@ -12,7 +12,7 @@
 <rect x="520" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
 <text x="710" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">Register the recipient bank account</text>
 <text x="710" y="112" text-anchor="middle" font-size="12" fill="#5A6490">No KYC for the recipient</text>
-<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">Cobo verifies the bank, no restricted regions</text>
+<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">Cobo verifies the bank, no sanctioned regions</text>
 
 <line x1="480" y1="140" x2="480" y2="174" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
 
@@ -36,6 +36,6 @@
 <text x="480" y="335" text-anchor="middle" font-size="12" font-style="italic" fill="#5A6490">Repeats for every payout</text>
 
 <rect x="60" y="352" width="840" height="44" rx="8" fill="#F4F6FA" stroke="#DBE0EA" stroke-width="1"/>
-<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">KYC applies to the entity you pay from. Recipients hold no Cobo account and do no KYC.</text>
+<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">The remitting entity submits its KYC information through Cobo. Recipients hold no Cobo account and do no KYC.</text>
 </g>
 </svg>

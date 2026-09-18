@@ -12,7 +12,7 @@
 <rect x="520" y="64" width="380" height="76" rx="9" fill="#EEF1FD" stroke="#C3CBF5" stroke-width="1"/>
 <text x="710" y="91" text-anchor="middle" font-size="14" font-weight="600" fill="#1B2A7A">登记收款银行账户</text>
 <text x="710" y="112" text-anchor="middle" font-size="12" fill="#5A6490">收款方无需 KYC，由 Cobo 核验该银行</text>
-<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">且不可为受限地区</text>
+<text x="710" y="129" text-anchor="middle" font-size="12" fill="#5A6490">且不可为受制裁地区</text>
 
 <line x1="480" y1="140" x2="480" y2="174" stroke="#8A94A6" stroke-width="1.4" marker-end="url(#a)"/>
 
@@ -36,6 +36,6 @@
 <text x="480" y="335" text-anchor="middle" font-size="12" font-style="italic" fill="#5A6490">每笔出金重复此流程</text>
 
 <rect x="60" y="352" width="840" height="44" rx="8" fill="#F4F6FA" stroke="#DBE0EA" stroke-width="1"/>
-<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">需要 KYC 的是您用于出金的主体；收款方不在 Cobo 开户，也不做 KYC。</text>
+<text x="480" y="379" text-anchor="middle" font-size="12.5" fill="#4A5568">汇款方需通过 Cobo 提交 KYC 主体信息；收款方不在 Cobo 开户，也不做 KYC。</text>
 </g>
 </svg>
