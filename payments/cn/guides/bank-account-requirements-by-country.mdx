@@ -1,0 +1,82 @@
+---
+title: "各国家和地区银行账户要求"
+lang: "zh-hans"
+---
+
+银行账户转出目的地用于识别法币出金的收款账户。`Create destination` 请求在各支持国家和地区使用相同字段名，但 SWIFT 银行账户要求在 `iban_code`、`routing_value` 和 `bank_country` 等字段上存在差异。
+
+本指南覆盖 `HKG`、`TWN`、`MYS`、`PHL`、`IDN`、`VNM`、`THA`、`SGP`、`GBR` 和 `MEX` 的 SWIFT 银行账户要求。
+
+## 前提条件
+
+- 在创建 POBO 付款前，创建付款主体并完成 KYC。如需查看 KYC 国家和地区差异，请参考[各国家和地区 KYC 要求](/payments/cn/guides/kyc-requirements-by-country)。
+- 通过 [Upload file v2](/payments/en/api-references/payment/upload-file-v2) 上传银行账户文件，并将返回的 `file_id` 作为 `contract_file_id`。
+- 通过 [Create destination](/payments/en/api-references/payment/create-destination) 创建银行账户转出目的地。
+- 如需查看转出目的地概念和审核行为，请参考[转出目的地](/payments/cn/guides/destinations)。
+
+## 共享转出目的地请求结构
+
+为 POBO 银行账户转出目的地使用以下 destination type 和 holder type。
+
+| 业务类型 | `destination_type` | `holder_type` |
+| --- | --- | --- |
+| B2B 公司 | `Organization` | `Company` |
+| B2C 个人 | `Individual` | `Personal` |
+
+顶层 `CreateDestinationRequest` 需要提供转出目的地名称、转出目的地类型、银行账户列表、商户 ID、受益人国家或地区、联系邮箱和联系地址。
+
+| 字段 | 要求 |
+| --- | --- |
+| `destination_name` | 必传。用于识别转出目的地的名称。 |
+| `destination_type` | 必传。B2B 使用 `Organization`，B2C 使用 `Individual`。 |
+| `bank_accounts` | 必传。银行账户对象列表。 |
+| `merchant_id` | 必传。与转出目的地关联的商户 ID。 |
+| `country` | 必传。受益人国家或地区，使用 ISO3 格式。 |
+| `email` | 必传。转出目的地联系人邮箱。 |
+| `contact_address` | 必传。转出目的地联系地址。 |
+
+## SWIFT 银行账户要求
+
+对于 SWIFT 银行账户转出目的地，将 `payment_method` 设置为 `Swift`。
+
+| 字段 | 要求 |
+| --- | --- |
+| `account_alias` | 必传。用于识别账户的别名。 |
+| `account_number` | 必传。银行账号。 |
+| `swift_code` | 必传。SWIFT code。 |
+| `currency` | 必传。使用 `USD`。 |
+| `beneficiary_name` | 必传。受益人名称。请勿使用中文字符或数字。 |
+| `beneficiary_address` | 必传。受益人地址。 |
+| `bank_name` | 必传。银行名称。 |
+| `bank_address` | 必传。银行地址。 |
+| `holder_type` | 必传。B2B 使用 `Company`，B2C 使用 `Personal`。 |
+| `payment_method` | 必传。使用 `Swift`。 |
+| `bank_account_name` | 必传。银行账户名。请勿使用中文字符。 |
+| `country` | 必传。受益人国家或地区，使用 ISO3 格式。 |
+| `city` | 必传。受益人城市。 |
+| `beneficiary_province` | 必传。受益人省份或州。 |
+| `beneficiary_post_code` | 必传。受益人邮编。 |
+| `bank_country` | 必传。开户行国家或地区。 |
+| `bank_province` | 必传。开户行省份或州。 |
+| `contract_file_id` | 必传。已上传银行账户文件的 file ID。 |
+| `iban_code` | `HKG` 基准下不提供。`GBR` 必传。 |
+| `routing_value` | `HKG` 基准下不提供。 |
+
+## 国家和地区特定要求
+
+| 国家或地区 | 相对 `HKG` 的字段差异 | 格式或枚举要求 | `bank_country` |
+| --- | --- | --- | --- |
+| `HKG` | 基准。不提供 `iban_code` 或 `routing_value`。 | `payment_method` 为 `Swift`。 | `HKG` |
+| `TWN` | 无字段差异。 | 与 `HKG` 一致。 | `TWN` |
+| `MYS` | 无字段差异。 | 与 `HKG` 一致。 | `MYS` |
+| `PHL` | 无字段差异。 | 与 `HKG` 一致。 | `PHL` |
+| `IDN` | 无字段差异。 | 与 `HKG` 一致。 | `IDN` |
+| `VNM` | 无字段差异。 | 与 `HKG` 一致。 | `VNM` |
+| `THA` | 无字段差异。 | 与 `HKG` 一致。 | `THA` |
+| `SGP` | 无字段差异。 | 与 `HKG` 一致。 | `SGP` |
+| `MEX` | 无字段差异。 | 与 `HKG` 一致。 | `MEX` |
+| `GBR` | 提供 `iban_code`。 | `account_number` 必须为 8 位数字。`iban_code` 必须以 `GB` 开头。 | `GBR` |
+
+## 下一步
+
+银行账户转出目的地通过审核后，创建 Off-ramp 出金。如需查看完整 POBO 流程，请参考 [POBO（全球付款）](/payments/cn/guides/pobo)。

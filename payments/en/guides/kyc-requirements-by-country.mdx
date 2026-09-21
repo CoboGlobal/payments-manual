@@ -1,0 +1,120 @@
+---
+title: "KYC requirements by country"
+lang: "en"
+---
+
+KYC requirements identify the paying entity before you use POBO. The `Submit merchant KYC` request uses the same field names across the supported countries, but the required attachment `file_type` values, primary identity document types, and Hong Kong address validation rules differ by country.
+
+This guide covers KYC country differences for `HKG`, `TWN`, `MYS`, `PHL`, `IDN`, `VNM`, `THA`, `SGP`, `GBR`, and `MEX`.
+
+## Before you begin
+
+- Prepare the paying entity's company documents or individual identity documents before you submit KYC information.
+- Upload each required file with [Upload file v2](/payments/en/api-references/payment/upload-file-v2) and use the returned `file_id` values in the KYC request.
+- Submit KYC information with [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc).
+- For the end-to-end POBO sequence, see [Payouts on behalf of (POBO)](/payments/en/guides/pobo).
+
+## Shared request structure
+
+The KYC request uses consistent JSON keys for all supported countries. Country-specific requirements change the accepted values and required attachments, not the field names.
+
+| Scope | Fields |
+| --- | --- |
+| Top-level B2B request | `merchant_type`, `country`, `merchant_id`, `industry`, `company_info` |
+| Top-level B2C request | `merchant_type`, `country`, `merchant_id`, `industry`, `individual_info` |
+| Address objects | `country`, `state`, `city`, `postcode`, `line1` |
+| Person information | `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, `attachments` |
+
+## B2B company KYC requirements
+
+For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not provide `individual_info` in the same request.
+
+### HKG baseline fields
+
+| Field | Requirement |
+| --- | --- |
+| `company_type` | Required. Use `Limited Company`. |
+| `listed` | Required. Indicates whether the company is listed. |
+| `identify_no` | Required. Company registration or identification number. |
+| `company_name` | Required. Local company name. |
+| `company_name_en` | Required. English company name. |
+| `establish_date` | Required. Company establishment date in `YYYYMMDD` format. |
+| `commencement_date` | Required. Business commencement date in `YYYYMMDD` format. |
+| `valid_period` | Required. Validity date in `YYYYMMDD` format. |
+| `operation_address` | Required. Includes `country`, `state`, `city`, `postcode`, and `line1`. |
+| `register_address` | Required. Includes `country`, `state`, `city`, `postcode`, and `line1`. |
+| `legal_info` | Required. Uses the PersonInfo structure for the legal representative. |
+| `ubo_infos` | Required. Includes at least one UBO PersonInfo object. |
+| `online_store_url` | Required unless a business document is provided instead. |
+| `attachments` | Required. Includes company attachments. |
+
+### Company attachment requirements
+
+| Country | Company attachment `file_type` values | Legal representative and UBO primary identity document | Special rule |
+| --- | --- | --- | --- |
+| `HKG` | `CI`, `BR`, `NNC1`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `FIC` | Baseline country. |
+| `TWN` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `MYS` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `PHL` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `IDN` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `VNM` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `THA` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `SGP` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | `company_name_en` must include the `Pte Ltd` suffix. |
+| `GBR` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| `MEX` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+
+For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For mainland China identity cards, provide both `PRC_ID_Emblem` and `PRC_ID_Portrait`.
+
+## B2C individual KYC requirements
+
+For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
+
+### HKG baseline fields
+
+| Field | Requirement |
+| --- | --- |
+| `name` | Required. Local-language individual name. |
+| `name_en` | Required. English individual name. |
+| `id_number` | Required. Identity document number. |
+| `date_of_birth` | Required. Date of birth in `YYYYMMDD` format. |
+| `issue_date` | Required. Identity document issue date in `YYYYMMDD` format. |
+| `expiration_date` | Required. Identity document expiration date in `YYYYMMDD` format. |
+| `residential_address` | Required. Includes `country`, `state`, `city`, `postcode`, and `line1`. For `HKG`, `city` must use a supported Hong Kong district value. |
+| `attachments` | Required. Includes the primary identity document, `ID_Hand`, and `POA`. |
+
+### Individual country differences
+
+| Country | Primary identity document `file_type` | Name language | `city` validation | Additional required attachments |
+| --- | --- | --- | --- | --- |
+| `HKG` | `HK_PID` or `FIC`; do not use `PP` for Hong Kong residents. | Chinese | Must use a supported Hong Kong district value in Chinese or English. | `ID_Hand`, `POA` |
+| `PHL` | `FIC`; `PP` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
+| `TWN`, `MYS`, `IDN`, `VNM`, `THA`, `SGP`, `GBR`, `MEX` | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
+
+## Hong Kong address requirements
+
+For `HKG` B2C KYC, `residential_address.city` must be one of the following values.
+
+| Chinese value | English value |
+| --- | --- |
+| `中西区` | `Central and Western District` |
+| `湾仔区` | `Wan Chai District` |
+| `东区` | `Eastern District` |
+| `南区` | `Southern District` |
+| `油尖旺区` | `Yau Tsim Mong District` |
+| `深水埗区` | `Sham Shui Po District` |
+| `九龙城区` | `Kowloon City District` |
+| `黄大仙区` | `Wong Tai Sin District` |
+| `观塘区` | `Kwun Tong District` |
+| `北区` | `North District` |
+| `大埔区` | `Tai Po District` |
+| `沙田区` | `Sha Tin District` |
+| `西贡区` | `Sai Kung District` |
+| `荃湾区` | `Tsuen Wan District` |
+| `屯门区` | `Tuen Mun District` |
+| `元朗区` | `Yuen Long District` |
+| `葵青区` | `Kwai Tsing District` |
+| `离岛区` | `Islands District` |
+
+## Next steps
+
+After the paying entity passes KYC review, create the recipient bank-account destination. For country-specific SWIFT requirements, see [Bank account requirements by country](/payments/en/guides/bank-account-requirements-by-country).

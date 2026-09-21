@@ -52,6 +52,8 @@ api_instance = PaymentApi(api_client)
 
 This step uploads every document the next two steps need and collects a `file_id` for each: the company and personal documents referenced when you submit KYC information, and the bank account documents referenced when you create a bank-account destination.
 
+For country-specific KYC attachment and identity document requirements, see [KYC requirements by country](/payments/en/guides/kyc-requirements-by-country).
+
 Read each local document, encode it as Base64, upload it with `upload_payment_file_v2`, and save the `file_id` from the response.
 
 See [Upload file v2](/payments/en/api-references/payment/upload-file-v2) for the request and response schema.
@@ -230,6 +232,8 @@ def submit_merchant_kyc():
 ## Create a bank-account destination
 
 Call `create_destination` to create the destination bank account for a payout.
+
+For country-specific SWIFT bank-account requirements, see [Bank account requirements by country](/payments/en/guides/bank-account-requirements-by-country).
 
 Key settings:
 
