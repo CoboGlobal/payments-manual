@@ -50,6 +50,8 @@ For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not
 
 ### Company attachment requirements
 
+The `file_type` values below are what the operation accepts. Passing validation does not guarantee that compliance review approves the submission.
+
 | Country | Company attachment `file_type` values | Legal representative and UBO primary identity document | Special rule |
 | --- | --- | --- | --- |
 | Hong Kong SAR (`HKG`) | `CI`, `BR`, `NNC1`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `FIC` | Baseline country. |
@@ -63,7 +65,7 @@ For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not
 | United Kingdom (`GBR`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
 | Mexico (`MEX`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
 
-For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For mainland China identity cards, provide both `PRC_ID_Emblem` and `PRC_ID_Portrait`.
+For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For a mainland China identity card, the two sides are `PRC_ID_Emblem` and `PRC_ID_Portrait`.
 
 ## Individual KYC requirements
 
@@ -78,9 +80,9 @@ For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 | `id_number` | Required. Identity document number. |
 | `date_of_birth` | Required. Date of birth in `YYYYMMDD` format. |
 | `issue_date` | Required. Identity document issue date in `YYYYMMDD` format. |
-| `expiration_date` | Required. Identity document expiration date in `YYYYMMDD` format. |
+| `expiration_date` | Required. Identity document expiration date in `YYYYMMDD` format. Use `20991231` for a document that is valid indefinitely and carries no printed expiry date. |
 | `residential_address` | Required. Includes `country`, `state`, `city`, `postcode`, and `line1`. For `HKG`, `city` must use a supported Hong Kong district value. |
-| `attachments` | Required. Includes the primary identity document, `ID_Hand`, and `POA`. |
+| `attachments` | Required. Includes both sides of the primary identity document, `ID_Hand`, and `POA`. Use the document's own `file_type` for the front and `BACK` for the reverse. |
 
 ### Individual country differences
 

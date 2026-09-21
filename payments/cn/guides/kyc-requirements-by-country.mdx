@@ -50,6 +50,8 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 ### 公司附件要求
 
+下表的 `file_type` 是接口接受的附件类型，通过校验不代表合规审核一定通过。
+
 | 国家或地区 | 公司附件 `file_type` | 法人和 UBO 主证件 | 特殊规则 |
 | --- | --- | --- | --- |
 | 中国香港（`HKG`） | `CI`、`BR`、`NNC1`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `FIC` | 基准国家或地区。 |
@@ -63,7 +65,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | 英国（`GBR`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
 | 墨西哥（`MEX`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
 
-对于非中国大陆人员，提供 `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address` 和 `attachments`。如使用中国大陆身份证，请同时提供 `PRC_ID_Emblem` 和 `PRC_ID_Portrait`。
+对于非中国大陆人员，提供 `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address` 和 `attachments`。如使用中国大陆身份证，正反两面分别用 `PRC_ID_Emblem` 和 `PRC_ID_Portrait`。
 
 ## 个人 KYC 要求
 
@@ -78,9 +80,9 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | `id_number` | 必传。身份证明文件号码。 |
 | `date_of_birth` | 必传。出生日期，格式为 `YYYYMMDD`。 |
 | `issue_date` | 必传。身份证明文件签发日期，格式为 `YYYYMMDD`。 |
-| `expiration_date` | 必传。身份证明文件到期日期，格式为 `YYYYMMDD`。 |
+| `expiration_date` | 必传。身份证明文件到期日期，格式为 `YYYYMMDD`。长期有效、证件本身不印到期日的，填 `20991231`。 |
 | `residential_address` | 必传。包含 `country`、`state`、`city`、`postcode` 和 `line1`。对于 `HKG`，`city` 必须取自下方的香港行政区列表。 |
-| `attachments` | 必传。包含主证件、`ID_Hand` 和 `POA`。 |
+| `attachments` | 必传。包含主证件的正反两面、`ID_Hand` 和 `POA`。正面用该证件对应的 `file_type`，反面用 `BACK`。 |
 
 ### 个人国家和地区差异
 
