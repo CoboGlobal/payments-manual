@@ -28,7 +28,7 @@ To create an endpoint and implement the handling logic, see [Set up a webhook en
 
 To register the endpoint, see [Register a webhook endpoint](https://manuals.cobo.com/en/portal/developer-console/webhooks-create).
 
-To learn more about event types and event data types, see [Events and status](/payments/en/guides/status-and-events).
+To learn more about event types and event data types, see [Events and status](/payments/en/guides/events/overview).
 
 ## Webhook request body
 
@@ -41,8 +41,8 @@ When an event is triggered, the Cobo payments service sends an HTTP POST request
 | `event_id` | string (UUID) | The unique identifier of the event. Use `event_id` to deduplicate retried deliveries. |
 | `url` | string | The registered webhook endpoint URL. |
 | `created_timestamp` | integer (int64) | The time when the event was triggered, in Unix timestamp format (milliseconds). This value remains unchanged across retries. |
-| `type` | string | The event type. See [Events and status](/payments/en/guides/status-and-events) for all event types and their trigger conditions. |
-| `data` | object | The event-specific payload. The schema depends on the `type` field — see [Events and status](/payments/en/guides/status-and-events) for per-event schemas. |
+| `type` | string | The event type. See [Events and status](/payments/en/guides/events/overview) for all event types and their trigger conditions. |
+| `data` | object | The event-specific payload. The schema depends on the `type` field — see [Events and status](/payments/en/guides/events/overview) for per-event schemas. |
 
 ### Optional fields
 

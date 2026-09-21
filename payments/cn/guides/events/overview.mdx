@@ -1,0 +1,131 @@
+---
+title: "事件概述"
+lang: "zh-hans"
+---
+
+Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组织：找到与您业务对应的页面，该页面会列出这条链路所需的全部事件。
+
+## 按业务对象选择事件
+
+只订阅您实际使用的业务对象所对应的事件。每个页面包含该对象的主事件、可能一并需要的其他事件，以及提供链上细节的交易级事件。
+
+| 您的业务 | 主事件 | 页面 |
+| --- | --- | --- |
+| 付款方直接入金 | `payment.topup.updated` | [Top-up 事件](/payments/cn/guides/events/top-up) |
+| 收款订单 | `payment.order.updated` | [订单事件](/payments/cn/guides/events/orders) |
+| 退款 | `payment.refund.updated` | [退款事件](/payments/cn/guides/events/refunds) |
+| 单笔付款与转账 | `payment.payout.updated` | [付款事件](/payments/cn/guides/events/payouts) |
+| 批量下发 | `payment.bulk_send.updated`、`payment.bulk_send.item.updated` | [批量下发事件](/payments/cn/guides/events/bulk-send) |
+| 账户余额与结算网络 | `payment.account.balance.updated` | [余额与结算网络事件](/payments/cn/guides/events/balances-and-settlement) |
+
+除上述事件外，还有两类事件：
+
+- **交易级事件**（`payment.transaction.*`）汇报的是单笔链上交易而不是业务对象，属于高级选项。当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。请参见[交易级事件](/payments/cn/guides/events/transaction-level)。
+- **上一代对象事件**（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）对已有接入继续有效。每个业务页面会同时说明两代事件。
+
+## 事件结构
+
+所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.topup.updated",
+  "data": { "data_type": "PaymentTopUpUpdate" },
+  "status": "Success"
+}
+```
+
+| `type` | `data.data_type` | 对象 ID |
+| --- | --- | --- |
+| `payment.topup.updated` | `PaymentTopUpUpdate` | `transaction_id` |
+| `payment.order.updated` | `PaymentOrderUpdate` | `order_id` |
+| `payment.refund.updated` | `PaymentRefundUpdate` | `refund_id` |
+| `payment.payout.updated` | `PaymentPayoutUpdate` | `payout_id` |
+| `payment.bulk_send.updated` | `PaymentBulkSendUpdate` | `bulk_send_id` |
+| `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
+
+Top-up 没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，因为一笔 Top-up 本身就是一笔入账交易。
+
+## 在两个层面做去重
+
+| ID | 防的是什么 |
+| --- | --- |
+| `event_id` | 重复投递。同一条消息重投时 `event_id` 不变。 |
+| 对象 ID | 同一个业务事实被不同事件或不同代码路径处理两次。 |
+
+两层都要做。对 `event_id` 建唯一约束用于投递去重，再对每个不可逆动作（入账、发货、关闭付款）按对象 ID 建第二个唯一约束。
+
+## 所有事件通用的规则
+
+**按 `status` 分支。** 它是唯一供程序判断使用的字段。
+
+- 不要自己比较金额来判断订单是否付清。订单足额判定带容差，自行比较会把 Cobo 认定已付清的订单判成没付够。
+- 不要匹配 `message` 或 `failed_reason.message`。这些文本面向运营人员，措辞会变。
+- 不要用链上确认数判断资金是否可用。确认数是否达标已经体现在 `status` 里。
+
+**数组是全量快照。** `transactions` 等字段携带的是该对象当前的完整列表，不是自上条事件以来的增量。请整体替换本地副本，不要往里追加。
+
+**投递不保证顺序。** 按对象 ID 做 upsert，并丢弃比本地已记录状态更早的事件。终态不能被后到的处理中事件回退。
+
+**没有值的字段不会出现。** 字段不适用时，整个键会被省略而不是给 `null`。读取可选字段时请使用防御性写法，例如用 `payload.get("failed_reason")` 而不是 `payload["failed_reason"]`。
+
+## 读取失败原因
+
+可能汇报失败的事件会携带一个 `failed_reason` 对象。
+
+```json
+"failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
+```
+
+`code` 是受控枚举，也是您分支的依据。请保留完整字符串（包括前缀），不要按点号拆开。前缀说明失败发生在哪一层：`payment.*` 是支付编排层，例如手续费扣收、资金准备、校验；`transaction.*` 是交易层。
+
+`message` 面向运营人员，措辞可能调整，因此可以展示但绝不能用于匹配。
+
+### 交易层 code
+
+这些 code 可能出现在任何涉及资金转移的对象上。
+
+| `code` | 什么情况下会发生 | 您该做什么 |
+| --- | --- | --- |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 Screening App 中拒绝了这笔交易。 | 到 Screening App 查看原因，放行后再重发。 |
+| `transaction.rejected_by_policy` | 这笔交易命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整对应策略，然后重发。 |
+| `transaction.rejected_by_approval` | 您组织内的审批人拒绝了这笔交易。 | 联系该审批人，然后重发。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔交易。 | 不要重发，先与 Cobo 解决该问题。 |
+| `transaction.rejected_by_bank` | 收款银行退回了这笔付款，仅 Off-Ramp 付款会出现。 | 重发前先与收款方核对银行账户信息，原样重发大概率会再次被拒。 |
+| `transaction.failed` | 失败原因无法归类，涵盖链上失败、广播失败、余额不足、签名失败、交易取消，以及受链重组影响的入金。 | 提交问题时提供业务对象 ID。 |
+
+支付层 code 因业务对象而异，列在各对象自己的页面上。
+
+### 提交问题时报业务对象 ID
+
+需要排查失败时，请提供业务对象 ID 而不是交易 ID：Top-up 用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的对象 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
+
+对于 Payout，一个 `payout_id` 下可能有多笔转出交易，因此只有对象 ID 才能追溯整个请求。
+
+## 读取金额
+
+所有金额都是十进制字符串而不是数字类型，请使用 decimal 类型解析。
+
+| 结构 | 字段 | 用在哪 |
+| --- | --- | --- |
+| 资产金额 | `amount`、`token_id`、`chain_id` | 绝大多数金额字段。 |
+| 资产或法币金额 | `amount_type`，以及 `amount` 加上 `token_id` 与 `chain_id`，或者 `currency` | 可能是加密货币也可能是法币的字段，例如 `actual_payout_amount`。请先读 `amount_type`，不要根据有没有 `token_id` 推断。 |
+| 佣金 | `token_id`、`fee_amount` | Cobo 收取的佣金。 |
+
+```json
+{ "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+{ "amount_type": "Crypto", "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+{ "amount_type": "Fiat", "amount": "497.50", "currency": "USD" }
+{ "token_id": "ETH_USDC", "fee_amount": "2.50" }
+```
+
+字段名为复数的（例如 `requested_amounts`）是数组，可能跨多种 token；单数字段是单个对象，只涉及一种资产。不要跨资产相加。
+
+Webhook 消息不携带余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。要保持自己账本的实时性，请在收到事件时调用[List merchant balances](/payments/en/api-references/payment/list-merchant-balances)或[Get developer balances](/payments/en/api-references/payment/get-developer-balance)。需要手续费明细时，请使用交易查询接口或[Generate reports](/payments/en/api-references/payment/generate-reports)。
+
+## 测试您的接收端
+
+使用[Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)向您已注册的接收端投递一条样例消息。

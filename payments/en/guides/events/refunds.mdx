@@ -1,0 +1,112 @@
+---
+title: "Refund events"
+lang: "en"
+---
+
+These events track a refund order from creation to completion. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+Refunds currently apply to orders only. To return funds received through Top-up Mode, create a payout instead.
+
+## `payment.refund.updated`
+
+The primary refund event, identified by `refund_id`.
+
+| `status` | Fires when | What to do |
+| --- | --- | --- |
+| `Pending` | The refund order is created through a refund link. | Record the refund and wait. |
+| `Completed` | The refund completed. | Reconcile and close the refund, using `refund_id` as the idempotency key. |
+| `Failed` | The refund failed and **nothing was returned**. | Read `failed_reason` and handle it. |
+
+Only these three values reach you. The public `RefundStatus` enumeration also contains `PendingConfirmation`, `AddressPending`, `AddressSubmitted`, `Processing`, and `PartiallyCompleted`, but none of them has a send point, so no event carries them. Your SDK will still expose those values; you do not need a branch for them.
+
+A refund either succeeds in full or fails in full. There is no partial refund outcome.
+
+### Event content
+
+Always present: `refund_id`, `order_id`, `merchant_id`, `request_id`, `to_address`, `status`, `requested_amount`, `tx_hash`, `refund_type`, `initiator`, `commission_fee`, `created_timestamp`, `updated_timestamp`.
+
+| Field | Description |
+| --- | --- |
+| `refund_id` | The refund order's identity, and the key you use for reconciliation idempotency. |
+| `order_id` | The pay-in order this refund returns funds for. |
+| `request_id` | The request ID you supplied when creating the refund. |
+| `to_address` | The address receiving the refund. |
+| `requested_amount` | The amount to return, as an asset amount. It corresponds to the `payable_amount` you passed when creating the refund. |
+| `tx_hash` | The on-chain hash of the refund transfer. Absent when the refund failed before being broadcast. |
+| `refund_type` | Which balance funds the refund: `Merchant` or `Psp`. |
+| `initiator` | Who initiated the refund. |
+| `commission_fee` | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
+| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`. |
+
+Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
+
+### Failure codes
+
+When the underlying transfer itself was rejected, `failed_reason.code` is a transaction-layer code — see [Events overview](/payments/en/guides/events/overview#transaction-layer-codes). When the refund failed before or around the transfer, it is one of the following.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `payment.refund_sweep_failed` | Funds could not be prepared because the sweep transaction failed. | Retry the refund. |
+| `payment.refund_fee_charge_failed` | The refund fee could not be charged because the Fee Station balance is insufficient. | Add funds to Fee Station, then retry. |
+| `payment.refund_fee_station_not_configured` | The refund fee could not be charged because Fee Station is not configured. | Configure Fee Station, then retry. |
+| `payment.refund_fee_charge_failed_unknown` | The refund fee could not be charged for another reason. | Check your Fee Station configuration and balance, then retry. |
+| `payment.refund_transactions_failed` | Every refund transaction failed. | Read the transaction-layer detail before retrying. |
+
+### Example
+
+```json
+{
+  "event_id": "evt_refund_001",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1744690500000,
+  "type": "payment.refund.updated",
+  "data": {
+    "data_type": "PaymentRefundUpdate",
+    "refund_id": "refund_001",
+    "order_id": "order_001",
+    "merchant_id": "M1001",
+    "request_id": "request_refund_001",
+    "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+    "status": "Completed",
+    "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    "tx_hash": "0xrefund001",
+    "refund_type": "Merchant",
+    "initiator": "api_key_abc123",
+    "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+    "created_timestamp": 1744690400,
+    "updated_timestamp": 1744690500
+  },
+  "status": "Success"
+}
+```
+
+## `payment.refund.status.updated`
+
+The previous-generation refund event. It keeps being delivered for existing integrations.
+
+**Trigger condition:** the refund order status changes. Key points are `Pending` when the order is created through a refund link, `Completed` when all refund transactions complete, and `Failed` when all refund transactions fail.
+
+**Event content:**
+
+- `refund_id` (required) — The refund order ID.
+- `request_id` (optional) — The request ID you provided when creating the refund.
+- `order_id` (optional) — The ID of the pay-in order corresponding to this refund.
+- `merchant_id` (optional) — The merchant ID.
+- `token_id` (required) — The ID of the cryptocurrency used for the refund.
+- `chain_id` (required) — The ID of the blockchain network.
+- `amount` (required) — The cryptocurrency amount to be returned for this refund.
+- `to_address` (required) — The recipient wallet address.
+- `status` (required) — The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`.
+- `refund_type` (optional) — The source of funds. One of: `Merchant`, `Psp`.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+- `initiator` (optional) — The initiator of the refund request.
+- `transactions` (optional) — An array of payment transactions associated with this refund.
+- `charge_merchant_fee` (optional) — Whether to charge the developer fee to the merchant.
+- `merchant_fee_amount` (optional) — The developer fee amount to charge the merchant.
+- `merchant_fee_token_id` (optional) — The ID of the cryptocurrency used for the developer fee.
+- `commission_fee` (optional) — Commission fee details.
+
+For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
+
+Do not close a refund from both events. Choose one as the source for that action.

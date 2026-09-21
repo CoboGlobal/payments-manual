@@ -1,0 +1,157 @@
+---
+title: "批量下发事件"
+lang: "zh-hans"
+---
+
+批量下发有两级事件：一级是批次，一级是批次里的每个条目。只需要批次结论就订阅批次事件，需要逐条对账就订阅条目事件。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## `payment.bulk_send.updated`
+
+批次级事件，以 `bulk_send_id` 标识。
+
+| `status` | 您该做什么 |
+| --- | --- |
+| `Pending` | 记录该批次并等待。批次停在这里可能有两种原因，参见 [`Pending` 可能是在等审批](#pending-可能是在等审批)。 |
+| `Validating` | 等待。此时还不知道哪些条目会被拒。 |
+| `Transferring` | 等待。逐条进度来自条目事件。 |
+| `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
+| `PartiallyCompleted` | 按两个计数分流处理：`failed_item_count` 是资金已经动过的条目，`not_executed_item_count` 是从未提交过的条目。 |
+| `Failed` | 读取 `failed_reason`。整批失败只发生在**执行开始之前**。 |
+
+### `Pending` 可能是在等审批
+
+如果您的组织启用了审批流，新建批次会先进入审批。**审批过程不产生任何事件，也没有字段能区分。** 停在 `Pending` 的批次既可能在等待校验，也可能在等人审批，payload 看起来完全一样。长时间停在 `Pending` 不一定意味着卡住了。
+
+### 事件内容
+
+始终提供：`bulk_send_id`、`source_account`、`execution_mode`、`status`、`item_count`、`failed_item_count`、`not_executed_item_count`、`requested_amounts`、`completed_amounts`、`failed_amounts`、`description`、`commission_fees`、`created_timestamp`、`updated_timestamp`。您创建时提供了 `request_id` 的话，该字段也会出现。
+
+| 字段 | 说明 |
+| --- | --- |
+| `bulk_send_id` | 批次身份。 |
+| `source_account` | 批次的付款账户。 |
+| `execution_mode` | 单个条目出问题是否中止整批。`Strict` 模式下会中止。 |
+| `item_count` | 批次包含多少个条目。 |
+| `failed_item_count` | 已提交且失败的条目数，这些条目的资金动过。 |
+| `not_executed_item_count` | 从未提交的条目数，这些条目的资金没有动过。 |
+| `requested_amounts` | 请求总额，按 token 分组。一个批次可以跨多种 token 和多条链。 |
+| `completed_amounts` | 已完成条目的合计，按 token 分组。 |
+| `failed_amounts` | 未成功条目的合计，按 token 分组。 |
+| `description` | 批次备注。 |
+| `commission_fees` | Cobo 收取的佣金，每个 token 一条。 |
+| `failed_reason` | 当 `status` 为 `Failed` 时出现。 |
+
+`failed_amounts` 把两类未成功条目——资金动过的和从未提交的——合并成每个 token 一个数。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
+
+批次事件**不携带条目列表**。逐条信息只通过条目事件送达，且两者的到达顺序不作保证。
+
+### 失败 code
+
+| `code` | 发生了什么 | 您该做什么 |
+| --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 修正条目数据后创建新批次。 |
+| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 检查 Fee Station 的配置与余额后创建新批次。 |
+| `payment.bulk_send_all_items_failed` | 所有条目都失败或从未执行。 | 先看条目事件确认原因，再重新创建批次。 |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 时有条目未通过校验，整批中止。 | 修正被指出的条目后创建新批次。 |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 时有归集交易失败。 | 创建新批次。 |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 时有条目的佣金未能扣收。 | 检查 Fee Station 的配置与余额后创建新批次。 |
+
+批次也可能因为审批被拒绝或被撤销而失败，这种情况下原因汇报在条目上。
+
+## `payment.bulk_send.item.updated`
+
+条目级事件，以 `bulk_send_item_id` 标识。
+
+| `status` | 是否终态 | 您该做什么 |
+| --- | --- | --- |
+| `Pending` | 否 | 建立条目记录。这个值覆盖**两个阶段**：等待校验，以及校验通过但尚未提交转出。 |
+| `Processing` | 否 | 转出已提交，等待结果。 |
+| `Completed` | 是 | 保存金额和 `tx_hash`，关闭该条目。 |
+| `Failed` | 是 | 转出已提交但失败。锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
+| `NotExecuted` | 是 | 条目从未提交，**资金完全没有动过**。读取 `failed_reason.code`：不修正原因就重发会再次失败。 |
+
+`Failed` 与 `NotExecuted` 的区别在于钱有没有动过，两者需要分开处理。
+
+### 事件内容
+
+始终提供：`bulk_send_item_id`、`bulk_send_id`、`status`、`requested_amount`、`receiving_address`、`tx_hash`、`source_account`、`description`、`created_timestamp`、`updated_timestamp`。批次有 `request_id` 时该字段也会出现。
+
+| 字段 | 说明 |
+| --- | --- |
+| `bulk_send_item_id` | 条目身份，也是您对账时使用的键。 |
+| `bulk_send_id` | 该条目所属的批次。 |
+| `requested_amount` | 请求下发的金额，资产金额结构。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `receiving_address` | 收款方地址。 |
+| `tx_hash` | 链上哈希。条目从未上链时没有该值。 |
+| `description` | 条目备注。 |
+| `failed_reason` | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
+
+### 失败 code
+
+如果是已提交的转账本身被拒绝，`failed_reason.code` 是交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。否则取下列之一。
+
+| `code` | 发生了什么 | 您该做什么 |
+| --- | --- | --- |
+| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因后创建新批次。 |
+| `payment.app_workflow_approval_revoked` | 审批流被撤销。 | 创建新批次。 |
+| `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 | 修正地址后在新批次中重发该条目。 |
+| `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
+| `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 | 修正地址。 |
+| `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足，佣金无法扣收。 | 向 Fee Station 充值后重发。 |
+| `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station，佣金无法扣收。 | 配置 Fee Station 后重发。 |
+| `payment.bulk_send_commission_fee_charge_failed_unknown` | 佣金因其他原因无法扣收。 | 检查 Fee Station 的配置与余额。 |
+| `payment.sweep_task_failed` | 归集交易失败，资金无法准备。 | 在新批次中重发该条目。 |
+| `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 提交问题时提供 `bulk_send_item_id`。 |
+| `payment.strict_mode_other_items_validation_failed` | 该条目本身没问题，但 `execution_mode` 为 `Strict` 时有别的条目未通过校验。 | 修正那个条目后重发本条目。 |
+| `payment.strict_mode_other_sweep_tasks_failed` | 该条目本身没问题，但 `execution_mode` 为 `Strict` 时有别的归集失败。 | 在新批次中重发。 |
+| `payment.strict_mode_other_items_commission_fee_failed` | 该条目本身没问题，但 `execution_mode` 为 `Strict` 时有别的条目佣金扣收失败。 | 检查 Fee Station 后重发。 |
+
+三个 `strict_mode_other_*` code 对本条目的含义相同：条目自身没有问题，是被同批的其他条目连累而中止。它们与批次级的 `bulk_send_strict_*` code 成对出现。
+
+其中两条的文案会填入收款地址，因此同一个 `code` 在不同条目上的 `message` 文本不同。请照常按 `code` 分支。
+
+## 上一代事件
+
+`payment.bulk_send.status.updated` 与 `payment.bulk_send.item.status.updated` 对已有接入继续投递。
+
+### `payment.bulk_send.status.updated`
+
+**触发条件：** 批量下发请求状态变更。`Completed` 表示全部下发完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败。
+
+**事件内容：**
+
+- `bulk_send_id`（必填）—— 批量下发 ID。
+- `request_id`（选填）—— 您创建批量下发时提供的请求 ID。
+- `source_account`（必填）—— 批量下发的来源账户。
+- `description`（选填）—— 整个批次的描述。
+- `execution_mode`（必填）—— 执行模式。
+- `status`（必填）—— 当前批量下发状态。
+- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
+
+完整说明请参见 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
+
+### `payment.bulk_send.item.status.updated`
+
+**触发条件：** 单个批量下发条目的状态变更。可用于跟踪条目级执行结果，尤其是批次部分完成、或个别条目校验失败或转账失败时。
+
+**事件内容：**
+
+- `bulk_send_item_id`（必填）—— 批量下发条目 ID。
+- `bulk_send_id`（必填）—— 该条目所属的批量下发 ID。
+- `request_id`（选填）—— 批次的请求 ID。
+- `source_account`（必填）—— 批次的来源账户 ID。
+- `token_id`（必填）—— 下发给收款方的加密货币 ID。
+- `receiving_address`（必填）—— 收款方的加密货币地址。
+- `amount`（必填）—— 下发给收款方的加密货币金额。
+- `description`（选填）—— 该条目的备注。
+- `tx_hash`（选填）—— 该条目的交易哈希。
+- `status`（必填）—— 条目执行状态，取值为 `Pending`、`Processing`、`Completed`、`Failed`、`NotExecuted` 之一。
+- `validation_status`（必填）—— 条目校验状态，取值为 `Pending`、`Validated`、`ValidationFailed`、`NotExecuted` 之一。
+- `failed_reason`（选填）—— 该条目失败的原因。
+- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
+
+要测试投递到您已注册的 Webhook 接收端，请使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设为 `payment.bulk_send.item.status.updated`。
+
+不要同时用两代事件关闭同一个条目，请选定其中一个作为该动作的来源。

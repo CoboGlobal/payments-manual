@@ -1,0 +1,49 @@
+---
+title: "Balance and Settlement Network events"
+lang: "en"
+---
+
+These events cut across business objects: balance changes report the ledger movement behind any flow, and Settlement Network events report transfers settled through the network. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## `payment.account.balance.updated`
+
+Fires when the available balance of a Payments account changes for a specific token. This is the event to use for internal accounting, because business object events deliberately do not carry balances.
+
+It is also how you see **what each account actually received**. An order's `credited_amount`, for example, includes the portion split out as your developer fee, so it is not the merchant's credited amount. One order settlement produces one balance event per account involved.
+
+**Event content:**
+
+| Field | Description |
+| --- | --- |
+| `source_account` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
+| `source_id` | The ID of the business object that caused the change, such as the order ID. |
+| `source_type` | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
+| `token_id` | The token whose balance changed. |
+| `amount` / `amount_raw` | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
+| `balance_before` / `balance_before_raw` | The balance before the change, in the same two precisions. |
+| `balance_after` / `balance_after_raw` | The balance after the change, in the same two precisions. |
+| `flow_direction` | The direction of the change. Either `in` or `out`. |
+| `update_time` | When the balance was updated, in Unix timestamp (seconds). |
+
+To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business object ID. The response model matches this event's `data`.
+
+## Settlement Network events
+
+These report transfers settled through the [Settlement Network](/payments/en/guides/settlement-network).
+
+| Event | Fires when |
+| --- | --- |
+| `payment.transaction.settlement_network.created` | A Settlement Network transaction is created. |
+| `payment.transaction.settlement_network.completed` | The transaction completes and the settled funds are reflected in your Payment account balance. |
+
+Both carry the base fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields).
+
+On completion, the settled funds appear in your Payment account balance with the `SettlementNetwork` `source_type`, so the matching `payment.account.balance.updated` event tells you the amount that landed.
+
+## Keeping your own balances current
+
+Webhook messages do not carry real-time balances or fee breakdowns, so that the values you read cannot be stale relative to concurrent activity.
+
+- **To update balances as events arrive:** call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when a webhook lands.
+- **To reconcile fees:** use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
+- **To avoid running out of gas:** poll [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and alert on your own consumption rate. Several failure codes across payouts, refunds, and bulk sends trace back to an empty Fee Station.

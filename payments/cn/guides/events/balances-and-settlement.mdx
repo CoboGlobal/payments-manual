@@ -1,0 +1,49 @@
+---
+title: "余额与结算网络事件"
+lang: "zh-hans"
+---
+
+本页的事件跨业务对象：余额变动汇报任意链路背后的账目变化，结算网络事件汇报通过该网络结算的转账。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## `payment.account.balance.updated`
+
+某个 Payments 账户在某个 token 上的可用余额发生变化时触发。内部记账应当使用这个事件，因为业务对象事件刻意不携带余额。
+
+它也是您了解**每个账户实际收到多少**的途径。例如订单的 `credited_amount` 包含将要分给您的开发者手续费，因此它不是商户的入账金额。一笔订单结算会为涉及的每个账户各产生一条余额事件。
+
+**事件内容：**
+
+| 字段 | 说明 |
+| --- | --- |
+| `source_account` | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
+| `source_id` | 引起本次变动的业务对象 ID，例如订单 ID。 |
+| `source_type` | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
+| `token_id` | 发生变动的 token。 |
+| `amount` / `amount_raw` | 变动金额，分别为截断至两位小数和按该 token 自身精度表示。 |
+| `balance_before` / `balance_before_raw` | 变动前余额，两种精度。 |
+| `balance_after` / `balance_after_raw` | 变动后余额，两种精度。 |
+| `flow_direction` | 变动方向，取 `in` 或 `out`。 |
+| `update_time` | 余额更新时间，Unix 时间戳（秒）。 |
+
+如果您希望主动查询而不是等待事件，可以调用 `GET /payments/balance_changes` 并把 `source_id` 设为业务对象 ID，响应模型与本事件的 `data` 一致。
+
+## 结算网络事件
+
+这两个事件汇报通过[结算网络](/payments/cn/guides/settlement-network)结算的转账。
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.settlement_network.created` | 创建了一笔结算网络交易。 |
+| `payment.transaction.settlement_network.completed` | 该交易完成，结算资金已反映到您的 Payment 账户余额中。 |
+
+两者携带的基础字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。
+
+交易完成时，结算资金会以 `SettlementNetwork` 这个 `source_type` 反映到您的 Payment 账户余额，因此对应的 `payment.account.balance.updated` 事件会告诉您到账金额。
+
+## 保持自己账本的实时性
+
+Webhook 消息不携带实时余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。
+
+- **随事件更新余额：** 收到 Webhook 时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。
+- **核对手续费：** 使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。
+- **避免手续费耗尽导致业务中断：** 定期调用 [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances)，并按自己的消耗速率设置告警。付款、退款和批量下发中的多个失败 code 都源于 Fee Station 余额不足。

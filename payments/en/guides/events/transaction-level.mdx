@@ -1,0 +1,130 @@
+---
+title: "Transaction-level events"
+lang: "en"
+---
+
+The `payment.transaction.*` events report individual blockchain transactions rather than business objects. They are the advanced option: each business object event already tells you whether you can credit funds, release goods, or close a payout, and these events sit one level below that, exposing the on-chain detail behind it.
+
+Subscribe to them when you need confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail — for example to show a payer the progress of their transfer, or to reconcile gas spend. For deciding what to do next, use the business object event instead.
+
+Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+<Note>
+  Do not drive an irreversible action from both a business object event and a transaction-level event. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
+</Note>
+
+## Pay-in transactions
+
+| Event | Fires when | Applies to |
+| --- | --- | --- |
+| `payment.transaction.created` | A deposit address receives a new deposit. | Top-up Mode |
+| `payment.transaction.completed` | A deposit passes compliance screening and is credited. | Both pay-in modes |
+| `payment.transaction.failed` | A deposit fails compliance screening. | Both pay-in modes |
+| `payment.transaction.late` | A deposit that passed screening arrives after its order reached a final state. | Order Mode |
+
+Each adds Payment-specific fields on top of the shared [transaction fields](#transaction-fields):
+
+| Event | Additional fields |
+| --- | --- |
+| `payment.transaction.created` | `acquiring_type` (required, value `TopUp`), `payer_id` (optional), `custom_payer_id` (optional) |
+| `payment.transaction.completed` | In Order Mode: `acquiring_type` (required, value `Order`), `order_id` (optional), `psp_order_code` (optional). In Top-up Mode: `acquiring_type` (required, value `TopUp`), `payer_id` (optional), `custom_payer_id` (optional) |
+| `payment.transaction.failed` | `acquiring_type` (required, `Order` or `TopUp`), `order_id` (optional), `psp_order_code` (optional), `payer_id` (optional), `custom_payer_id` (optional) |
+| `payment.transaction.late` | `acquiring_type` (required, value `Order`), `order_id` (optional), `psp_order_code` (optional) |
+
+For an order paid in several instalments, `payment.transaction.completed` fires once per receipt as funds are credited, while the order event reports the cumulative outcome. See [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
+
+`payment.transaction.late` does not reopen or change the order's final status. The same fact reaches you through the order event as `notice_type` `LatePaymentReceived`. See [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
+
+## Unexpected deposits
+
+| Event | Fires when |
+| --- | --- |
+| `payment.transaction.external.created` | An unexpected deposit is detected, for example one that falls outside any order or deposit plan, or arrives in an unsupported token. |
+| `payment.transaction.external.completed` | The unexpected deposit passed screening and was credited to your developer balance. |
+
+Both carry the [transaction fields](#transaction-fields) and no Payment-specific additions. Because these deposits belong to no business object, they never appear in an order's `transactions` array — subscribe here if you need to account for every transfer arriving at your addresses.
+
+## Settlement Network transactions
+
+| Event | Fires when |
+| --- | --- |
+| `payment.transaction.settlement_network.created` | A Settlement Network transaction is created. |
+| `payment.transaction.settlement_network.completed` | The transaction completes and the settled funds are reflected in your Payment account balance. |
+
+See [Balance and Settlement Network events](/payments/en/guides/events/balances-and-settlement) and the [Settlement Network](/payments/en/guides/settlement-network) guide.
+
+## Transaction fields
+
+These fields appear in all `payment.transaction.*` events. Not every field is populated in every scenario.
+
+<Note>
+  This section covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
+</Note>
+
+- `transaction_id` (string, UUID, required) — The transaction ID.
+- `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
+- `request_id` (string, optional) — The request ID used to track the transaction request.
+- `type` (string, optional) — The transaction type.
+- `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
+- `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
+- `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures. This is a free-text string, unlike the `{ code, message }` object that business object events carry.
+- `initiator` (string, optional) — The transaction initiator.
+- `chain_id` (string, optional) — The chain ID.
+- `token_id` (string, optional) — The token ID.
+- `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
+- `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`). Key sub-fields:
+  - `address` — The receiving address.
+  - `amount` — The received amount. For example, if 1.5 USDT was deposited, the value is `1.5`.
+  - `memo` — The memo identifying which account to credit (only on certain chains).
+- `result` (object, optional) — The transaction result.
+- `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
+- `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
+- `confirming_threshold` (integer, optional) — The minimum number of confirmations required to deem a transaction secure (e.g. commonly 6 for a Bitcoin transaction).
+- `block_info` (object, optional) — Details of the block the transaction was included in:
+  - `block_number` — The block number.
+  - `block_timestamp` — When the block was created, in Unix timestamp (milliseconds).
+  - `block_hash` — The block hash.
+- `raw_tx_info` (object, optional) — Details of the raw transaction:
+  - `used_nonce` — The transaction nonce.
+  - `selected_utxos` — The UTXOs consumed in the transaction.
+  - `raw_tx` — The raw transaction data.
+  - `unsigned_raw_tx` — The unsigned raw transaction data.
+  - `utxo_changes` — The UTXO change outputs in the transaction.
+- `replacement` (object, optional) — Populated when this transaction replaced, or was replaced by, another (drop/resend/speed-up):
+  - `replaced_by_type` / `replaced_type` — The replacement type: `Drop`, `Resend`, or `SpeedUp`.
+  - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — The ID/hash of the transaction that replaced this one.
+  - `replaced_transaction_id` / `replaced_transaction_hash` — The ID/hash of the transaction this one replaced.
+- `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
+- `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
+
+## Example
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.transaction.created",
+  "data": {
+    "data_type": "PaymentTransaction",
+    "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+    "status": "Submitted",
+    "chain_id": "ETH",
+    "token_id": "ETH_USDT",
+    "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
+    "source": { "source_type": "DepositFromAddress" },
+    "destination": { "destination_type": "DepositToAddress" },
+    "created_timestamp": 1701396866000,
+    "updated_timestamp": 1701396866000,
+    "acquiring_type": "TopUp",
+    "payer_id": "P20250619T0310056d7aa",
+    "custom_payer_id": "user_abc_10001"
+  },
+  "status": "Success"
+}
+```
+
+<Note>
+  This example is illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
+</Note>

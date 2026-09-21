@@ -1,0 +1,131 @@
+---
+title: "Events overview"
+lang: "en"
+---
+
+Cobo Payments notifies your system through webhook events. This section is organized by business object: pick the page that matches what you are building, and it lists every event you need for that flow.
+
+## Choose events by business object
+
+Subscribe to the events for the business objects you actually use. Each page covers the primary event for that object, the other events you may need alongside it, and the transaction-level events that expose on-chain detail.
+
+| Your business | Primary event | Page |
+| --- | --- | --- |
+| Direct deposits from payers | `payment.topup.updated` | [Top-up events](/payments/en/guides/events/top-up) |
+| Payment orders | `payment.order.updated` | [Order events](/payments/en/guides/events/orders) |
+| Refunds | `payment.refund.updated` | [Refund events](/payments/en/guides/events/refunds) |
+| Single payouts and transfers | `payment.payout.updated` | [Payout events](/payments/en/guides/events/payouts) |
+| Bulk sends | `payment.bulk_send.updated`, `payment.bulk_send.item.updated` | [Bulk send events](/payments/en/guides/events/bulk-send) |
+| Account balances and Settlement Network | `payment.account.balance.updated` | [Balance and Settlement Network events](/payments/en/guides/events/balances-and-settlement) |
+
+Two kinds of events exist alongside the ones above:
+
+- **Transaction-level events** (`payment.transaction.*`) report individual blockchain transactions rather than business objects. They are the advanced option: subscribe to them when you need on-chain detail such as confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information. See [Transaction-level events](/payments/en/guides/events/transaction-level).
+- **Previous-generation object events** (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`) keep working for existing integrations. Each business page documents both generations side by side.
+
+## Event structure
+
+Every webhook message shares the same envelope. Route on `type`, then deserialize `data` according to `data_type`.
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.topup.updated",
+  "data": { "data_type": "PaymentTopUpUpdate" },
+  "status": "Success"
+}
+```
+
+| `type` | `data.data_type` | Object ID |
+| --- | --- | --- |
+| `payment.topup.updated` | `PaymentTopUpUpdate` | `transaction_id` |
+| `payment.order.updated` | `PaymentOrderUpdate` | `order_id` |
+| `payment.refund.updated` | `PaymentRefundUpdate` | `refund_id` |
+| `payment.payout.updated` | `PaymentPayoutUpdate` | `payout_id` |
+| `payment.bulk_send.updated` | `PaymentBulkSendUpdate` | `bulk_send_id` |
+| `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
+
+A top-up has no separate `topup_id`. Its object ID is `transaction_id`, because one top-up is one deposit transaction.
+
+## Deduplicate at two levels
+
+| ID | What it protects against |
+| --- | --- |
+| `event_id` | Redelivery. The same message retried carries the same `event_id`. |
+| Object ID | The same business fact being acted on twice through different events or code paths. |
+
+Implement both. Put a unique constraint on `event_id` for delivery, and a second one on the object ID for each irreversible action such as crediting funds, releasing goods, or closing a payout.
+
+## Rules that apply to every event
+
+**Branch on `status`.** It is the only field intended for program logic.
+
+- Do not compare amounts yourself to decide whether an order is paid. Order completion allows a tolerance, so your own comparison rejects orders that Cobo considers paid in full.
+- Do not match on `message` or `failed_reason.message`. Those strings target human operators and their wording changes.
+- Do not read on-chain confirmation counts to decide whether funds are usable. Whether the confirmation requirement is met is already reflected in `status`.
+
+**Arrays are full snapshots.** Fields such as `transactions` carry the object's complete current list, not the delta since the last event. Replace your local copy rather than appending to it.
+
+**Delivery is not ordered.** Upsert by object ID, and discard any event that reports a state earlier than the one you have already recorded. A terminal state must never be rolled back by a later-arriving in-progress event.
+
+**A field with no value is absent.** When a field does not apply, the key is omitted rather than set to `null`. Read optional fields defensively, for example `payload.get("failed_reason")` rather than `payload["failed_reason"]`.
+
+## Read failure reasons
+
+Events that can report a failure carry a `failed_reason` object.
+
+```json
+"failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
+```
+
+`code` is a controlled enumeration and is what you branch on. Keep the full string, including the prefix, and do not split it on the dot. The prefix tells you which layer failed: `payment.*` is the payments orchestration layer, such as fee collection, fund preparation, or validation; `transaction.*` is the transaction layer.
+
+`message` is written for human operators and its wording can change, so display it but never match on it.
+
+### Transaction-layer codes
+
+These codes can appear on any object that moves funds.
+
+| `code` | When it happens | What to do |
+| --- | --- | --- |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected the transaction in the Screening App. | Review the case there, then resend once it is cleared. |
+| `transaction.rejected_by_policy` | The transaction matched one of your own transaction policies. | Adjust the relevant policy in Cobo Portal, then resend. |
+| `transaction.rejected_by_approval` | An approver in your organization rejected the transaction. | Contact that approver, then resend. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transaction. | Do not resend. Resolve the issue with Cobo first. |
+| `transaction.rejected_by_bank` | The receiving bank returned the payout. Off-Ramp payouts only. | Confirm the recipient's bank account details before resending. Resending unchanged is likely to be rejected again. |
+| `transaction.failed` | The failure could not be classified. Covers on-chain failures, broadcast failures, insufficient balance, signing failures, cancellations, and deposits affected by a chain reorganization. | Report the business object ID when you raise the case. |
+
+Payments-layer codes are specific to each business object and are listed on that object's page.
+
+### Report the business object ID
+
+When a failure needs investigation, supply the business object ID rather than a transaction ID: `transaction_id` for a top-up, or `order_id`, `refund_id`, `payout_id`, `bulk_send_id`, `bulk_send_item_id`. Every payload carries its own object ID, whereas a transaction ID is not present in refund or bulk send item payloads at all.
+
+For a payout, one `payout_id` can cover several outgoing transactions, so the object ID is what allows the whole request to be traced.
+
+## Read amounts
+
+All amounts are decimal strings, not numbers. Parse them with a decimal type.
+
+| Shape | Fields | Where it is used |
+| --- | --- | --- |
+| Asset amount | `amount`, `token_id`, `chain_id` | Most amount fields. |
+| Asset or fiat amount | `amount_type`, then `amount` with either `token_id` and `chain_id`, or `currency` | Fields that can be either crypto or fiat, such as `actual_payout_amount`. Read `amount_type` first rather than inferring from the presence of `token_id`. |
+| Commission fee | `token_id`, `fee_amount` | Commission charged by Cobo. |
+
+```json
+{ "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+{ "amount_type": "Crypto", "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+{ "amount_type": "Fiat", "amount": "497.50", "currency": "USD" }
+{ "token_id": "ETH_USDC", "fee_amount": "2.50" }
+```
+
+A field whose name is plural, such as `requested_amounts`, is an array and can span several tokens. A singular field is a single object covering one asset. Never add amounts across assets.
+
+Webhook messages do not carry balances or fee breakdowns, so that the values you read are never stale relative to concurrent activity. To keep your own ledger current, call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when an event arrives. For fee detail, use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
+
+## Test your endpoint
+
+Use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) to deliver a sample message to your registered endpoints.

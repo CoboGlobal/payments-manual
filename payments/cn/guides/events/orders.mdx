@@ -1,0 +1,96 @@
+---
+title: "订单事件"
+lang: "zh-hans"
+---
+
+本页覆盖订单模式：每个收款订单有自己的收款地址、有效期和应收金额。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## `payment.order.updated`
+
+订单模式的主事件，以 `order_id` 标识。
+
+**只有 `status` 为 `Completed` 时才能发货，不要自己比较金额。** 足额判定带容差（`amount_tolerance`），自行拿实收金额与应收金额比较，会把 Cobo 认定已付清的订单判成没付够。
+
+| `status` | `notice_type` | 触发时机 | 您该做什么 |
+| --- | --- | --- | --- |
+| `Pending` | 无 | 订单已创建，尚未收到入金。 | 建立订单记录，向付款方展示应付金额。 |
+| `Processing` | 无 | 检测到**首笔**入金。 | 更新进度，不要发货。 |
+| `Processing` | `PaymentUpdated` | 某笔入金进入 `ActionRequired`。 | 按该条目的 `message` 处理，这笔资金在您处理前会一直挂起。 |
+| `Completed` | 无 | 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态。 | 发货，以 `order_id` 作为幂等键。 |
+| `Underpaid` | 无 | 有效期结束，存在已完成入账但未达阈值。 | 进入少付处理，不要按足额订单发货。 |
+| `Expired` | 无 | 有效期结束且没有任何已完成入账，或订单被撤销。 | 关闭付款窗口。需要继续收款时创建新订单。 |
+| 保持不变 | `LatePaymentReceived` | 订单进入终态后又收到资金，且该笔通过筛查。 | 人工决定退款还是补发，不要重开原订单。 |
+
+`Underpaid` 与 `Expired` 的分界在于有没有已完成的入账，而不在于收到多少钱。到期时入金全部失败、或仍停留在筛查中的订单，进入 `Expired`。
+
+### 哪些情况不发事件
+
+订单停留在 `Processing` 期间，入金会不断变化，但其中大部分变化不产生事件。检测到第二笔及以后的入金、入金进入筛查、入金通过筛查、入金失败，这些都不会改变订单状态，也不会通知您，即使 `credited_amount` 和 `outstanding_amount` 已经变了。
+
+只有上表列出的情况才会发事件。判据是您此刻能不能动手、动手有没有用：入金失败是终局，您无法挽回；晚到款未通过筛查等于什么都没到账。信息不会丢失——订单终态事件会携带完整的 `transactions` 数组。
+
+如果您需要在有效期内展示实时收款进度，请轮询 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)，不要依赖 Webhook。
+
+### 事件内容
+
+始终提供：`order_id`、`psp_order_code`、适用时的 `merchant_id` 与 `merchant_order_code`、`status`、`notice_type`、`receive_address`、`expired_at`、`requested_amount`、`credited_amount`、`outstanding_amount`、`transactions`、`created_timestamp`、`updated_timestamp`。
+
+| 字段 | 说明 |
+| --- | --- |
+| `order_id` | 订单身份，也是您做发货幂等时使用的键。 |
+| `psp_order_code` | 您自己为该订单分配的参考编号。 |
+| `merchant_order_code` | 订单归属商户时，商户自己的参考编号。 |
+| `receive_address` | 付款方转账的目标地址。 |
+| `expired_at` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
+| `notice_type` | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
+| `transactions` | 该订单至今关联的全部入金，参见[读取入金数组](#读取入金数组)。 |
+
+订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
+
+### 三个金额字段
+
+| 字段 | 是什么 | 怎么用 |
+| --- | --- | --- |
+| `requested_amount` | 订单应收总额，**含您的手续费**。 | 展示给付款方。它不是发货阈值。 |
+| `credited_amount` | 已收到并计入订单的总额。 | 用于对账。不要自己对数组求和：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。 |
+| `outstanding_amount` | 还差多少未收到。 | 用于告知付款方还需支付多少。 |
+
+`credited_amount` 包含将要分给您的那部分手续费，因此它不是商户的入账金额。两个账户各自实际收到多少，请读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。
+
+`outstanding_amount` 下限为 `0`，多付时保持 `0`，因此它无法表达多收了多少。它还把四种情况合并成一个数：付款方没打钱、资金在筛查中、资金在等您补充信息、资金被拒绝。这四种的处理方式完全不同，需要遍历 `transactions` 并按条目的 `status` 分组，才能知道钱卡在哪里。
+
+### 读取入金数组
+
+`transactions` 是该订单当前的完整入金列表，不是自上条事件以来的增量。请整体替换本地副本，并按 `transaction_id` 做 upsert。
+
+每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与 Top-up 相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，取交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。
+
+低于粉尘阈值的入金完全不会出现在数组里。默认阈值为 `0.05`，金额需严格大于该值才会保留。
+
+## 意外入金
+
+不属于任何订单、或使用了不支持币种的入金，不会计入订单，而是作为意外入金上报，并计入您的开发者余额。
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.external.created` | 检测到一笔意外入金。 |
+| `payment.transaction.external.completed` | 该意外入金通过筛查，并已计入您的开发者余额。 |
+
+两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
+
+## 交易级事件
+
+当您需要订单对象不携带的链上细节时订阅这些事件。
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.created` | 检测到一笔入金。 |
+| `payment.transaction.completed` | 一笔入金通过合规筛查并已入账。 |
+| `payment.transaction.failed` | 一笔入金未通过合规筛查。 |
+| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 |
+
+在订单模式下，它们在共用交易字段之外还携带 `acquiring_type`（值为 `Order`）、`order_id` 和 `psp_order_code`。参见[交易级事件](/payments/cn/guides/events/transaction-level)。
+
+对于分多笔付清的订单，`payment.transaction.completed` 每笔到账触发一次，而订单事件汇报的是累计结果。`payment.transaction.late` 汇报的事实与 `notice_type` 为 `LatePaymentReceived` 相同，同样不会改变订单的终态。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+
+不要同时用 `payment.order.updated` 和交易级事件触发发货。每个不可逆动作只能有一个来源。

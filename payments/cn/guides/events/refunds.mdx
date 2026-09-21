@@ -1,0 +1,112 @@
+---
+title: "退款事件"
+lang: "zh-hans"
+---
+
+本页的事件跟踪一笔退款单从创建到完成的全过程。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+退款目前只支持订单。要退回通过 Top-up 模式收到的资金，请改为创建 Payout。
+
+## `payment.refund.updated`
+
+退款的主事件，以 `refund_id` 标识。
+
+| `status` | 触发时机 | 您该做什么 |
+| --- | --- | --- |
+| `Pending` | 通过退款链接成功创建退款单。 | 记录该退款单并等待。 |
+| `Completed` | 退款完成。 | 对账并关闭退款，以 `refund_id` 作为幂等键。 |
+| `Failed` | 退款失败，**一分未退**。 | 读取 `failed_reason` 并处理。 |
+
+只有这三个值会送达您。公开的 `RefundStatus` 枚举还包含 `PendingConfirmation`、`AddressPending`、`AddressSubmitted`、`Processing`、`PartiallyCompleted`，但它们都没有对应的发送点，不会出现在任何事件中。您的 SDK 里仍会有这些枚举值，但不需要为它们编写分支。
+
+一笔退款要么全额成功，要么全额失败，不存在部分退款的结果。
+
+### 事件内容
+
+始终提供：`refund_id`、`order_id`、`merchant_id`、`request_id`、`to_address`、`status`、`requested_amount`、`tx_hash`、`refund_type`、`initiator`、`commission_fee`、`created_timestamp`、`updated_timestamp`。
+
+| 字段 | 说明 |
+| --- | --- |
+| `refund_id` | 退款单身份，也是您做对账幂等时使用的键。 |
+| `order_id` | 本次退款所对应的收款订单。 |
+| `request_id` | 您创建退款时提供的请求 ID。 |
+| `to_address` | 接收退款的地址。 |
+| `requested_amount` | 请求退还的金额，资产金额结构。对应您创建退款时传入的 `payable_amount`。 |
+| `tx_hash` | 退款转账的链上哈希。退款在广播前就失败时没有该值。 |
+| `refund_type` | 退款资金来自哪个余额，取 `Merchant` 或 `Psp`。 |
+| `initiator` | 退款发起人。 |
+| `commission_fee` | Cobo 收取的佣金，单个对象，包含 `token_id` 与 `fee_amount`。一笔退款只涉及一个 token，因此这里不是数组。收取后被全额冲回时该值可能为 `0`，冲回大于收取时可能为负数。 |
+| `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`。 |
+
+退款没有单独的已完成金额和失败金额字段，因此 `requested_amount` 既是请求退还的金额，也是 `status` 为 `Completed` 后实际退还的金额。
+
+### 失败 code
+
+如果是底层转账本身被拒绝，`failed_reason.code` 是交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。如果退款在转账之前或前后环节失败，则取下列之一。
+
+| `code` | 发生了什么 | 您该做什么 |
+| --- | --- | --- |
+| `payment.refund_sweep_failed` | 归集交易失败，资金无法准备。 | 重新发起退款。 |
+| `payment.refund_fee_charge_failed` | Fee Station 余额不足，退款手续费无法扣收。 | 向 Fee Station 充值后重试。 |
+| `payment.refund_fee_station_not_configured` | 未配置 Fee Station，退款手续费无法扣收。 | 配置 Fee Station 后重试。 |
+| `payment.refund_fee_charge_failed_unknown` | 退款手续费因其他原因无法扣收。 | 检查 Fee Station 的配置与余额后重试。 |
+| `payment.refund_transactions_failed` | 全部退款交易均失败。 | 重试前先查看交易层的具体原因。 |
+
+### 示例
+
+```json
+{
+  "event_id": "evt_refund_001",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1744690500000,
+  "type": "payment.refund.updated",
+  "data": {
+    "data_type": "PaymentRefundUpdate",
+    "refund_id": "refund_001",
+    "order_id": "order_001",
+    "merchant_id": "M1001",
+    "request_id": "request_refund_001",
+    "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+    "status": "Completed",
+    "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    "tx_hash": "0xrefund001",
+    "refund_type": "Merchant",
+    "initiator": "api_key_abc123",
+    "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+    "created_timestamp": 1744690400,
+    "updated_timestamp": 1744690500
+  },
+  "status": "Success"
+}
+```
+
+## `payment.refund.status.updated`
+
+上一代退款事件，对已有接入继续投递。
+
+**触发条件：** 退款单状态变更。关键节点为 `Pending`（通过退款链接成功创建退款单）、`Completed`（全部退款交易完成）、`Failed`（全部退款交易失败）。
+
+**事件内容：**
+
+- `refund_id`（必填）—— 退款单 ID。
+- `request_id`（选填）—— 您创建退款时提供的请求 ID。
+- `order_id`（选填）—— 本次退款对应的收款订单 ID。
+- `merchant_id`（选填）—— 商户 ID。
+- `token_id`（必填）—— 退款使用的加密货币 ID。
+- `chain_id`（必填）—— 区块链网络 ID。
+- `amount`（必填）—— 本次退款需退还的加密货币金额。
+- `to_address`（必填）—— 收款钱包地址。
+- `status`（必填）—— 当前退款状态，取值为 `AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation` 之一。
+- `refund_type`（选填）—— 资金来源，取值为 `Merchant` 或 `Psp`。
+- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
+- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
+- `initiator`（选填）—— 退款请求发起人。
+- `transactions`（选填）—— 与该退款关联的支付交易数组。
+- `charge_merchant_fee`（选填）—— 是否向商户收取开发者手续费。
+- `merchant_fee_amount`（选填）—— 向商户收取的开发者手续费金额。
+- `merchant_fee_token_id`（选填）—— 开发者手续费使用的加密货币 ID。
+- `commission_fee`（选填）—— 佣金明细。
+
+完整说明请参见 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。
+
+不要同时用两代事件关闭同一笔退款，请选定其中一个作为该动作的来源。

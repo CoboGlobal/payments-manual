@@ -1,0 +1,140 @@
+---
+title: "Payout events"
+lang: "en"
+---
+
+These events track a single payout or transfer request, whether it settles in crypto or through an Off-Ramp to a bank account. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+For batch payouts, see [Bulk send events](/payments/en/guides/events/bulk-send).
+
+## `payment.payout.updated`
+
+The primary payout event, identified by `payout_id`.
+
+| `status` | Final | What to do |
+| --- | --- | --- |
+| `Pending` | No | The request was accepted. Wait. |
+| `Preparing` | No | Wait. |
+| `Transferring` | No | Wait. **Do not close the payout before a final status**, even if some outgoing transactions have already completed. |
+| `Completed` | Yes | Close the payout. This means Cobo completed the transfer; it does not mean the recipient's platform has credited it. |
+| `PartiallyCompleted` | Yes | Create a **new** payout for the amount in `failed_amounts`. Do not resend the part that already succeeded. |
+| `Failed` | Yes | Read `failed_reason` and handle it. Do not retry in place. |
+| `RejectedByBank` | Yes | The receiving bank rejected the Off-Ramp transfer. Confirm the account details with the recipient first; resending unchanged is likely to be rejected again. |
+
+### Event content
+
+Always present: `payout_id`, `request_id`, `source_account`, `status`, `requested_amounts`, `failed_amounts`, `requested_target`, `transactions`, `actual_payout_amount`, `initiator`, `commission_fees`, `remark`, `created_timestamp`, `updated_timestamp`.
+
+| Field | Description |
+| --- | --- |
+| `payout_id` | The payout's identity, and the key you use when closing the payout and when raising a support case. |
+| `request_id` | The request ID you supplied when creating the payout. |
+| `source_account` | The account the funds are paid from. |
+| `requested_target` | Where the money is going, in business terms. Carries `target_type`, which is either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
+| `initiator` | Who initiated the payout. |
+| `remark` | The note attached to the payout. |
+| `transactions` | The outgoing transactions. See [Reading the transactions array](#reading-the-transactions-array). |
+| `failed_reason` | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
+
+### The amounts are on two different sides
+
+| Field | Side | Notes |
+| --- | --- | --- |
+| `requested_amounts` | Source | What you asked to pay out, grouped by source token. |
+| `failed_amounts` | Source | The part that was not paid out, grouped by source token. At a final status, the amount that succeeded is the difference between the two. |
+| `actual_payout_amount` | Delivery | What the recipient actually received. For crypto this is in the destination token; for Off-Ramp it is in the bank account's currency. Absent until the payout finishes. |
+| `commission_fees` | Source | The commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
+
+**Do not subtract across the two sides.** Cross-chain conversion and fiat settlement mean the source and delivery figures are not the same asset.
+
+**Do not reconcile `failed_amounts` against `transactions`.** A payout item can fail before any outgoing transaction is created — during fund consolidation, cross-chain conversion, or commission collection — and in that case no entry exists in the array at all.
+
+### Reading the transactions array
+
+Entries use `result`, not `status`, to avoid confusion with wallet transaction states. The values are `Completed`, `Failed`, and `null`, where `null` means there is no result yet.
+
+Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`. `tx_hash` is empty until the transaction is broadcast. An entry with `result` `Failed` carries its own `failed_reason` using the transaction-layer codes in [Events overview](/payments/en/guides/events/overview#transaction-layer-codes).
+
+After cross-chain conversion, an entry's `amount` is in the token actually sent, which can differ from the source token in `requested_amounts`.
+
+### Where to find the reason when a payout is partially completed
+
+Read the object-level `failed_reason` first — it is always populated, whatever stage the failure happened at. If the failure happened on an outgoing transaction, the matching entry in `transactions` carries a more precise reason as well.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `payment.payout_partially_failed` | Part of the payout could not be completed. | Read `failed_amounts` for the affected amount, then create a new payout for it. |
+
+### Failure codes
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `payment.payout_fee_charge_failed` | The payout fee could not be charged because the Fee Station balance is insufficient. | Add funds to Fee Station, then create the payout again. |
+| `payment.payout_fee_station_not_configured` | The payout fee could not be charged because Fee Station is not configured. | Configure Fee Station, then create the payout again. |
+| `payment.payout_fee_charge_failed_unknown` | The payout fee could not be charged for another reason. | Check your Fee Station configuration and balance. |
+| `payment.payout_sweep_failed` | Funds could not be prepared because the sweep transaction failed. | Create the payout again. |
+| `payment.payout_bridge_failed` | All cross-chain transactions failed, so the assets could not be converted. | Check whether the route is available for the token pair, then create the payout again. |
+| `payment.payout_transactions_failed` | Every outgoing transaction failed. | Read the transaction-layer detail in `transactions` before retrying. |
+
+`RejectedByBank` carries the transaction-layer code `transaction.rejected_by_bank`.
+
+## `payment.bank_withdrawal.status.updated`
+
+Fires when a bank withdrawal changes status. A bank withdrawal moves fiat out of one of your virtual accounts into a target bank account, and is created with [Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal).
+
+| `status` | Meaning |
+| --- | --- |
+| `Pending` | The bank withdrawal was created and is awaiting processing. |
+| `Processing` | The bank withdrawal is being processed. |
+| `Completed` | The funds have left the virtual account. |
+| `Failed` | The withdrawal failed. Read `failed_reason` for the cause. |
+
+**Event content:** the `data` object carries `data_type` `PaymentBankWithdrawal`, plus:
+
+- `bank_withdrawal_id` (required) — The bank withdrawal ID generated by Cobo.
+- `request_id` (required) — The request ID you provided when creating the bank withdrawal.
+- `source_bank_account_id` (required) — The ID of the source bank account, which must be a virtual account (tagged `VA`).
+- `target_bank_account_id` (required) — The ID of the target bank account that receives the withdrawal.
+- `source_bank_account` (required) — The full details of the source bank account.
+- `target_bank_account` (required) — The full details of the target bank account.
+- `currency` (required) — The fiat currency of the bank withdrawal, for example `USD`.
+- `amount` (required) — The bank withdrawal amount, as a decimal string in the currency's display unit, for example `100.00`.
+- `bank_tx_fee` (optional) — The bank transaction fee charged for the bank withdrawal.
+- `status` (required) — The current status. One of: `Pending`, `Processing`, `Completed`, `Failed`.
+- `remark` (optional) — The remark for the bank withdrawal.
+- `failed_reason` (optional) — Why the bank withdrawal failed. Populated only when `status` is `Failed`.
+- `timeline` (required) — The status timeline of the bank withdrawal. Each item carries a `status` and the `timestamp` at which the withdrawal entered it, in Unix timestamp (seconds).
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+
+<Note>
+  The bank withdrawal payload does not carry an `updated_timestamp`. To determine when the withdrawal entered its current status, read the last entry in `timeline`.
+</Note>
+
+For full details, see [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id).
+
+## `payment.payout.status.updated`
+
+The previous-generation payout event. It keeps being delivered for existing integrations.
+
+**Trigger condition:** the payout or transfer request status changes. `Completed` means all transfers completed, `PartiallyCompleted` means some completed and some failed, `Failed` means all failed, and `RejectedByBank` means the recipient bank rejected the Off-Ramp payout.
+
+**Event content:**
+
+- `payout_id` (required) — The payout ID.
+- `request_id` (required) — The request ID you provided when creating the payout.
+- `payout_channel` (required) — The payout channel. One of: `Crypto`, `OffRamp`.
+- `source_account` (optional) — The source account from which the payout is made.
+- `payout_items` (optional) — An array of payout items.
+- `recipient_info` (optional) — The recipient information.
+- `initiator` (optional) — The initiator of the payout request.
+- `actual_payout_amount` (optional) — The actual amount delivered to the recipient.
+- `commission_fees` (optional) — An array of commission fees for this payout.
+- `remark` (optional) — A note or comment about the payout.
+- `status` (required) — The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`.
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
+- `transactions` (optional) — An array of payment transactions associated with this payout.
+
+For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
+
+Do not close a payout from both events. Choose one as the source for that action.

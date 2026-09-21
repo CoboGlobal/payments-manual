@@ -1,0 +1,130 @@
+---
+title: "交易级事件"
+lang: "zh-hans"
+---
+
+`payment.transaction.*` 这组事件汇报的是单笔链上交易而不是业务对象，属于高级选项：业务对象事件已经告诉您能否入账、能否发货、能否关闭付款，而这组事件位于它下面一层，暴露背后的链上细节。
+
+当您需要确认数、手续费明细、区块信息，或替换（丢弃、重发、加速）信息时订阅它们——例如向付款方展示转账进度，或核对 gas 支出。判断下一步该做什么，请使用业务对象事件。
+
+请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+<Note>
+  不要同时用业务对象事件和交易级事件驱动同一个不可逆动作。入账、发货、关闭付款三件事各自选定一个来源，另一个仅用于对账。
+</Note>
+
+## 入金交易
+
+| 事件 | 触发时机 | 适用范围 |
+| --- | --- | --- |
+| `payment.transaction.created` | 入金地址收到一笔新的入金。 | Top-up 模式 |
+| `payment.transaction.completed` | 一笔入金通过合规筛查并已入账。 | 两种收款模式 |
+| `payment.transaction.failed` | 一笔入金未通过合规筛查。 | 两种收款模式 |
+| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 | 订单模式 |
+
+它们在共用[交易字段](#交易字段)之外，各自附加以下字段：
+
+| 事件 | 附加字段 |
+| --- | --- |
+| `payment.transaction.created` | `acquiring_type`（必填，值为 `TopUp`）、`payer_id`（选填）、`custom_payer_id`（选填） |
+| `payment.transaction.completed` | 订单模式：`acquiring_type`（必填，值为 `Order`）、`order_id`（选填）、`psp_order_code`（选填）。Top-up 模式：`acquiring_type`（必填，值为 `TopUp`）、`payer_id`（选填）、`custom_payer_id`（选填） |
+| `payment.transaction.failed` | `acquiring_type`（必填，`Order` 或 `TopUp`）、`order_id`（选填）、`psp_order_code`（选填）、`payer_id`（选填）、`custom_payer_id`（选填） |
+| `payment.transaction.late` | `acquiring_type`（必填，值为 `Order`）、`order_id`（选填）、`psp_order_code`（选填） |
+
+对于分多笔付清的订单，`payment.transaction.completed` 在每笔资金入账时各触发一次，而订单事件汇报的是累计结果。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+
+`payment.transaction.late` 不会重开订单，也不会改变订单的终态。同一个事实也会通过订单事件的 `notice_type` 为 `LatePaymentReceived` 送达。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+
+## 意外入金
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.external.created` | 检测到一笔意外入金，例如不属于任何订单或入金计划、或使用了不支持的币种。 |
+| `payment.transaction.external.completed` | 该意外入金通过筛查，并已计入您的开发者余额。 |
+
+两者携带[交易字段](#交易字段)，没有额外的 Payment 字段。由于这类入金不属于任何业务对象，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
+
+## 结算网络交易
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.settlement_network.created` | 创建了一笔结算网络交易。 |
+| `payment.transaction.settlement_network.completed` | 该交易完成，结算资金已反映到您的 Payment 账户余额中。 |
+
+参见[余额与结算网络事件](/payments/cn/guides/events/balances-and-settlement)与[结算网络](/payments/cn/guides/settlement-network)。
+
+## 交易字段
+
+以下字段出现在所有 `payment.transaction.*` 事件中。并非每个字段在每种场景下都有值。
+
+<Note>
+  本节只覆盖与支付场景最相关的字段。完整的交易字段及其含义，请参见 [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information)。
+</Note>
+
+- `transaction_id`（string，UUID，必填）—— 交易 ID。
+- `cobo_id`（string，选填）—— 用于追踪交易的 Cobo ID。
+- `request_id`（string，选填）—— 用于追踪交易请求的请求 ID。
+- `type`（string，选填）—— 交易类型。
+- `status`（string，必填）—— 交易状态，例如 `Submitted`、`PendingScreening`、`Confirming`、`Completed`、`Failed`、`Rejected`。完整生命周期参见 [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status)。其中 `PendingAuthorization` 既涵盖人工审批环节，也涵盖内部自动的风控、KYT、合规检查，不一定需要人工操作。
+- `sub_status`（string，选填）—— 与 `status` 并列的更细粒度状态，例如 `PendingApproverCheck`、`RejectedKYT`、`FailedOnChain`。完整取值同样参见上述[状态与子状态文档](https://www.cobo.com/developers/v2/guides/transactions/status)。
+- `failed_reason`（string，选填）—— 交易失败的原因，仅在审批失败和签名失败时有值。它是一个自由文本字符串，与业务对象事件携带的 `{ code, message }` 对象不同。
+- `initiator`（string，选填）—— 交易发起人。
+- `chain_id`（string，选填）—— 链 ID。
+- `token_id`（string，选填）—— token ID。
+- `transaction_hash`（string，选填）—— 链上交易哈希（`txid`）。只有交易在链上广播之后才有值，在此之前可能为 `null` 或不存在；而 `transaction_id` 在创建时即分配，始终存在。
+- `source`（object，必填）—— 入金来源，通常是一个外部钱包地址（`source_type: DepositFromAddress`）。
+- `destination`（object，必填）—— 入金去向，通常是一个入金地址（`destination_type: DepositToAddress`）。关键子字段：
+  - `address` —— 收款地址。
+  - `amount` —— 收到的金额。例如存入 1.5 USDT 时该值为 `1.5`。
+  - `memo` —— 用于识别应入账到哪个账户的备注，仅部分链有。
+- `result`（object，选填）—— 交易结果。
+- `fee`（object，选填）—— 交易手续费。其结构取决于该链的手续费模型，例如 EIP-1559、UTXO。
+- `confirmed_num`（integer，选填）—— 该交易已获得的确认数。
+- `confirming_threshold`（integer，选填）—— 认定交易安全所需的最小确认数，例如比特币交易通常为 6。
+- `block_info`（object，选填）—— 该交易所在区块的信息：
+  - `block_number` —— 区块高度。
+  - `block_timestamp` —— 区块创建时间，Unix 时间戳（毫秒）。
+  - `block_hash` —— 区块哈希。
+- `raw_tx_info`（object，选填）—— 原始交易信息：
+  - `used_nonce` —— 交易 nonce。
+  - `selected_utxos` —— 该交易消耗的 UTXO。
+  - `raw_tx` —— 原始交易数据。
+  - `unsigned_raw_tx` —— 未签名的原始交易数据。
+  - `utxo_changes` —— 该交易中的 UTXO 找零输出。
+- `replacement`（object，选填）—— 当该交易替换了另一笔交易、或被另一笔交易替换时有值（丢弃、重发、加速）：
+  - `replaced_by_type` / `replaced_type` —— 替换类型，取 `Drop`、`Resend` 或 `SpeedUp`。
+  - `replaced_by_transaction_id` / `replaced_by_transaction_hash` —— 替换了本交易的那笔交易的 ID 与哈希。
+  - `replaced_transaction_id` / `replaced_transaction_hash` —— 被本交易替换的那笔交易的 ID 与哈希。
+- `created_timestamp`（integer，int64，必填）—— 创建时间，Unix 时间戳（毫秒）。
+- `updated_timestamp`（integer，int64，必填）—— 最近更新时间，Unix 时间戳（毫秒）。
+
+## 示例
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.transaction.created",
+  "data": {
+    "data_type": "PaymentTransaction",
+    "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+    "status": "Submitted",
+    "chain_id": "ETH",
+    "token_id": "ETH_USDT",
+    "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
+    "source": { "source_type": "DepositFromAddress" },
+    "destination": { "destination_type": "DepositToAddress" },
+    "created_timestamp": 1701396866000,
+    "updated_timestamp": 1701396866000,
+    "acquiring_type": "TopUp",
+    "payer_id": "P20250619T0310056d7aa",
+    "custom_payer_id": "user_abc_10001"
+  },
+  "status": "Success"
+}
+```
+
+<Note>
+  本示例仅供说明，由 Payment 规范中的字段定义构造而成；实际投递的 Webhook 中可选字段可能不存在。
+</Note>

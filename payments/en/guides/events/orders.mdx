@@ -1,0 +1,96 @@
+---
+title: "Order events"
+lang: "en"
+---
+
+These events cover Order Mode, where each payment order has its own address, expiry, and expected amount. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## `payment.order.updated`
+
+The primary event for Order Mode, identified by `order_id`.
+
+**Release goods or services only when `status` is `Completed`. Do not compare amounts yourself.** Completion allows a tolerance (`amount_tolerance`), so comparing the received amount against the expected amount rejects orders that Cobo considers paid in full.
+
+| `status` | `notice_type` | Fires when | What to do |
+| --- | --- | --- | --- |
+| `Pending` | absent | The order is created and no deposit has arrived. | Record the order and show the payer what to pay. |
+| `Processing` | absent | The **first** deposit is detected. | Update progress. Do not release goods. |
+| `Processing` | `PaymentUpdated` | A deposit entered `ActionRequired`. | Act on that entry's `message`. Those funds are held until you do. |
+| `Completed` | absent | Cumulative receipts reached the completion threshold. Overpayment also lands here; there is no `Overpaid` status. | Release goods, using `order_id` as the idempotency key. |
+| `Underpaid` | absent | The order expired with completed deposits that did not reach the threshold. | Handle as underpaid. Do not treat as fully paid. |
+| `Expired` | absent | The order expired with no completed deposit, or was canceled. | Close the payment window. Create a new order to keep collecting. |
+| unchanged | `LatePaymentReceived` | A deposit arrived after the order reached a final state and passed screening. | Decide whether to refund or fulfil. Do not reopen the original order. |
+
+The line between `Underpaid` and `Expired` is whether any deposit completed, not how much arrived. An order that expires with every deposit failed, or with deposits still in screening, becomes `Expired`.
+
+### When the event does not fire
+
+While an order sits in `Processing`, deposits keep changing but most of those changes do not produce an event. Detecting a second or later deposit, a deposit entering screening, a deposit passing screening, and a deposit failing all leave the order in `Processing` without a notification, even though `credited_amount` and `outstanding_amount` change.
+
+Only the rows in the table above fire. The rule behind this is whether you can act on the change and whether acting helps: a failed deposit is final and you cannot recover it, and a late payment that has not cleared screening means nothing has arrived. No information is lost — the order's final event carries the complete `transactions` array.
+
+If you need live collection progress during the order's validity period, poll [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) instead of relying on webhooks.
+
+### Event content
+
+Always present: `order_id`, `psp_order_code`, `merchant_id` and `merchant_order_code` where applicable, `status`, `notice_type`, `receive_address`, `expired_at`, `requested_amount`, `credited_amount`, `outstanding_amount`, `transactions`, `created_timestamp`, `updated_timestamp`.
+
+| Field | Description |
+| --- | --- |
+| `order_id` | The order's identity, and the key you use for fulfilment idempotency. |
+| `psp_order_code` | Your own reference code for the order. |
+| `merchant_order_code` | The merchant's own reference code, when the order belongs to a merchant. |
+| `receive_address` | The address the payer sends funds to. |
+| `expired_at` | When the payment window closes, as a Unix timestamp in seconds. |
+| `notice_type` | Why you were notified when `status` did not change. Either `PaymentUpdated` or `LatePaymentReceived`. |
+| `transactions` | Every deposit associated with the order so far. See [Reading the deposits array](#reading-the-deposits-array). |
+
+The order object itself has no `failed_reason`. An order does not fail — it expires or ends underpaid. Failures belong to individual deposits inside `transactions`.
+
+### The three amounts
+
+| Field | What it is | How to use it |
+| --- | --- | --- |
+| `requested_amount` | The total the order expects, **including your fee**. | Show it to the payer. It is not a fulfilment threshold. |
+| `credited_amount` | The total received and counted towards the order. | Use it for reconciliation. Do not sum the array yourself: a late payment is a `Completed` entry that does not count towards the order, so your sum comes out higher. |
+| `outstanding_amount` | How much is still missing. | Use it to tell the payer what is left. |
+
+`credited_amount` includes the portion that will be split out as your fee, so it is not the merchant's credited amount. For what each account actually received, read `payment.account.balance.updated` or call `GET /payments/balance_changes?source_id=<order_id>`.
+
+`outstanding_amount` has a floor of `0` and stays `0` on overpayment, so it never tells you how much was overpaid. It also merges four different situations into one number: the payer has not sent anything, funds are in screening, funds are waiting for information from you, and funds were rejected. Those need different responses, so walk `transactions` and group by each entry's `status` to see where the money is stuck.
+
+### Reading the deposits array
+
+`transactions` is the order's complete current list of deposits, not the change since the last event. Replace your local copy and upsert by `transaction_id`.
+
+Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason`, which takes the transaction-layer codes listed in [Events overview](/payments/en/guides/events/overview#transaction-layer-codes).
+
+Deposits below the dust threshold are excluded from the array entirely. The default threshold is `0.05`, and an amount must exceed it to be kept.
+
+## Unexpected deposits
+
+A deposit that does not belong to any order, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as part of an order. It is credited to your developer balance.
+
+| Event | Fires when |
+| --- | --- |
+| `payment.transaction.external.created` | An unexpected deposit is detected. |
+| `payment.transaction.external.completed` | The unexpected deposit passed screening and was credited to your developer balance. |
+
+Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
+
+## Transaction-level events
+
+Subscribe to these when you need on-chain detail that the order object does not carry.
+
+| Event | Fires when |
+| --- | --- |
+| `payment.transaction.created` | A deposit is detected. |
+| `payment.transaction.completed` | A deposit passes compliance screening and is credited. |
+| `payment.transaction.failed` | A deposit fails compliance screening. |
+| `payment.transaction.late` | A deposit that passed screening arrives after the order reached a final state. |
+
+In Order Mode these carry `acquiring_type` with the value `Order`, plus `order_id` and `psp_order_code`, on top of the shared transaction fields. See [Transaction-level events](/payments/en/guides/events/transaction-level).
+
+For an order paid in several instalments, `payment.transaction.completed` fires once per receipt, whereas the order event reports the cumulative outcome. `payment.transaction.late` reports the same fact as `notice_type` `LatePaymentReceived` and likewise does not change the order's final status. See [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
+
+Do not release goods from both `payment.order.updated` and a transaction-level event. Choose one source per irreversible action.
