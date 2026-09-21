@@ -3,7 +3,7 @@ title: "Bank account requirements by country"
 lang: "en"
 ---
 
-A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; what differs is what each destination's SWIFT route requires of fields such as `iban_code`, `routing_value`, and `bank_country`.
+A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; every recipient account is paid over SWIFT, and what differs is what each country requires of fields such as `iban_code`, `routing_value`, and `bank_country`.
 
 This guide lists those differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
 
@@ -35,9 +35,9 @@ The top-level `CreateDestinationRequest` requires the destination name, destinat
 | `email` | Required. Contact email for the destination. |
 | `contact_address` | Required. Contact address for the destination. |
 
-## SWIFT bank-account requirements
+## Bank-account field requirements
 
-For SWIFT bank-account destinations, set `payment_method` to `Swift`.
+POBO recipient bank accounts support SWIFT only. `payment_method` is always `Swift`; there is no other value.
 
 | Field | Requirement |
 | --- | --- |
@@ -50,7 +50,7 @@ For SWIFT bank-account destinations, set `payment_method` to `Swift`.
 | `bank_name` | Required. Bank name. |
 | `bank_address` | Required. Bank address. |
 | `holder_type` | Required. Use `Company` for a company entity or `Personal` for an individual entity. |
-| `payment_method` | Required. Use `Swift`. |
+| `payment_method` | Required. Always `Swift`. |
 | `bank_account_name` | Required. Bank account name. Do not use Chinese characters. |
 | `country` | Required. Beneficiary country in ISO3 format. |
 | `city` | Required. Beneficiary city. |
@@ -66,7 +66,7 @@ For SWIFT bank-account destinations, set `payment_method` to `Swift`.
 
 | Country | Field differences from `HKG` | Format or enum requirement | `bank_country` |
 | --- | --- | --- | --- |
-| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code` or `routing_value`. | `payment_method` is `Swift`. | `HKG` |
+| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code` or `routing_value`. | No additional format requirements. | `HKG` |
 | Taiwan, China (`TWN`) | No field differences. | Same as `HKG`. | `TWN` |
 | Malaysia (`MYS`) | No field differences. | Same as `HKG`. | `MYS` |
 | Philippines (`PHL`) | No field differences. | Same as `HKG`. | `PHL` |
