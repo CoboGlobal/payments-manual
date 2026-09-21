@@ -7,12 +7,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 
 ## 按业务对象选择事件
 
-只订阅您实际使用的业务对象所对应的事件。每个页面包含该对象的主事件、可能一并需要的其他事件，以及提供链上细节的交易级事件。
+只订阅您实际使用的业务对象所对应的事件。每个页面覆盖该对象自己的事件，以及这条链路还需要、但没有业务对象事件可替代的其他事件。
 
-| 您的业务 | 主事件 | 页面 |
+| 您的业务 | 业务对象事件 | 页面 |
 | --- | --- | --- |
-| 付款方直接入金 | `payment.topup.updated` | [充值事件](/payments/cn/guides/events/top-up) |
-| 收款订单 | `payment.order.updated` | [订单事件](/payments/cn/guides/events/orders) |
+| 充值（付款方直接入金） | `payment.topup.updated` | [充值事件](/payments/cn/guides/events/top-up) |
+| 收款订单（订单模式） | `payment.order.updated` | [订单事件](/payments/cn/guides/events/orders) |
 | 退款 | `payment.refund.updated` | [退款事件](/payments/cn/guides/events/refunds) |
 | 单笔资金转出与转账 | `payment.payout.updated` | [资金转出事件](/payments/cn/guides/events/payouts) |
 | 批量下发 | `payment.bulk_send.updated`、`payment.bulk_send.item.updated` | [批量下发事件](/payments/cn/guides/events/bulk-send) |

@@ -7,12 +7,12 @@ Cobo Payments notifies your system through webhook events. This section is organ
 
 ## Choose events by business object
 
-Subscribe to the events for the business objects you actually use. Each page covers the primary event for that object, the other events you may need alongside it, and the transaction-level events that expose on-chain detail.
+Subscribe to the events for the business objects you actually use. Each page covers that object's own event, plus the other events its flow needs that no object event replaces.
 
-| Your business | Primary event | Page |
+| Your business | Object event | Page |
 | --- | --- | --- |
-| Direct deposits from payers | `payment.topup.updated` | [Top-up events](/payments/en/guides/events/top-up) |
-| Payment orders | `payment.order.updated` | [Order events](/payments/en/guides/events/orders) |
+| Top-up deposits from payers | `payment.topup.updated` | [Top-up events](/payments/en/guides/events/top-up) |
+| Payment orders (Order Mode) | `payment.order.updated` | [Order events](/payments/en/guides/events/orders) |
 | Refunds | `payment.refund.updated` | [Refund events](/payments/en/guides/events/refunds) |
 | Single payouts and transfers | `payment.payout.updated` | [Payout events](/payments/en/guides/events/payouts) |
 | Bulk sends | `payment.bulk_send.updated`, `payment.bulk_send.item.updated` | [Bulk send events](/payments/en/guides/events/bulk-send) |
