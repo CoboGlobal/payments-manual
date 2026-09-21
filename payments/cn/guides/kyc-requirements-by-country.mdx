@@ -20,12 +20,12 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 | 范围 | 字段 |
 | --- | --- |
-| B2B 顶层请求 | `merchant_type`、`country`、`merchant_id`、`industry`、`company_info` |
-| B2C 顶层请求 | `merchant_type`、`country`、`merchant_id`、`industry`、`individual_info` |
+| 公司顶层请求 | `merchant_type`、`country`、`merchant_id`、`industry`、`company_info` |
+| 个人顶层请求 | `merchant_type`、`country`、`merchant_id`、`industry`、`individual_info` |
 | 地址对象 | `country`、`state`、`city`、`postcode`、`line1` |
 | 人员信息 | `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address`、`attachments` |
 
-## B2B 公司 KYC 要求
+## 公司 KYC 要求
 
 对于公司 KYC，将 `merchant_type` 设置为 `B2B`，并提供 `company_info`。请勿在同一请求中提供 `individual_info`。
 
@@ -65,7 +65,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 对于非中国大陆人员，提供 `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address` 和 `attachments`。如使用中国大陆身份证，请同时提供 `PRC_ID_Emblem` 和 `PRC_ID_Portrait`。
 
-## B2C 个人 KYC 要求
+## 个人 KYC 要求
 
 对于个人 KYC，将 `merchant_type` 设置为 `B2C`，并提供 `individual_info`。
 
@@ -92,7 +92,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 ## 香港地址要求
 
-对于 `HKG` B2C KYC，`residential_address.city` 必须使用以下值之一。
+对于 `HKG` 个人 KYC，`residential_address.city` 必须使用以下值之一。
 
 | 中文值 | 英文值 |
 | --- | --- |

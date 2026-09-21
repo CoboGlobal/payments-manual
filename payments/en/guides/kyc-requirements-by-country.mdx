@@ -20,12 +20,12 @@ The KYC request uses consistent JSON keys for all supported countries. Country-s
 
 | Scope | Fields |
 | --- | --- |
-| Top-level B2B request | `merchant_type`, `country`, `merchant_id`, `industry`, `company_info` |
-| Top-level B2C request | `merchant_type`, `country`, `merchant_id`, `industry`, `individual_info` |
+| Top-level company request | `merchant_type`, `country`, `merchant_id`, `industry`, `company_info` |
+| Top-level individual request | `merchant_type`, `country`, `merchant_id`, `industry`, `individual_info` |
 | Address objects | `country`, `state`, `city`, `postcode`, `line1` |
 | Person information | `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, `attachments` |
 
-## B2B company KYC requirements
+## Company KYC requirements
 
 For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not provide `individual_info` in the same request.
 
@@ -65,7 +65,7 @@ For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not
 
 For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For mainland China identity cards, provide both `PRC_ID_Emblem` and `PRC_ID_Portrait`.
 
-## B2C individual KYC requirements
+## Individual KYC requirements
 
 For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 
@@ -92,7 +92,7 @@ For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 
 ## Hong Kong address requirements
 
-For `HKG` B2C KYC, `residential_address.city` must be one of the following values.
+For `HKG` individual KYC, `residential_address.city` must be one of the following values.
 
 | Chinese value | English value |
 | --- | --- |

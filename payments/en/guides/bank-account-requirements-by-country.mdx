@@ -20,15 +20,15 @@ Use the following destination type and holder type values for POBO bank-account 
 
 | Business type | `destination_type` | `holder_type` |
 | --- | --- | --- |
-| B2B company | `Organization` | `Company` |
-| B2C individual | `Individual` | `Personal` |
+| Company | `Organization` | `Company` |
+| Individual | `Individual` | `Personal` |
 
 The top-level `CreateDestinationRequest` requires the destination name, destination type, bank-account list, merchant ID, beneficiary country, contact email, and contact address.
 
 | Field | Requirement |
 | --- | --- |
 | `destination_name` | Required. Name that identifies the destination. |
-| `destination_type` | Required. Use `Organization` for B2B or `Individual` for B2C. |
+| `destination_type` | Required. Use `Organization` for a company entity or `Individual` for an individual entity. |
 | `bank_accounts` | Required. List of bank-account objects. |
 | `merchant_id` | Required. Merchant ID associated with the destination. |
 | `country` | Required. Beneficiary country in ISO3 format. |
@@ -49,7 +49,7 @@ For SWIFT bank-account destinations, set `payment_method` to `Swift`.
 | `beneficiary_address` | Required. Beneficiary address. |
 | `bank_name` | Required. Bank name. |
 | `bank_address` | Required. Bank address. |
-| `holder_type` | Required. Use `Company` for B2B or `Personal` for B2C. |
+| `holder_type` | Required. Use `Company` for a company entity or `Personal` for an individual entity. |
 | `payment_method` | Required. Use `Swift`. |
 | `bank_account_name` | Required. Bank account name. Do not use Chinese characters. |
 | `country` | Required. Beneficiary country in ISO3 format. |
