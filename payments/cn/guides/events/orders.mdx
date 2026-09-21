@@ -63,7 +63,7 @@ lang: "zh-hans"
 
 `transactions` 是该订单当前的完整入金列表，不是自上条事件以来的增量。请整体替换本地副本，并按 `transaction_id` 做 upsert。
 
-每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与 Top-up 相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，取交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。
+每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，取交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。
 
 低于粉尘阈值的入金完全不会出现在数组里。默认阈值为 `0.05`，金额需严格大于该值才会保留。
 
@@ -78,19 +78,6 @@ lang: "zh-hans"
 
 两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
 
-## 交易级事件
+## 交易级细节
 
-当您需要订单对象不携带的链上细节时订阅这些事件。
-
-| 事件 | 触发时机 |
-| --- | --- |
-| `payment.transaction.created` | 检测到一笔入金。 |
-| `payment.transaction.completed` | 一笔入金通过合规筛查并已入账。 |
-| `payment.transaction.failed` | 一笔入金未通过合规筛查。 |
-| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 |
-
-在订单模式下，它们在共用交易字段之外还携带 `acquiring_type`（值为 `Order`）、`order_id` 和 `psp_order_code`。参见[交易级事件](/payments/cn/guides/events/transaction-level)。
-
-对于分多笔付清的订单，`payment.transaction.completed` 每笔到账触发一次，而订单事件汇报的是累计结果。`payment.transaction.late` 汇报的事实与 `notice_type` 为 `LatePaymentReceived` 相同，同样不会改变订单的终态。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
-
-不要同时用 `payment.order.updated` 和交易级事件触发发货。每个不可逆动作只能有一个来源。
+每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[交易级事件](/payments/cn/guides/events/transaction-level)。

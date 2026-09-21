@@ -5,7 +5,7 @@ lang: "zh-hans"
 
 本页的事件跟踪一笔退款单从创建到完成的全过程。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
-退款目前只支持订单。要退回通过 Top-up 模式收到的资金，请改为创建 Payout。
+退款目前只支持订单。要退回通过充值模式收到的资金，请改为创建 Payout。
 
 ## `payment.refund.updated`
 
@@ -80,33 +80,6 @@ lang: "zh-hans"
 }
 ```
 
-## `payment.refund.status.updated`
+## 交易级细节
 
-上一代退款事件，对已有接入继续投递。
-
-**触发条件：** 退款单状态变更。关键节点为 `Pending`（通过退款链接成功创建退款单）、`Completed`（全部退款交易完成）、`Failed`（全部退款交易失败）。
-
-**事件内容：**
-
-- `refund_id`（必填）—— 退款单 ID。
-- `request_id`（选填）—— 您创建退款时提供的请求 ID。
-- `order_id`（选填）—— 本次退款对应的收款订单 ID。
-- `merchant_id`（选填）—— 商户 ID。
-- `token_id`（必填）—— 退款使用的加密货币 ID。
-- `chain_id`（必填）—— 区块链网络 ID。
-- `amount`（必填）—— 本次退款需退还的加密货币金额。
-- `to_address`（必填）—— 收款钱包地址。
-- `status`（必填）—— 当前退款状态，取值为 `AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation` 之一。
-- `refund_type`（选填）—— 资金来源，取值为 `Merchant` 或 `Psp`。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-- `initiator`（选填）—— 退款请求发起人。
-- `transactions`（选填）—— 与该退款关联的支付交易数组。
-- `charge_merchant_fee`（选填）—— 是否向商户收取开发者手续费。
-- `merchant_fee_amount`（选填）—— 向商户收取的开发者手续费金额。
-- `merchant_fee_token_id`（选填）—— 开发者手续费使用的加密货币 ID。
-- `commission_fee`（选填）—— 佣金明细。
-
-完整说明请参见 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。
-
-不要同时用两代事件关闭同一笔退款，请选定其中一个作为该动作的来源。
+`payment.refund.status.updated` 返回的是这笔退款底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。

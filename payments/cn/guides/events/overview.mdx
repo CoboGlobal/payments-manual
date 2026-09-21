@@ -11,17 +11,17 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 
 | 您的业务 | 主事件 | 页面 |
 | --- | --- | --- |
-| 付款方直接入金 | `payment.topup.updated` | [Top-up 事件](/payments/cn/guides/events/top-up) |
+| 付款方直接入金 | `payment.topup.updated` | [充值事件](/payments/cn/guides/events/top-up) |
 | 收款订单 | `payment.order.updated` | [订单事件](/payments/cn/guides/events/orders) |
 | 退款 | `payment.refund.updated` | [退款事件](/payments/cn/guides/events/refunds) |
-| 单笔付款与转账 | `payment.payout.updated` | [付款事件](/payments/cn/guides/events/payouts) |
+| 单笔资金转出与转账 | `payment.payout.updated` | [资金转出事件](/payments/cn/guides/events/payouts) |
 | 批量下发 | `payment.bulk_send.updated`、`payment.bulk_send.item.updated` | [批量下发事件](/payments/cn/guides/events/bulk-send) |
-| 账户余额与结算网络 | `payment.account.balance.updated` | [余额与结算网络事件](/payments/cn/guides/events/balances-and-settlement) |
+| 账户余额 | `payment.account.balance.updated` | [余额事件](/payments/cn/guides/events/balances) |
+| 结算网络 | `payment.transaction.settlement_network.*` | [结算网络事件](/payments/cn/guides/events/settlement-network) |
 
-除上述事件外，还有两类事件：
+**其余的支付事件都是交易级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，而不是告诉您这个业务对象接下来需要什么。
 
-- **交易级事件**（`payment.transaction.*`）汇报的是单笔链上交易而不是业务对象，属于高级选项。当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。请参见[交易级事件](/payments/cn/guides/events/transaction-level)。
-- **上一代对象事件**（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）对已有接入继续有效。每个业务页面会同时说明两代事件。
+它们属于高级选项。当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。每个业务页面会列出属于该链路的交易级事件，[交易级事件](/payments/cn/guides/events/transaction-level)则说明这一类别本身和共用字段。
 
 ## 事件结构
 
@@ -47,7 +47,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 | `payment.bulk_send.updated` | `PaymentBulkSendUpdate` | `bulk_send_id` |
 | `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
 
-Top-up 没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，因为一笔 Top-up 本身就是一笔入账交易。
+充值没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，因为一笔充值本身就是一笔入账交易。
 
 ## 在两个层面做去重
 
@@ -101,7 +101,7 @@ Top-up 没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，�
 
 ### 提交问题时报业务对象 ID
 
-需要排查失败时，请提供业务对象 ID 而不是交易 ID：Top-up 用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的对象 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
+需要排查失败时，请提供业务对象 ID 而不是交易 ID：充值用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的对象 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
 
 对于 Payout，一个 `payout_id` 下可能有多笔转出交易，因此只有对象 ID 才能追溯整个请求。
 

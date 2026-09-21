@@ -90,7 +90,8 @@
                       "payments/en/guides/events/refunds",
                       "payments/en/guides/events/payouts",
                       "payments/en/guides/events/bulk-send",
-                      "payments/en/guides/events/balances-and-settlement",
+                      "payments/en/guides/events/balances",
+                      "payments/en/guides/events/settlement-network",
                       "payments/en/guides/events/transaction-level"
                     ]
                   },
@@ -396,7 +397,8 @@
                       "payments/cn/guides/events/refunds",
                       "payments/cn/guides/events/payouts",
                       "payments/cn/guides/events/bulk-send",
-                      "payments/cn/guides/events/balances-and-settlement",
+                      "payments/cn/guides/events/balances",
+                      "payments/cn/guides/events/settlement-network",
                       "payments/cn/guides/events/transaction-level"
                     ]
                   },

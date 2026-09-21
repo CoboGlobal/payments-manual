@@ -112,29 +112,6 @@ Fires when a bank withdrawal changes status. A bank withdrawal moves fiat out of
 
 For full details, see [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id).
 
-## `payment.payout.status.updated`
+## Transaction-level detail
 
-The previous-generation payout event. It keeps being delivered for existing integrations.
-
-**Trigger condition:** the payout or transfer request status changes. `Completed` means all transfers completed, `PartiallyCompleted` means some completed and some failed, `Failed` means all failed, and `RejectedByBank` means the recipient bank rejected the Off-Ramp payout.
-
-**Event content:**
-
-- `payout_id` (required) — The payout ID.
-- `request_id` (required) — The request ID you provided when creating the payout.
-- `payout_channel` (required) — The payout channel. One of: `Crypto`, `OffRamp`.
-- `source_account` (optional) — The source account from which the payout is made.
-- `payout_items` (optional) — An array of payout items.
-- `recipient_info` (optional) — The recipient information.
-- `initiator` (optional) — The initiator of the payout request.
-- `actual_payout_amount` (optional) — The actual amount delivered to the recipient.
-- `commission_fees` (optional) — An array of commission fees for this payout.
-- `remark` (optional) — A note or comment about the payout.
-- `status` (required) — The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`.
-- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
-- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
-- `transactions` (optional) — An array of payment transactions associated with this payout.
-
-For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
-
-Do not close a payout from both events. Choose one as the source for that action.
+`payment.payout.status.updated` returns this payout's underlying transaction detail and is documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).

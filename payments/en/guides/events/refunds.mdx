@@ -80,33 +80,6 @@ When the underlying transfer itself was rejected, `failed_reason.code` is a tran
 }
 ```
 
-## `payment.refund.status.updated`
+## Transaction-level detail
 
-The previous-generation refund event. It keeps being delivered for existing integrations.
-
-**Trigger condition:** the refund order status changes. Key points are `Pending` when the order is created through a refund link, `Completed` when all refund transactions complete, and `Failed` when all refund transactions fail.
-
-**Event content:**
-
-- `refund_id` (required) — The refund order ID.
-- `request_id` (optional) — The request ID you provided when creating the refund.
-- `order_id` (optional) — The ID of the pay-in order corresponding to this refund.
-- `merchant_id` (optional) — The merchant ID.
-- `token_id` (required) — The ID of the cryptocurrency used for the refund.
-- `chain_id` (required) — The ID of the blockchain network.
-- `amount` (required) — The cryptocurrency amount to be returned for this refund.
-- `to_address` (required) — The recipient wallet address.
-- `status` (required) — The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`.
-- `refund_type` (optional) — The source of funds. One of: `Merchant`, `Psp`.
-- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
-- `updated_timestamp` (required) — The last update time, in Unix timestamp (seconds).
-- `initiator` (optional) — The initiator of the refund request.
-- `transactions` (optional) — An array of payment transactions associated with this refund.
-- `charge_merchant_fee` (optional) — Whether to charge the developer fee to the merchant.
-- `merchant_fee_amount` (optional) — The developer fee amount to charge the merchant.
-- `merchant_fee_token_id` (optional) — The ID of the cryptocurrency used for the developer fee.
-- `commission_fee` (optional) — Commission fee details.
-
-For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
-
-Do not close a refund from both events. Choose one as the source for that action.
+`payment.refund.status.updated` returns this refund's underlying transaction detail and is documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).

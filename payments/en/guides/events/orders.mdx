@@ -78,19 +78,6 @@ A deposit that does not belong to any order, or that arrives in an unsupported t
 
 Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
 
-## Transaction-level events
+## Transaction-level detail
 
-Subscribe to these when you need on-chain detail that the order object does not carry.
-
-| Event | Fires when |
-| --- | --- |
-| `payment.transaction.created` | A deposit is detected. |
-| `payment.transaction.completed` | A deposit passes compliance screening and is credited. |
-| `payment.transaction.failed` | A deposit fails compliance screening. |
-| `payment.transaction.late` | A deposit that passed screening arrives after the order reached a final state. |
-
-In Order Mode these carry `acquiring_type` with the value `Order`, plus `order_id` and `psp_order_code`, on top of the shared transaction fields. See [Transaction-level events](/payments/en/guides/events/transaction-level).
-
-For an order paid in several instalments, `payment.transaction.completed` fires once per receipt, whereas the order event reports the cumulative outcome. `payment.transaction.late` reports the same fact as `notice_type` `LatePaymentReceived` and likewise does not change the order's final status. See [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
-
-Do not release goods from both `payment.order.updated` and a transaction-level event. Choose one source per irreversible action.
+For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Transaction-level events](/payments/en/guides/events/transaction-level).

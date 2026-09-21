@@ -16,12 +16,12 @@ Subscribe to the events for the business objects you actually use. Each page cov
 | Refunds | `payment.refund.updated` | [Refund events](/payments/en/guides/events/refunds) |
 | Single payouts and transfers | `payment.payout.updated` | [Payout events](/payments/en/guides/events/payouts) |
 | Bulk sends | `payment.bulk_send.updated`, `payment.bulk_send.item.updated` | [Bulk send events](/payments/en/guides/events/bulk-send) |
-| Account balances and Settlement Network | `payment.account.balance.updated` | [Balance and Settlement Network events](/payments/en/guides/events/balances-and-settlement) |
+| Account balances | `payment.account.balance.updated` | [Balance events](/payments/en/guides/events/balances) |
+| Settlement Network | `payment.transaction.settlement_network.*` | [Settlement Network events](/payments/en/guides/events/settlement-network) |
 
-Two kinds of events exist alongside the ones above:
+**Every other payment event is transaction-level.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return the underlying transaction information rather than telling you what the business object needs next.
 
-- **Transaction-level events** (`payment.transaction.*`) report individual blockchain transactions rather than business objects. They are the advanced option: subscribe to them when you need on-chain detail such as confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information. See [Transaction-level events](/payments/en/guides/events/transaction-level).
-- **Previous-generation object events** (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`) keep working for existing integrations. Each business page documents both generations side by side.
+They are the advanced option. Subscribe to them when you need on-chain detail such as confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information. Each business page lists the transaction-level events that belong to its flow, and [Transaction-level events](/payments/en/guides/events/transaction-level) describes the category and the shared field reference.
 
 ## Event structure
 

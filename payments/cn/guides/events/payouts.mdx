@@ -1,22 +1,22 @@
 ---
-title: "付款事件"
+title: "资金转出事件"
 lang: "zh-hans"
 ---
 
-本页的事件跟踪单笔付款或转账请求，无论是以加密货币结算，还是通过 Off-Ramp 结算到银行账户。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+本页的事件跟踪单笔资金转出或转账请求，无论是以加密货币结算，还是通过 Off-Ramp 结算到银行账户。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
-批量付款请参见[批量下发事件](/payments/cn/guides/events/bulk-send)。
+批量转出请参见[批量下发事件](/payments/cn/guides/events/bulk-send)。
 
 ## `payment.payout.updated`
 
-付款的主事件，以 `payout_id` 标识。
+资金转出的主事件，以 `payout_id` 标识。
 
 | `status` | 是否终态 | 您该做什么 |
 | --- | --- | --- |
 | `Pending` | 否 | 请求已受理，等待。 |
 | `Preparing` | 否 | 等待。 |
-| `Transferring` | 否 | 等待。**未到终态不能关闭付款**，即使部分转出交易已经完成。 |
-| `Completed` | 是 | 关闭付款。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
+| `Transferring` | 否 | 等待。**未到终态不能关闭本次转出**，即使部分转出交易已经完成。 |
+| `Completed` | 是 | 关闭本次转出。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
 | `PartiallyCompleted` | 是 | 按 `failed_amounts` 的金额**另建一笔新的 Payout** 补发，不要重复支付已成功的部分。 |
 | `Failed` | 是 | 读取 `failed_reason` 并处理，不要原地重试。 |
 | `RejectedByBank` | 是 | 收款银行拒绝了这笔 Off-Ramp 转账。先与收款方核对账户信息，原样重发大概率会再次被拒。 |
@@ -27,12 +27,12 @@ lang: "zh-hans"
 
 | 字段 | 说明 |
 | --- | --- |
-| `payout_id` | 付款身份，关闭付款和提交问题时使用的键。 |
-| `request_id` | 您创建付款时提供的请求 ID。 |
-| `source_account` | 付款资金来自哪个账户。 |
+| `payout_id` | 本次转出的身份，关闭转出和提交问题时使用的键。 |
+| `request_id` | 您创建本次转出时提供的请求 ID。 |
+| `source_account` | 转出资金来自哪个账户。 |
 | `requested_target` | 业务意义上的收款目标。包含 `target_type`，取 `Address`（带 `address` 与 `chain_id`）或 `BankAccount`（带 `bank_account_id`、`account_alias`、`bank_name`、`currency`）。它不会暴露合约地址等链上执行细节。 |
-| `initiator` | 付款发起人。 |
-| `remark` | 付款备注。 |
+| `initiator` | 转出发起人。 |
+| `remark` | 转出备注。 |
 | `transactions` | 转出交易列表，参见[读取交易数组](#读取交易数组)。 |
 | `failed_reason` | 当 `status` 为 `Failed`、`RejectedByBank` 或 `PartiallyCompleted` 时出现。 |
 
@@ -42,12 +42,12 @@ lang: "zh-hans"
 | --- | --- | --- |
 | `requested_amounts` | 源侧 | 您请求付出的金额，按源币种分组。 |
 | `failed_amounts` | 源侧 | 其中没有付出去的部分，按源币种分组。到终态时，成功的金额等于两者之差。 |
-| `actual_payout_amount` | 交付侧 | 收款方实际收到的金额。加密货币结算时为目标币种，Off-Ramp 时为银行账户的币种。付款完成前没有该值。 |
+| `actual_payout_amount` | 交付侧 | 收款方实际收到的金额。加密货币结算时为目标币种，Off-Ramp 时为银行账户的币种。转出完成前没有该值。 |
 | `commission_fees` | 源侧 | Cobo 收取的佣金，每个 token 一条。收取与冲回相抵时某条可能为 `0` 或负数。 |
 
 **不要跨两侧相减。** 跨链兑换和法币结算都会让两边不是同一种资产。
 
-**不要用 `transactions` 去核对 `failed_amounts`。** 付款项可能在任何转出交易创建之前就失败——资金归集、跨链兑换、佣金扣收阶段——此时数组里根本没有对应条目。
+**不要用 `transactions` 去核对 `failed_amounts`。** 转出项可能在任何转出交易创建之前就失败——资金归集、跨链兑换、佣金扣收阶段——此时数组里根本没有对应条目。
 
 ### 读取交易数组
 
@@ -63,17 +63,17 @@ lang: "zh-hans"
 
 | `code` | 发生了什么 | 您该做什么 |
 | --- | --- | --- |
-| `payment.payout_partially_failed` | 这笔付款有一部分未能完成。 | 读取 `failed_amounts` 获取受影响金额，然后为它创建一笔新的 Payout。 |
+| `payment.payout_partially_failed` | 这笔资金转出有一部分未能完成。 | 读取 `failed_amounts` 获取受影响金额，然后为它创建一笔新的 Payout。 |
 
 ### 失败 code
 
 | `code` | 发生了什么 | 您该做什么 |
 | --- | --- | --- |
-| `payment.payout_fee_charge_failed` | Fee Station 余额不足，付款手续费无法扣收。 | 向 Fee Station 充值后重新创建付款。 |
-| `payment.payout_fee_station_not_configured` | 未配置 Fee Station，付款手续费无法扣收。 | 配置 Fee Station 后重新创建付款。 |
-| `payment.payout_fee_charge_failed_unknown` | 付款手续费因其他原因无法扣收。 | 检查 Fee Station 的配置与余额。 |
-| `payment.payout_sweep_failed` | 归集交易失败，资金无法准备。 | 重新创建付款。 |
-| `payment.payout_bridge_failed` | 全部跨链交易失败，资产无法兑换。 | 确认该币种对的跨链路径是否可用，然后重新创建付款。 |
+| `payment.payout_fee_charge_failed` | Fee Station 余额不足，转出手续费无法扣收。 | 向 Fee Station 充值后重新创建资金转出。 |
+| `payment.payout_fee_station_not_configured` | 未配置 Fee Station，转出手续费无法扣收。 | 配置 Fee Station 后重新创建资金转出。 |
+| `payment.payout_fee_charge_failed_unknown` | 转出手续费因其他原因无法扣收。 | 检查 Fee Station 的配置与余额。 |
+| `payment.payout_sweep_failed` | 归集交易失败，资金无法准备。 | 重新创建资金转出。 |
+| `payment.payout_bridge_failed` | 全部跨链交易失败，资产无法兑换。 | 确认该币种对的跨链路径是否可用，然后重新创建资金转出。 |
 | `payment.payout_transactions_failed` | 全部转出交易均失败。 | 重试前先查看 `transactions` 中交易层的具体原因。 |
 
 `RejectedByBank` 携带的是交易层 code `transaction.rejected_by_bank`。
@@ -112,29 +112,6 @@ lang: "zh-hans"
 
 完整说明请参见 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
 
-## `payment.payout.status.updated`
+## 交易级细节
 
-上一代付款事件，对已有接入继续投递。
-
-**触发条件：** 付款或转账请求状态变更。`Completed` 表示全部转账完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败，`RejectedByBank` 表示收款银行拒绝了 Off-Ramp 付款。
-
-**事件内容：**
-
-- `payout_id`（必填）—— 付款 ID。
-- `request_id`（必填）—— 您创建付款时提供的请求 ID。
-- `payout_channel`（必填）—— 付款渠道，取值为 `Crypto` 或 `OffRamp`。
-- `source_account`（选填）—— 付款来源账户。
-- `payout_items`（选填）—— 付款项数组。
-- `recipient_info`（选填）—— 收款方信息。
-- `initiator`（选填）—— 付款请求发起人。
-- `actual_payout_amount`（选填）—— 收款方实际收到的金额。
-- `commission_fees`（选填）—— 本次付款的佣金数组。
-- `remark`（选填）—— 付款备注。
-- `status`（必填）—— 当前付款状态，取值为 `Pending`、`Preparing`、`Transferring`、`Completed`、`PartiallyCompleted`、`Failed`、`RejectedByBank` 之一。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-- `transactions`（选填）—— 与该付款关联的支付交易数组。
-
-完整说明请参见 [Get payout information](/payments/en/api-references/payment/get-payout-information)。
-
-不要同时用两代事件关闭同一笔付款，请选定其中一个作为该动作的来源。
+`payment.payout.status.updated` 返回的是这次转出底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。

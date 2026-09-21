@@ -1,9 +1,9 @@
 ---
-title: "Balance and Settlement Network events"
+title: "Balance events"
 lang: "en"
 ---
 
-These events cut across business objects: balance changes report the ledger movement behind any flow, and Settlement Network events report transfers settled through the network. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+Balance events report the ledger movement behind any flow, whichever business object caused it. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
 ## `payment.account.balance.updated`
 
@@ -26,19 +26,6 @@ It is also how you see **what each account actually received**. An order's `cred
 | `update_time` | When the balance was updated, in Unix timestamp (seconds). |
 
 To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business object ID. The response model matches this event's `data`.
-
-## Settlement Network events
-
-These report transfers settled through the [Settlement Network](/payments/en/guides/settlement-network).
-
-| Event | Fires when |
-| --- | --- |
-| `payment.transaction.settlement_network.created` | A Settlement Network transaction is created. |
-| `payment.transaction.settlement_network.completed` | The transaction completes and the settled funds are reflected in your Payment account balance. |
-
-Both carry the base fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields).
-
-On completion, the settled funds appear in your Payment account balance with the `SettlementNetwork` `source_type`, so the matching `payment.account.balance.updated` event tells you the amount that landed.
 
 ## Keeping your own balances current
 

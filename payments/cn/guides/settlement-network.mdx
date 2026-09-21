@@ -60,7 +60,7 @@ Cobo 会针对结算网络交易推送以下 Webhook 事件：
 - `payment.transaction.settlement_network.created`：结算网络交易创建时触发。
 - `payment.transaction.settlement_network.completed`：结算网络交易完成时触发。交易完成后，结算资金会以 `SettlementNetwork` 这一 `source_type` 反映到您的 Payment 账户余额中。
 
-上述两个事件均携带交易级负载字段。负载结构与推送行为请参考 [事件与状态](/payments/cn/guides/events/balances-and-settlement)。
+上述两个事件均携带交易级负载字段。负载结构与推送行为请参考[结算网络事件](/payments/cn/guides/events/settlement-network)。
 
 ## 故障排查
 
@@ -75,4 +75,4 @@ Cobo 会针对结算网络交易推送以下 Webhook 事件：
 - [加密货币转账](/payments/cn/guides/crypto-payouts)
 - [转出目的地](/payments/cn/guides/destinations)
 - [报表](/payments/cn/guides/reports)
-- [事件与状态](/payments/cn/guides/events/balances-and-settlement)
+- [结算网络事件](/payments/cn/guides/events/settlement-network)

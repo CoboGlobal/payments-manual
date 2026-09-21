@@ -1,0 +1,15 @@
+---
+title: "结算网络事件"
+lang: "zh-hans"
+---
+
+本页的事件汇报通过[结算网络](/payments/cn/guides/settlement-network)结算的转账。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+| 事件 | 触发时机 |
+| --- | --- |
+| `payment.transaction.settlement_network.created` | 创建了一笔结算网络交易。 |
+| `payment.transaction.settlement_network.completed` | 该交易完成，结算资金已反映到您的 Payment 账户余额中。 |
+
+两者携带的基础字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)，没有额外的 Payment 字段。
+
+交易完成时，结算资金会以 `SettlementNetwork` 这个 `source_type` 反映到您的 Payment 账户余额。到账金额由对应的 [`payment.account.balance.updated`](/payments/cn/guides/events/balances) 事件告知——本页这两个事件携带的是交易而不是余额。

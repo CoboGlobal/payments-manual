@@ -110,48 +110,6 @@ lang: "zh-hans"
 
 其中两条的文案会填入收款地址，因此同一个 `code` 在不同条目上的 `message` 文本不同。请照常按 `code` 分支。
 
-## 上一代事件
+## 交易级细节
 
-`payment.bulk_send.status.updated` 与 `payment.bulk_send.item.status.updated` 对已有接入继续投递。
-
-### `payment.bulk_send.status.updated`
-
-**触发条件：** 批量下发请求状态变更。`Completed` 表示全部下发完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败。
-
-**事件内容：**
-
-- `bulk_send_id`（必填）—— 批量下发 ID。
-- `request_id`（选填）—— 您创建批量下发时提供的请求 ID。
-- `source_account`（必填）—— 批量下发的来源账户。
-- `description`（选填）—— 整个批次的描述。
-- `execution_mode`（必填）—— 执行模式。
-- `status`（必填）—— 当前批量下发状态。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-
-完整说明请参见 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
-
-### `payment.bulk_send.item.status.updated`
-
-**触发条件：** 单个批量下发条目的状态变更。可用于跟踪条目级执行结果，尤其是批次部分完成、或个别条目校验失败或转账失败时。
-
-**事件内容：**
-
-- `bulk_send_item_id`（必填）—— 批量下发条目 ID。
-- `bulk_send_id`（必填）—— 该条目所属的批量下发 ID。
-- `request_id`（选填）—— 批次的请求 ID。
-- `source_account`（必填）—— 批次的来源账户 ID。
-- `token_id`（必填）—— 下发给收款方的加密货币 ID。
-- `receiving_address`（必填）—— 收款方的加密货币地址。
-- `amount`（必填）—— 下发给收款方的加密货币金额。
-- `description`（选填）—— 该条目的备注。
-- `tx_hash`（选填）—— 该条目的交易哈希。
-- `status`（必填）—— 条目执行状态，取值为 `Pending`、`Processing`、`Completed`、`Failed`、`NotExecuted` 之一。
-- `validation_status`（必填）—— 条目校验状态，取值为 `Pending`、`Validated`、`ValidationFailed`、`NotExecuted` 之一。
-- `failed_reason`（选填）—— 该条目失败的原因。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-
-要测试投递到您已注册的 Webhook 接收端，请使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设为 `payment.bulk_send.item.status.updated`。
-
-不要同时用两代事件关闭同一个条目，请选定其中一个作为该动作的来源。
+`payment.bulk_send.status.updated` 与 `payment.bulk_send.item.status.updated` 返回的是批次和条目底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。

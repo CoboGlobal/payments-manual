@@ -107,20 +107,10 @@ A deposit that does not belong to any deposit plan, or that arrives in an unsupp
 
 Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#unexpected-deposits).
 
-## Transaction-level events
+## Transaction-level detail
 
-Subscribe to these when you need on-chain detail that the business object does not carry, such as confirmation counts, fee breakdowns, or replacement information.
-
-| Event | Fires when |
-| --- | --- |
-| `payment.transaction.created` | A deposit address receives a new deposit. |
-| `payment.transaction.completed` | A deposit passes compliance screening and is credited. |
-| `payment.transaction.failed` | A deposit fails compliance screening. |
-
-In Top-up Mode these carry `acquiring_type` with the value `TopUp`, plus `payer_id` and `custom_payer_id`, on top of the shared transaction fields. See [Transaction-level events](/payments/en/guides/events/transaction-level).
-
-Do not credit funds from both `payment.topup.updated` and `payment.transaction.completed`. Choose one as the source for crediting; the other is for reconciliation.
+For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Transaction-level events](/payments/en/guides/events/transaction-level).
 
 ## Balance changes
 
-`payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance and Settlement Network events](/payments/en/guides/events/balances-and-settlement).
+`payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance events](/payments/en/guides/events/balances).
