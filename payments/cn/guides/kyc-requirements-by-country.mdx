@@ -79,20 +79,20 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | `date_of_birth` | 必传。出生日期，格式为 `YYYYMMDD`。 |
 | `issue_date` | 必传。身份证明文件签发日期，格式为 `YYYYMMDD`。 |
 | `expiration_date` | 必传。身份证明文件到期日期，格式为 `YYYYMMDD`。 |
-| `residential_address` | 必传。包含 `country`、`state`、`city`、`postcode` 和 `line1`。对于 `HKG`，`city` 必须使用受支持的香港地区值。 |
+| `residential_address` | 必传。包含 `country`、`state`、`city`、`postcode` 和 `line1`。对于 `HKG`，`city` 必须取自下方的香港行政区列表。 |
 | `attachments` | 必传。包含主证件、`ID_Hand` 和 `POA`。 |
 
 ### 个人国家和地区差异
 
 | 国家或地区 | 主证件 `file_type` | 姓名语言 | `city` 校验 | 其他必需附件 |
 | --- | --- | --- | --- | --- |
-| 中国香港（`HKG`） | `HK_PID` 或 `FIC`；香港居民请勿使用 `PP`。 | 中文 | 必须使用受支持的香港地区中文或英文值。 | `ID_Hand`、`POA` |
-| 菲律宾（`PHL`） | `FIC`；也接受 `PP`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
-| 中国台湾（`TWN`）、马来西亚（`MYS`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`） | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
+| 中国香港（`HKG`） | `HK_PID` 或 `FIC`；香港居民请勿使用 `PP`。 | 中文 | 必须取自香港行政区列表，中英文均可。 | `ID_Hand`、`POA` |
+| 菲律宾（`PHL`） | `FIC`；也接受 `PP`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
+| 中国台湾（`TWN`）、马来西亚（`MYS`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`） | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
 
 ## 香港地址要求
 
-对于 `HKG` 个人 KYC，`residential_address.city` 必须使用以下值之一。
+对于 `HKG` 个人 KYC，`residential_address.city` 必须取自下表，中英文均可。
 
 | 中文值 | 英文值 |
 | --- | --- |
