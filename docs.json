@@ -69,9 +69,14 @@
                   "payments/en/guides/amounts-and-balances",
                   "payments/en/guides/allocate-funds",
                   "payments/en/guides/fiat-payouts",
-                  "payments/en/guides/pobo",
-                  "payments/en/guides/kyc-requirements-by-country",
-                  "payments/en/guides/bank-account-requirements-by-country",
+                  {
+                    "group": "Payouts on behalf of (POBO)",
+                    "pages": [
+                      "payments/en/guides/pobo",
+                      "payments/en/guides/kyc-requirements-by-country",
+                      "payments/en/guides/bank-account-requirements-by-country"
+                    ]
+                  },
                   "payments/en/guides/crypto-payouts",
                   "payments/en/guides/bulk-send",
                   "payments/en/guides/destinations",
@@ -365,9 +370,14 @@
                   "payments/cn/guides/amounts-and-balances",
                   "payments/cn/guides/allocate-funds",
                   "payments/cn/guides/fiat-payouts",
-                  "payments/cn/guides/pobo",
-                  "payments/cn/guides/kyc-requirements-by-country",
-                  "payments/cn/guides/bank-account-requirements-by-country",
+                  {
+                    "group": "POBO（全球付款）",
+                    "pages": [
+                      "payments/cn/guides/pobo",
+                      "payments/cn/guides/kyc-requirements-by-country",
+                      "payments/cn/guides/bank-account-requirements-by-country"
+                    ]
+                  },
                   "payments/cn/guides/crypto-payouts",
                   "payments/cn/guides/bulk-send",
                   "payments/cn/guides/destinations",

@@ -3,9 +3,9 @@ title: "Bank account requirements by country"
 lang: "en"
 ---
 
-Bank-account destinations identify the recipient account used for fiat payouts. The `Create destination` request uses the same field names across the supported countries, but SWIFT bank-account requirements differ for fields such as `iban_code`, `routing_value`, and `bank_country`.
+A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; what differs is what each destination's SWIFT route requires of fields such as `iban_code`, `routing_value`, and `bank_country`.
 
-This guide covers SWIFT bank-account requirements for `HKG`, `TWN`, `MYS`, `PHL`, `IDN`, `VNM`, `THA`, `SGP`, `GBR`, and `MEX`.
+This guide lists those differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
 
 ## Before you begin
 
@@ -66,16 +66,16 @@ For SWIFT bank-account destinations, set `payment_method` to `Swift`.
 
 | Country | Field differences from `HKG` | Format or enum requirement | `bank_country` |
 | --- | --- | --- | --- |
-| `HKG` | Baseline. Do not provide `iban_code` or `routing_value`. | `payment_method` is `Swift`. | `HKG` |
-| `TWN` | No field differences. | Same as `HKG`. | `TWN` |
-| `MYS` | No field differences. | Same as `HKG`. | `MYS` |
-| `PHL` | No field differences. | Same as `HKG`. | `PHL` |
-| `IDN` | No field differences. | Same as `HKG`. | `IDN` |
-| `VNM` | No field differences. | Same as `HKG`. | `VNM` |
-| `THA` | No field differences. | Same as `HKG`. | `THA` |
-| `SGP` | No field differences. | Same as `HKG`. | `SGP` |
-| `MEX` | No field differences. | Same as `HKG`. | `MEX` |
-| `GBR` | Provide `iban_code`. | `account_number` must contain 8 digits. `iban_code` must start with `GB`. | `GBR` |
+| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code` or `routing_value`. | `payment_method` is `Swift`. | `HKG` |
+| Taiwan, China (`TWN`) | No field differences. | Same as `HKG`. | `TWN` |
+| Malaysia (`MYS`) | No field differences. | Same as `HKG`. | `MYS` |
+| Philippines (`PHL`) | No field differences. | Same as `HKG`. | `PHL` |
+| Indonesia (`IDN`) | No field differences. | Same as `HKG`. | `IDN` |
+| Vietnam (`VNM`) | No field differences. | Same as `HKG`. | `VNM` |
+| Thailand (`THA`) | No field differences. | Same as `HKG`. | `THA` |
+| Singapore (`SGP`) | No field differences. | Same as `HKG`. | `SGP` |
+| Mexico (`MEX`) | No field differences. | Same as `HKG`. | `MEX` |
+| United Kingdom (`GBR`) | Provide `iban_code`. | `account_number` must contain 8 digits. `iban_code` must start with `GB`. | `GBR` |
 
 ## Next steps
 

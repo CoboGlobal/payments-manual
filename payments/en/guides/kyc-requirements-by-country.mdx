@@ -3,9 +3,9 @@ title: "KYC requirements by country"
 lang: "en"
 ---
 
-KYC requirements identify the paying entity before you use POBO. The `Submit merchant KYC` request uses the same field names across the supported countries, but the required attachment `file_type` values, primary identity document types, and Hong Kong address validation rules differ by country.
+A paying entity must pass KYC review before it can create a POBO payout. The field names in [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) are the same in every supported country and region; only three things change with the entity's location: which attachment types (`file_type`) are required, which primary identity documents are accepted, and how Hong Kong addresses are validated.
 
-This guide covers KYC country differences for `HKG`, `TWN`, `MYS`, `PHL`, `IDN`, `VNM`, `THA`, `SGP`, `GBR`, and `MEX`.
+This guide lists those three differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
 
 ## Before you begin
 
@@ -52,16 +52,16 @@ For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not
 
 | Country | Company attachment `file_type` values | Legal representative and UBO primary identity document | Special rule |
 | --- | --- | --- | --- |
-| `HKG` | `CI`, `BR`, `NNC1`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `FIC` | Baseline country. |
-| `TWN` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `MYS` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `PHL` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `IDN` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `VNM` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `THA` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `SGP` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | `company_name_en` must include the `Pte Ltd` suffix. |
-| `GBR` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
-| `MEX` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Hong Kong SAR (`HKG`) | `CI`, `BR`, `NNC1`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `FIC` | Baseline country. |
+| Taiwan, China (`TWN`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Malaysia (`MYS`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Philippines (`PHL`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Indonesia (`IDN`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Vietnam (`VNM`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Thailand (`THA`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Singapore (`SGP`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | `company_name_en` must include the `Pte Ltd` suffix. |
+| United Kingdom (`GBR`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| Mexico (`MEX`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
 
 For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For mainland China identity cards, provide both `PRC_ID_Emblem` and `PRC_ID_Portrait`.
 
@@ -86,9 +86,9 @@ For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 
 | Country | Primary identity document `file_type` | Name language | `city` validation | Additional required attachments |
 | --- | --- | --- | --- | --- |
-| `HKG` | `HK_PID` or `FIC`; do not use `PP` for Hong Kong residents. | Chinese | Must use a supported Hong Kong district value in Chinese or English. | `ID_Hand`, `POA` |
-| `PHL` | `FIC`; `PP` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
-| `TWN`, `MYS`, `IDN`, `VNM`, `THA`, `SGP`, `GBR`, `MEX` | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
+| Hong Kong SAR (`HKG`) | `HK_PID` or `FIC`; do not use `PP` for Hong Kong residents. | Chinese | Must use a supported Hong Kong district value in Chinese or English. | `ID_Hand`, `POA` |
+| Philippines (`PHL`) | `FIC`; `PP` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
+| Taiwan, China (`TWN`), Malaysia (`MYS`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`) | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use a local English city value. The Hong Kong district list does not apply. | `ID_Hand`, `POA` |
 
 ## Hong Kong address requirements
 

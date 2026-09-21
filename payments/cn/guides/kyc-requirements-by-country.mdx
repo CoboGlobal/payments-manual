@@ -3,9 +3,9 @@ title: "各国家和地区 KYC 要求"
 lang: "zh-hans"
 ---
 
-KYC 要求用于在您使用 POBO 前识别付款主体。`Submit merchant KYC` 请求在各支持国家和地区使用相同字段名，但必需附件 `file_type`、主证件类型和香港地址校验规则因国家和地区而异。
+付款主体在发起 POBO 付款前需通过 KYC 审核。提交时 [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) 的字段名在所有支持的国家和地区都相同，只有三处会随主体所在国家和地区变化：必需的附件类型（`file_type`）、可用的主证件类型，以及中国香港的地址取值校验。
 
-本指南覆盖 `HKG`、`TWN`、`MYS`、`PHL`、`IDN`、`VNM`、`THA`、`SGP`、`GBR` 和 `MEX` 的 KYC 国家和地区差异。
+本指南逐个列出这三处差异，覆盖中国香港（`HKG`）、中国台湾（`TWN`）、马来西亚（`MYS`）、菲律宾（`PHL`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`）。
 
 ## 前提条件
 
@@ -52,16 +52,16 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 | 国家或地区 | 公司附件 `file_type` | 法人和 UBO 主证件 | 特殊规则 |
 | --- | --- | --- | --- |
-| `HKG` | `CI`、`BR`、`NNC1`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `FIC` | 基准国家或地区。 |
-| `TWN` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `MYS` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `PHL` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `IDN` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `VNM` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `THA` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `SGP` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | `company_name_en` 必须包含 `Pte Ltd` 后缀。 |
-| `GBR` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
-| `MEX` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 中国香港（`HKG`） | `CI`、`BR`、`NNC1`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `FIC` | 基准国家或地区。 |
+| 中国台湾（`TWN`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 马来西亚（`MYS`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 菲律宾（`PHL`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 印度尼西亚（`IDN`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 越南（`VNM`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 泰国（`THA`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 新加坡（`SGP`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | `company_name_en` 必须包含 `Pte Ltd` 后缀。 |
+| 英国（`GBR`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
+| 墨西哥（`MEX`） | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | 请求字段与 `HKG` 一致；不提供 `BR` 和 `NNC1`。 |
 
 对于非中国大陆人员，提供 `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address` 和 `attachments`。如使用中国大陆身份证，请同时提供 `PRC_ID_Emblem` 和 `PRC_ID_Portrait`。
 
@@ -86,9 +86,9 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 | 国家或地区 | 主证件 `file_type` | 姓名语言 | `city` 校验 | 其他必需附件 |
 | --- | --- | --- | --- | --- |
-| `HKG` | `HK_PID` 或 `FIC`；香港居民请勿使用 `PP`。 | 中文 | 必须使用受支持的香港地区中文或英文值。 | `ID_Hand`、`POA` |
-| `PHL` | `FIC`；也接受 `PP`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
-| `TWN`、`MYS`、`IDN`、`VNM`、`THA`、`SGP`、`GBR`、`MEX` | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
+| 中国香港（`HKG`） | `HK_PID` 或 `FIC`；香港居民请勿使用 `PP`。 | 中文 | 必须使用受支持的香港地区中文或英文值。 | `ID_Hand`、`POA` |
+| 菲律宾（`PHL`） | `FIC`；也接受 `PP`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
+| 中国台湾（`TWN`）、马来西亚（`MYS`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`） | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市值。不适用香港地区列表。 | `ID_Hand`、`POA` |
 
 ## 香港地址要求
 

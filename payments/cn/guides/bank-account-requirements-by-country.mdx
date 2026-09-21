@@ -3,9 +3,9 @@ title: "各国家和地区银行账户要求"
 lang: "zh-hans"
 ---
 
-银行账户转出目的地用于识别法币出金的收款账户。`Create destination` 请求在各支持国家和地区使用相同字段名，但 SWIFT 银行账户要求在 `iban_code`、`routing_value` 和 `bank_country` 等字段上存在差异。
+收款银行账户需先登记为转出目的地并通过审核，才能用于法币出金。提交时 [Create destination](/payments/en/api-references/payment/create-destination) 的字段名在所有支持的国家和地区都相同，差异在于各地 SWIFT 汇款对 `iban_code`、`routing_value`、`bank_country` 等字段的要求不同。
 
-本指南覆盖 `HKG`、`TWN`、`MYS`、`PHL`、`IDN`、`VNM`、`THA`、`SGP`、`GBR` 和 `MEX` 的 SWIFT 银行账户要求。
+本指南逐个列出这些差异，覆盖中国香港（`HKG`）、中国台湾（`TWN`）、马来西亚（`MYS`）、菲律宾（`PHL`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`）。
 
 ## 前提条件
 
@@ -66,16 +66,16 @@ lang: "zh-hans"
 
 | 国家或地区 | 相对 `HKG` 的字段差异 | 格式或枚举要求 | `bank_country` |
 | --- | --- | --- | --- |
-| `HKG` | 基准。不提供 `iban_code` 或 `routing_value`。 | `payment_method` 为 `Swift`。 | `HKG` |
-| `TWN` | 无字段差异。 | 与 `HKG` 一致。 | `TWN` |
-| `MYS` | 无字段差异。 | 与 `HKG` 一致。 | `MYS` |
-| `PHL` | 无字段差异。 | 与 `HKG` 一致。 | `PHL` |
-| `IDN` | 无字段差异。 | 与 `HKG` 一致。 | `IDN` |
-| `VNM` | 无字段差异。 | 与 `HKG` 一致。 | `VNM` |
-| `THA` | 无字段差异。 | 与 `HKG` 一致。 | `THA` |
-| `SGP` | 无字段差异。 | 与 `HKG` 一致。 | `SGP` |
-| `MEX` | 无字段差异。 | 与 `HKG` 一致。 | `MEX` |
-| `GBR` | 提供 `iban_code`。 | `account_number` 必须为 8 位数字。`iban_code` 必须以 `GB` 开头。 | `GBR` |
+| 中国香港（`HKG`） | 基准。不提供 `iban_code` 或 `routing_value`。 | `payment_method` 为 `Swift`。 | `HKG` |
+| 中国台湾（`TWN`） | 无字段差异。 | 与 `HKG` 一致。 | `TWN` |
+| 马来西亚（`MYS`） | 无字段差异。 | 与 `HKG` 一致。 | `MYS` |
+| 菲律宾（`PHL`） | 无字段差异。 | 与 `HKG` 一致。 | `PHL` |
+| 印度尼西亚（`IDN`） | 无字段差异。 | 与 `HKG` 一致。 | `IDN` |
+| 越南（`VNM`） | 无字段差异。 | 与 `HKG` 一致。 | `VNM` |
+| 泰国（`THA`） | 无字段差异。 | 与 `HKG` 一致。 | `THA` |
+| 新加坡（`SGP`） | 无字段差异。 | 与 `HKG` 一致。 | `SGP` |
+| 墨西哥（`MEX`） | 无字段差异。 | 与 `HKG` 一致。 | `MEX` |
+| 英国（`GBR`） | 提供 `iban_code`。 | `account_number` 必须为 8 位数字。`iban_code` 必须以 `GB` 开头。 | `GBR` |
 
 ## 下一步
 
