@@ -300,15 +300,13 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
 
 ### Situations that send no event
 
-These change the order's contents but produce no notification, because the order `status` does not change and there is nothing for you to act on:
+These change the order's contents but produce no notification, because the order `status` does not change and no action is required from you:
 
 - A second or later deposit is detected.
 - A deposit enters screening.
 - **A deposit clears screening**, which raises `credited_amount` and lowers `outstanding_amount`.
 - A deposit fails.
 - A late payment arrives but has not cleared screening yet.
-
-To show live collection progress inside the validity period, poll [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
 
 ## Transaction-level detail
 

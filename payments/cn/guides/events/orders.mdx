@@ -300,15 +300,13 @@ lang: "zh-hans"
 
 ### 不会发事件的情况
 
-下面这些会改变订单的内容，但不产生通知，因为订单 `status` 没有变化，您也无事可做：
+下面这些会改变订单的内容，但不产生通知，因为订单 `status` 没有变化，也不需要您采取任何处理：
 
 - 检测到第二笔及以后的入金。
 - 某笔入金进入筛查。
 - **某笔入金通过筛查**，这会抬高 `credited_amount`、降低 `outstanding_amount`。
 - 某笔入金失败。
 - 晚到款已到达但尚未通过筛查。
-
-要在有效期内展示实时收款进度，请轮询 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。
 
 ## 交易级细节
 
