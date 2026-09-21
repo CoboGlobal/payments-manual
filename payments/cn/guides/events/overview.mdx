@@ -16,8 +16,8 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 | 退款 | `payment.refund.updated` | [退款事件](/payments/cn/guides/events/refunds) |
 | 单笔资金转出与转账 | `payment.payout.updated` | [资金转出事件](/payments/cn/guides/events/payouts) |
 | 批量下发 | `payment.bulk_send.updated`、`payment.bulk_send.item.updated` | [批量下发事件](/payments/cn/guides/events/bulk-send) |
-| 账户余额 | `payment.account.balance.updated` | [余额事件](/payments/cn/guides/events/balances) |
 | 结算网络 | `payment.transaction.settlement_network.*` | [结算网络事件](/payments/cn/guides/events/settlement-network) |
+| 账户余额 | `payment.account.balance.updated` | [余额事件](/payments/cn/guides/events/balances) |
 
 **其余的支付事件都是交易级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，而不是告诉您这个业务对象接下来需要什么。
 
