@@ -55,34 +55,6 @@ lang: "zh-hans"
 
 三种模式下都可能需要您动手，因此它不能用来判断是不是轮到您处理——这件事由 `status` 表达。筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。
 
-### 示例
-
-```json
-{
-  "event_id": "evt_topup_001",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1744689675000,
-  "type": "payment.topup.updated",
-  "data": {
-    "data_type": "PaymentTopUpUpdate",
-    "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "merchant_id": "M1001",
-    "payer_id": "P20250619T0310056d7aa",
-    "custom_payer_id": "user_abc_10001",
-    "status": "ActionRequired",
-    "screening_mode": "CoboKyt",
-    "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-    "tx_hash": "0xabc123",
-    "topup_address": "0xtopup_addr_M1001_user_abc",
-    "source_address": "0xsender001",
-    "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
-    "created_timestamp": 1744689000,
-    "updated_timestamp": 1744689100
-  },
-  "status": "Success"
-}
-```
-
 ## `payment.address.updated`
 
 付款方的入金地址被替换时触发。请更新展示给该付款方的地址，并在旧地址仍可能收款期间继续接受其入金。
@@ -106,6 +78,138 @@ lang: "zh-hans"
 | `payment.transaction.external.completed` | 该意外入金通过筛查，并已计入您的开发者余额。 |
 
 两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。订单模式下同样会出现意外入金，参见[订单事件](/payments/cn/guides/events/orders#意外入金)。
+
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 检测到一笔入金
+
+把这笔入金标记为处理中，先不要入账。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Detected",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+### 合规筛查进行中
+
+继续等待。`screening_mode` 说明由哪套体系在审，但不代表需要您做什么。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "PendingScreening",
+  "screening_mode": "IntegratedVendor",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689060
+}
+```
+
+### 筛查需要您处理
+
+把这笔入金放进人工队列。三种可能的动作靠 `message` 区分，参见 [`status` 为 `ActionRequired` 时](#status-为-actionrequired-时)。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "ActionRequired",
+  "screening_mode": "CoboKyt",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+### 资金可用
+
+**只有这个状态可以入账。** 以 `transaction_id` 作为幂等键。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Completed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689300
+}
+```
+
+### 入金失败
+
+停止任何自动入账，读取 `failed_reason.code`。本例是 Cobo 的合规检查拒绝，因此不要重发，先与 Cobo 解决。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Failed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "failed_reason": {
+    "code": "transaction.rejected_by_compliance",
+    "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
+  },
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689400
+}
+```
+
+### 付款方的地址被替换
+
+更新展示给该付款方的地址。这是 `payment.address.updated` 事件，不是充值事件。
+
+```json
+{
+  "data_type": "PaymentAddressUpdate",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "chain": "ETH",
+  "previous_address": "0xtopup_addr_M1001_user_abc",
+  "updated_address": "0xtopup_addr_M1001_user_abc_new"
+}
+```
 
 ## 交易级细节
 

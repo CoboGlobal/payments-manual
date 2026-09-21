@@ -13,3 +13,48 @@ These events report transfers settled through the [Settlement Network](/payments
 Both carry the base fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields) and add no Payment-specific fields of their own.
 
 On completion, the settled funds appear in your Payment account balance with the `SettlementNetwork` `source_type`. The matching [`payment.account.balance.updated`](/payments/en/guides/events/balances) event is what tells you the amount that landed, because these two events carry the transaction, not the balance.
+
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### A Settlement Network transaction completes
+
+The event carries the transaction, not the amount that landed. Read the matching balance event for that.
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "5c4b3a2d-9999-4f1e-8b7a-000000000001",
+  "status": "Completed",
+  "chain_id": "ETH",
+  "token_id": "ETH_USDC",
+  "transaction_hash": "0xsettlement001",
+  "source": { "source_type": "DepositFromAddress" },
+  "destination": { "destination_type": "DepositToAddress" },
+  "confirmed_num": 12,
+  "confirming_threshold": 12,
+  "created_timestamp": 1744720000000,
+  "updated_timestamp": 1744720600000
+}
+```
+
+The balance event that follows tells you what was credited:
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "5c4b3a2d-9999-4f1e-8b7a-000000000001",
+  "source_type": "SettlementNetwork",
+  "token_id": "ETH_USDC",
+  "amount": "1000.00",
+  "amount_raw": "1000.000000",
+  "balance_before": "332.00",
+  "balance_before_raw": "332.000000",
+  "balance_after": "1332.00",
+  "balance_after_raw": "1332.000000",
+  "flow_direction": "in",
+  "update_time": 1744720600
+}
+```

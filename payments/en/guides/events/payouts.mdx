@@ -112,6 +112,222 @@ Fires when a bank withdrawal changes status. A bank withdrawal moves fiat out of
 
 For full details, see [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id).
 
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### The payout is accepted
+
+Record it and do not submit the request again. `requested_target` is your own instruction echoed back — check it against what you sent.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Pending",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": "September vendor settlement",
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700000
+}
+```
+
+### The payout completed
+
+Close the payout. This means Cobo finished the transfer, **not** that the recipient's platform has credited it.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout001",
+      "result": "Completed"
+    }
+  ],
+  "actual_payout_amount": {
+    "amount_type": "Crypto",
+    "amount": "500.00",
+    "token_id": "ETH_USDC",
+    "chain_id": "ETH"
+  },
+  "initiator": "api_key_abc123",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
+  ],
+  "remark": "September vendor settlement",
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700600
+}
+```
+
+### The payout is partially completed
+
+Create a **new** payout for the amount in `failed_amounts`. Do not resend the part that succeeded.
+
+Here one of two source tokens failed on its outgoing transaction, so both the object-level reason and the entry-level reason are present.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_002",
+  "request_id": "request_payout_002",
+  "source_account": "developer",
+  "status": "PartiallyCompleted",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+  ],
+  "failed_amounts": [
+    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient002",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout002a",
+      "result": "Completed"
+    },
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
+      "amount": { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" },
+      "tx_hash": null,
+      "result": "Failed",
+      "failed_reason": {
+        "code": "transaction.rejected_by_policy",
+        "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+      }
+    }
+  ],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
+  ],
+  "remark": "September vendor settlement",
+  "failed_reason": {
+    "code": "payment.payout_partially_failed",
+    "message": "Part of this payout could not be completed. Check failed_amounts for the amount affected, then contact Cobo support."
+  },
+  "created_timestamp": 1744701000,
+  "updated_timestamp": 1744701600
+}
+```
+
+⚠️ A payout item can also fail **before** any outgoing transaction exists — during fund consolidation, cross-chain conversion, or commission collection. In that case `failed_amounts` carries the amount but `transactions` has no matching entry, and the object-level `failed_reason` is the only explanation.
+
+### The payout failed
+
+Do not retry in place. Here the failure happened before any transfer, so `transactions` is empty and the reason is a payments-layer code.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_003",
+  "request_id": "request_payout_003",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient003",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": null,
+  "failed_reason": {
+    "code": "payment.payout_sweep_failed",
+    "message": "Cannot prepare payout funds: sweep transaction failed."
+  },
+  "created_timestamp": 1744702000,
+  "updated_timestamp": 1744702200
+}
+```
+
+### An Off-Ramp payout is rejected by the bank
+
+Confirm the account details with the recipient before resending. `requested_target` is a bank account, and `actual_payout_amount` would have been in the account's currency.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_004",
+  "request_id": "request_payout_004",
+  "source_account": "developer",
+  "status": "RejectedByBank",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "BankAccount",
+    "bank_account_id": "ba_20260901_0007",
+    "account_alias": "Vendor A operating account",
+    "bank_name": "Example Bank",
+    "currency": "USD"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_bank",
+    "message": "The receiving bank rejected this payout. Check the recipient's bank account details with them before resending — resending unchanged will most likely be rejected again."
+  },
+  "created_timestamp": 1744703000,
+  "updated_timestamp": 1744703800
+}
+```
+
+### Resending a failed payout
+
+There is no retry on the original object. Create a new payout and keep the original `payout_id` in your own records so the two stay linked — the event does not carry a reference back to it.
+
 ## Transaction-level detail
 
 `payment.payout.status.updated` returns this payout's underlying transaction detail and is documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).

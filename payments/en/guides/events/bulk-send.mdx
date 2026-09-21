@@ -110,6 +110,209 @@ The three `strict_mode_other_*` codes all mean the same thing for this item: not
 
 Two field descriptions include the receiving address, so the `message` text differs between items carrying the same `code`. Branch on `code` as usual.
 
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### The batch is accepted
+
+Record the batch and do not submit it again. Remember that `Pending` may also mean the batch is waiting for an approver.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Pending",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fees": [],
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744710000
+}
+```
+
+### The batch completed
+
+Close the batch summary. Individual items are still confirmed by their own events.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Completed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "0.60" }
+  ],
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744711200
+}
+```
+
+### The batch is partially completed
+
+Split your handling by the two counts. Here one item's funds moved and failed, and one was never submitted — `failed_amounts` merges both into a single figure, so the counts are what tell them apart.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "PartiallyCompleted",
+  "item_count": 3,
+  "failed_item_count": 1,
+  "not_executed_item_count": 1,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "200.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "0.20" }
+  ],
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744713000
+}
+```
+
+### Strict mode stopped the batch before execution
+
+No funds moved. Fix the reported items and create a new batch. Which items were at fault comes from the item events.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "execution_mode": "Strict",
+  "status": "Failed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 3,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fees": [],
+  "failed_reason": {
+    "code": "payment.bulk_send_strict_validation_failed",
+    "message": "Cannot complete bulk send: one or more items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+### An item completed
+
+Save the amount and `tx_hash`, and close that item against your own recipient record using `bulk_send_item_id`.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0001",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate001",
+  "tx_hash": "0xbulkitem001",
+  "description": "affiliate 001",
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712900
+}
+```
+
+### An item failed after the transfer was submitted
+
+Funds moved and came back: locked funds were released and the fee was returned. Whether you can resend as-is depends on `failed_reason.code`.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0002",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate002",
+  "tx_hash": null,
+  "description": "affiliate 002",
+  "failed_reason": {
+    "code": "transaction.rejected_by_approval",
+    "message": "An approver in your organization rejected this transaction. Contact them, then resend."
+  },
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712950
+}
+```
+
+### An item was never executed
+
+**No funds moved.** Fix the cause before resending, or it fails the same way. Here the item itself was fine and was stopped by a sibling under `Strict` mode.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0003",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "status": "NotExecuted",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate003",
+  "tx_hash": null,
+  "description": "affiliate 003",
+  "failed_reason": {
+    "code": "payment.strict_mode_other_items_validation_failed",
+    "message": "Cannot execute bulk send item: one or more other items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+### Resending failed items
+
+There is no retry on the original batch or item. Create a new batch, or a single payout for one recipient, and keep the original `bulk_send_id` and `bulk_send_item_id` in your own records — the new event does not carry a reference back to them.
+
 ## Transaction-level detail
 
 `payment.bulk_send.status.updated` and `payment.bulk_send.item.status.updated` return the batch's and the item's underlying transaction detail, and are documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).

@@ -112,6 +112,222 @@ lang: "zh-hans"
 
 完整说明请参见 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
 
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 转出请求已受理
+
+记录本次转出，不要重复提交。`requested_target` 是您自己的指令回显——请与您发出的内容核对。
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Pending",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": "September vendor settlement",
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700000
+}
+```
+
+### 转出完成
+
+关闭本次转出。这表示 Cobo 已完成转账，**不表示**收款方平台已经入账。
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout001",
+      "result": "Completed"
+    }
+  ],
+  "actual_payout_amount": {
+    "amount_type": "Crypto",
+    "amount": "500.00",
+    "token_id": "ETH_USDC",
+    "chain_id": "ETH"
+  },
+  "initiator": "api_key_abc123",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
+  ],
+  "remark": "September vendor settlement",
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700600
+}
+```
+
+### 转出部分完成
+
+按 `failed_amounts` 的金额**另建一笔新的转出**，不要重发已成功的部分。
+
+本例两种源币种中有一种在转出交易上失败，因此对象级和条目级的原因都有。
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_002",
+  "request_id": "request_payout_002",
+  "source_account": "developer",
+  "status": "PartiallyCompleted",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+  ],
+  "failed_amounts": [
+    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient002",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout002a",
+      "result": "Completed"
+    },
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
+      "amount": { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" },
+      "tx_hash": null,
+      "result": "Failed",
+      "failed_reason": {
+        "code": "transaction.rejected_by_policy",
+        "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+      }
+    }
+  ],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
+  ],
+  "remark": "September vendor settlement",
+  "failed_reason": {
+    "code": "payment.payout_partially_failed",
+    "message": "Part of this payout could not be completed. Check failed_amounts for the amount affected, then contact Cobo support."
+  },
+  "created_timestamp": 1744701000,
+  "updated_timestamp": 1744701600
+}
+```
+
+⚠️ A payout item can also fail **before** any outgoing transaction exists — during fund consolidation, cross-chain conversion, or commission collection. In that case `failed_amounts` carries the amount but `transactions` has no matching entry, and the object-level `failed_reason` is the only explanation.
+
+### 转出失败
+
+不要原地重试。本例失败发生在任何转账之前，因此 `transactions` 为空，原因是支付层 code。
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_003",
+  "request_id": "request_payout_003",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient003",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": null,
+  "failed_reason": {
+    "code": "payment.payout_sweep_failed",
+    "message": "Cannot prepare payout funds: sweep transaction failed."
+  },
+  "created_timestamp": 1744702000,
+  "updated_timestamp": 1744702200
+}
+```
+
+### Off-Ramp 转出被银行拒绝
+
+重发前先与收款方核对账户信息。`requested_target` 是银行账户，`actual_payout_amount` 本应为该账户的币种。
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_004",
+  "request_id": "request_payout_004",
+  "source_account": "developer",
+  "status": "RejectedByBank",
+  "requested_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "BankAccount",
+    "bank_account_id": "ba_20260901_0007",
+    "account_alias": "Vendor A operating account",
+    "bank_name": "Example Bank",
+    "currency": "USD"
+  },
+  "transactions": [],
+  "actual_payout_amount": null,
+  "initiator": "api_key_abc123",
+  "commission_fees": [],
+  "remark": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_bank",
+    "message": "The receiving bank rejected this payout. Check the recipient's bank account details with them before resending — resending unchanged will most likely be rejected again."
+  },
+  "created_timestamp": 1744703000,
+  "updated_timestamp": 1744703800
+}
+```
+
+### 重发失败的转出
+
+原对象上没有重试。请创建一笔新的转出，并在自己的记录里保留原 `payout_id`，让两者可以关联——事件本身不携带指回原对象的引用。
+
 ## 交易级细节
 
 `payment.payout.status.updated` 返回的是这次转出底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。

@@ -34,3 +34,69 @@ Webhook messages do not carry real-time balances or fee breakdowns, so that the 
 - **To update balances as events arrive:** call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when a webhook lands.
 - **To reconcile fees:** use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
 - **To avoid running out of gas:** poll [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and alert on your own consumption rate. Several failure codes across payouts, refunds, and bulk sends trace back to an empty Fee Station.
+
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### An order credits the merchant and the developer
+
+One order settlement produces one event per account. The two together add up to the order's `credited_amount`, which is why that field is not the merchant's figure.
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "M1001",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "100.00",
+  "amount_raw": "100.000000",
+  "balance_before": "1250.00",
+  "balance_before_raw": "1250.000000",
+  "balance_after": "1350.00",
+  "balance_after_raw": "1350.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "2.00",
+  "amount_raw": "2.000000",
+  "balance_before": "830.00",
+  "balance_before_raw": "830.000000",
+  "balance_after": "832.00",
+  "balance_after_raw": "832.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+### A payout leaves the developer account
+
+`flow_direction` is `out` and `source_id` is the payout ID, so you can tie the movement back to the payout event.
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "payout_001",
+  "source_type": "Payout",
+  "token_id": "ETH_USDC",
+  "amount": "500.00",
+  "amount_raw": "500.000000",
+  "balance_before": "832.00",
+  "balance_before_raw": "832.000000",
+  "balance_after": "332.00",
+  "balance_after_raw": "332.000000",
+  "flow_direction": "out",
+  "update_time": 1744700600
+}
+```

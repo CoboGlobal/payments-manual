@@ -55,34 +55,6 @@ To submit a screening decision, call [Submit KYT screening decision](https://www
 
 All three modes can require action from you, so `screening_mode` does not tell you whether it is your turn to act — `status` does. The field can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that no provider is configured.
 
-### Example
-
-```json
-{
-  "event_id": "evt_topup_001",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1744689675000,
-  "type": "payment.topup.updated",
-  "data": {
-    "data_type": "PaymentTopUpUpdate",
-    "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
-    "merchant_id": "M1001",
-    "payer_id": "P20250619T0310056d7aa",
-    "custom_payer_id": "user_abc_10001",
-    "status": "ActionRequired",
-    "screening_mode": "CoboKyt",
-    "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-    "tx_hash": "0xabc123",
-    "topup_address": "0xtopup_addr_M1001_user_abc",
-    "source_address": "0xsender001",
-    "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
-    "created_timestamp": 1744689000,
-    "updated_timestamp": 1744689100
-  },
-  "status": "Success"
-}
-```
-
 ## `payment.address.updated`
 
 Fires when a payer's top-up address is replaced. Update the address you show that payer, and keep accepting deposits to the previous address until it stops being funded.
@@ -106,6 +78,138 @@ A deposit that does not belong to any deposit plan, or that arrives in an unsupp
 | `payment.transaction.external.completed` | The unexpected deposit passed screening and was credited to your developer balance. |
 
 Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#unexpected-deposits).
+
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### A deposit is detected
+
+Show the deposit as in progress. Do not credit anything yet.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Detected",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+### Compliance screening is in progress
+
+Keep waiting. `screening_mode` tells you which system is reviewing it, but does not mean you have anything to do.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "PendingScreening",
+  "screening_mode": "IntegratedVendor",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689060
+}
+```
+
+### Screening needs you to act
+
+Put the deposit in a human queue. The three possible actions are distinguished by `message` — see [When `status` is `ActionRequired`](#when-status-is-actionrequired).
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "ActionRequired",
+  "screening_mode": "CoboKyt",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+### The funds are available
+
+**This is the only state you may credit.** Use `transaction_id` as the idempotency key.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Completed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689300
+}
+```
+
+### The deposit failed
+
+Stop any automatic crediting and read `failed_reason.code`. Here Cobo's compliance checks rejected it, so do not resend — resolve it with Cobo first.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Failed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "failed_reason": {
+    "code": "transaction.rejected_by_compliance",
+    "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
+  },
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689400
+}
+```
+
+### A payer's address is replaced
+
+Update the address you show that payer. This is a `payment.address.updated` event, not a top-up event.
+
+```json
+{
+  "data_type": "PaymentAddressUpdate",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "chain": "ETH",
+  "previous_address": "0xtopup_addr_M1001_user_abc",
+  "updated_address": "0xtopup_addr_M1001_user_abc_new"
+}
+```
 
 ## Transaction-level detail
 

@@ -78,6 +78,238 @@ A deposit that does not belong to any order, or that arrives in an unsupported t
 
 Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
 
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### The order is created
+
+Show the payer what to pay. `transactions` is empty and both amounts that depend on receipts are `0`.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Pending",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+### The first deposit is detected
+
+Update progress. Do not release goods: the deposit is still in screening, so `credited_amount` is still `0`.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "PendingScreening",
+      "screening_mode": "IntegratedVendor",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+### A deposit needs you to act
+
+`notice_type` is `PaymentUpdated` and the order `status` has not changed. Act on that entry's `message`; those funds stay held until you do. Other deposits keep accumulating normally.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": "PaymentUpdated",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "ActionRequired",
+      "screening_mode": "CustomVendor",
+      "message": "A screening result from your own KYT provider is required before these funds can be made available. Please submit it in the Screening App.",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689200
+}
+```
+
+### The order is paid in full
+
+**Release the goods.** Two deposits cleared screening and their total reached the threshold. Use `order_id` as the idempotency key, and do not compare the amounts yourself.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Completed",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep002",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744690100
+}
+```
+
+### The order expired underpaid
+
+Handle it as underpaid. `outstanding_amount` is the shortfall, and the second deposit was rejected so it never counted.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep102",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Failed",
+      "is_late": false,
+      "failed_reason": {
+        "code": "transaction.rejected_by_screening_app",
+        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+      }
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744692600
+}
+```
+
+### Money arrives after the order ended
+
+`notice_type` is `LatePaymentReceived` and `status` keeps its final value. Decide whether to refund or fulfil. **`credited_amount` does not change** — the late entry is `Completed` but does not count towards the order.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "notice_type": "LatePaymentReceived",
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
+      "tx_hash": "0xdep103",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": true
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744693900
+}
+```
+
+### Situations that send no event
+
+These change the order's contents but produce no notification, because the order `status` does not change and there is nothing for you to act on:
+
+- A second or later deposit is detected.
+- A deposit enters screening.
+- **A deposit clears screening**, which raises `credited_amount` and lowers `outstanding_amount`.
+- A deposit fails.
+- A late payment arrives but has not cleared screening yet.
+
+To show live collection progress inside the validity period, poll [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
+
 ## Transaction-level detail
 
 For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Transaction-level events](/payments/en/guides/events/transaction-level).

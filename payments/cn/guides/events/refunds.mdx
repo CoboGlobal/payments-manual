@@ -52,31 +52,107 @@ lang: "zh-hans"
 | `payment.refund_fee_charge_failed_unknown` | 退款手续费因其他原因无法扣收。 | 检查 Fee Station 的配置与余额后重试。 |
 | `payment.refund_transactions_failed` | 全部退款交易均失败。 | 重试前先查看交易层的具体原因。 |
 
-### 示例
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 退款单已创建
+
+记录并等待。不要为同一笔订单重复创建退款。
 
 ```json
 {
-  "event_id": "evt_refund_001",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1744690500000,
-  "type": "payment.refund.updated",
-  "data": {
-    "data_type": "PaymentRefundUpdate",
-    "refund_id": "refund_001",
-    "order_id": "order_001",
-    "merchant_id": "M1001",
-    "request_id": "request_refund_001",
-    "to_address": "0x9876543210abcdef1234567890abcdef12345678",
-    "status": "Completed",
-    "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-    "tx_hash": "0xrefund001",
-    "refund_type": "Merchant",
-    "initiator": "api_key_abc123",
-    "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
-    "created_timestamp": 1744690400,
-    "updated_timestamp": 1744690500
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Pending",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690400
+}
+```
+
+### 退款完成
+
+对账并关闭，以 `refund_id` 作为幂等键。`requested_amount` 同时也是实际退还的金额。
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xrefund001",
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690500
+}
+```
+
+### 退款失败
+
+**一分未退。** 本例转账从未上链，因此 `tx_hash` 为空，原因是交易层 code。
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_002",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_002",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_policy",
+    "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
   },
-  "status": "Success"
+  "created_timestamp": 1744690600,
+  "updated_timestamp": 1744690700
+}
+```
+
+### 退款在转账之前就失败
+
+手续费无法扣收，因此原因是支付层 code。向 Fee Station 充值后重新创建退款。
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_003",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_003",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "payment.refund_fee_charge_failed",
+    "message": "Cannot charge refund fee: Fee Station balance is insufficient. Please add funds to Fee Station and try again."
+  },
+  "created_timestamp": 1744690800,
+  "updated_timestamp": 1744690900
 }
 ```
 

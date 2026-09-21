@@ -52,31 +52,107 @@ When the underlying transfer itself was rejected, `failed_reason.code` is a tran
 | `payment.refund_fee_charge_failed_unknown` | The refund fee could not be charged for another reason. | Check your Fee Station configuration and balance, then retry. |
 | `payment.refund_transactions_failed` | Every refund transaction failed. | Read the transaction-layer detail before retrying. |
 
-### Example
+## Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+### The refund order is created
+
+Record it and wait. Do not create a second refund for the same order.
 
 ```json
 {
-  "event_id": "evt_refund_001",
-  "url": "https://example.com/webhook",
-  "created_timestamp": 1744690500000,
-  "type": "payment.refund.updated",
-  "data": {
-    "data_type": "PaymentRefundUpdate",
-    "refund_id": "refund_001",
-    "order_id": "order_001",
-    "merchant_id": "M1001",
-    "request_id": "request_refund_001",
-    "to_address": "0x9876543210abcdef1234567890abcdef12345678",
-    "status": "Completed",
-    "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-    "tx_hash": "0xrefund001",
-    "refund_type": "Merchant",
-    "initiator": "api_key_abc123",
-    "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
-    "created_timestamp": 1744690400,
-    "updated_timestamp": 1744690500
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Pending",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690400
+}
+```
+
+### The refund completed
+
+Reconcile and close it, using `refund_id` as the idempotency key. `requested_amount` is also what was returned.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xrefund001",
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690500
+}
+```
+
+### The refund failed
+
+**Nothing was returned.** Here the transfer never reached the chain, so `tx_hash` is empty and the reason is a transaction-layer code.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_002",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_002",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_policy",
+    "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
   },
-  "status": "Success"
+  "created_timestamp": 1744690600,
+  "updated_timestamp": 1744690700
+}
+```
+
+### The refund failed before the transfer
+
+The fee could not be charged, so the reason is a payments-layer code. Top up Fee Station and create the refund again.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_003",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_003",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "payment.refund_fee_charge_failed",
+    "message": "Cannot charge refund fee: Fee Station balance is insufficient. Please add funds to Fee Station and try again."
+  },
+  "created_timestamp": 1744690800,
+  "updated_timestamp": 1744690900
 }
 ```
 

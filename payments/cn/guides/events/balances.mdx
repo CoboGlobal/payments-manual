@@ -34,3 +34,70 @@ Webhook 消息不携带实时余额和手续费明细，以保证您读到的数
 - **随事件更新余额：** 收到 Webhook 时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。
 - **核对手续费：** 使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。
 - **避免手续费耗尽导致业务中断：** 定期调用 [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances)，并按自己的消耗速率设置告警。资金转出、退款和批量下发中的多个失败 code 都源于 Fee Station 余额不足。
+
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 一笔订单同时给商户和开发者入账
+
+一笔订单结算会为每个账户各产生一条事件。两条相加等于订单的 `credited_amount`，这也是该字段不等于商户入账金额的原因。
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "M1001",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "100.00",
+  "amount_raw": "100.000000",
+  "balance_before": "1250.00",
+  "balance_before_raw": "1250.000000",
+  "balance_after": "1350.00",
+  "balance_after_raw": "1350.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "2.00",
+  "amount_raw": "2.000000",
+  "balance_before": "830.00",
+  "balance_before_raw": "830.000000",
+  "balance_after": "832.00",
+  "balance_after_raw": "832.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+### 一笔转出从开发者账户扣出
+
+`flow_direction` 为 `out`，`source_id` 是 payout ID，因此可以把这笔变动关联回转出事件。
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "payout_001",
+  "source_type": "Payout",
+  "token_id": "ETH_USDC",
+  "amount": "500.00",
+  "amount_raw": "500.000000",
+  "balance_before": "832.00",
+  "balance_before_raw": "832.000000",
+  "balance_after": "332.00",
+  "balance_after_raw": "332.000000",
+  "flow_direction": "out",
+  "update_time": 1744700600
+}
+```
+

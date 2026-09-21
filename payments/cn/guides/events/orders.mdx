@@ -78,6 +78,238 @@ lang: "zh-hans"
 
 两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
 
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 订单已创建
+
+向付款方展示应付金额。`transactions` 为空，两个依赖到账的金额均为 `0`。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Pending",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+### 检测到首笔入金
+
+更新进度。不要发货：这笔入金还在筛查中，`credited_amount` 仍然是 `0`。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "PendingScreening",
+      "screening_mode": "IntegratedVendor",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+### 某笔入金需要您处理
+
+`notice_type` 为 `PaymentUpdated`，订单 `status` 没有变化。按该条目的 `message` 处理，这笔资金在您处理前一直挂起。其他入金照常累计。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": "PaymentUpdated",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "ActionRequired",
+      "screening_mode": "CustomVendor",
+      "message": "A screening result from your own KYT provider is required before these funds can be made available. Please submit it in the Screening App.",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689200
+}
+```
+
+### 订单已付清
+
+**发货。** 两笔入金通过筛查，合计达到阈值。以 `order_id` 作为幂等键，不要自己比较金额。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Completed",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep002",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "is_late": false
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744690100
+}
+```
+
+### 订单到期且少付
+
+按少付处理。`outstanding_amount` 是差额；第二笔入金被拒绝，因此从未计入。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep102",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Failed",
+      "is_late": false,
+      "failed_reason": {
+        "code": "transaction.rejected_by_screening_app",
+        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+      }
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744692600
+}
+```
+
+### 订单结束后又收到资金
+
+`notice_type` 为 `LatePaymentReceived`，`status` 保持终态。人工决定退款还是补发。**`credited_amount` 不变**——晚到款条目是 `Completed`，但不计入订单。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "notice_type": "LatePaymentReceived",
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": false
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
+      "tx_hash": "0xdep103",
+      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "is_late": true
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744693900
+}
+```
+
+### 不会发事件的情况
+
+下面这些会改变订单的内容，但不产生通知，因为订单 `status` 没有变化，您也无事可做：
+
+- 检测到第二笔及以后的入金。
+- 某笔入金进入筛查。
+- **某笔入金通过筛查**，这会抬高 `credited_amount`、降低 `outstanding_amount`。
+- 某笔入金失败。
+- 晚到款已到达但尚未通过筛查。
+
+要在有效期内展示实时收款进度，请轮询 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。
+
 ## 交易级细节
 
 每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[交易级事件](/payments/cn/guides/events/transaction-level)。

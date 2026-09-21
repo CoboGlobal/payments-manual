@@ -13,3 +13,49 @@ lang: "zh-hans"
 两者携带的基础字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)，没有额外的 Payment 字段。
 
 交易完成时，结算资金会以 `SettlementNetwork` 这个 `source_type` 反映到您的 Payment 账户余额。到账金额由对应的 [`payment.account.balance.updated`](/payments/cn/guides/events/balances) 事件告知——本页这两个事件携带的是交易而不是余额。
+
+## 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+### 一笔结算网络交易完成
+
+事件携带的是交易而不是到账金额，金额请看对应的余额事件。
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "5c4b3a2d-9999-4f1e-8b7a-000000000001",
+  "status": "Completed",
+  "chain_id": "ETH",
+  "token_id": "ETH_USDC",
+  "transaction_hash": "0xsettlement001",
+  "source": { "source_type": "DepositFromAddress" },
+  "destination": { "destination_type": "DepositToAddress" },
+  "confirmed_num": 12,
+  "confirming_threshold": 12,
+  "created_timestamp": 1744720000000,
+  "updated_timestamp": 1744720600000
+}
+```
+
+随后的余额事件会告诉您到账了多少：
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "5c4b3a2d-9999-4f1e-8b7a-000000000001",
+  "source_type": "SettlementNetwork",
+  "token_id": "ETH_USDC",
+  "amount": "1000.00",
+  "amount_raw": "1000.000000",
+  "balance_before": "332.00",
+  "balance_before_raw": "332.000000",
+  "balance_after": "1332.00",
+  "balance_after_raw": "1332.000000",
+  "flow_direction": "in",
+  "update_time": 1744720600
+}
+```
+
