@@ -80,7 +80,7 @@ After cross-chain conversion, an entry's `amount` is in the token actually sent,
 | `payment.payout_sweep_failed` | The sweep transaction that prepares the funds failed. | Create the payout again. |
 | `payment.payout_bridge_failed` | Every cross-chain transaction failed, so the assets could not be converted. | Check that a route exists for the token pair, then create the payout again. |
 | `payment.payout_transactions_failed` | Every outgoing transaction failed. The per-transaction reason is in `transactions`. | Read that detail before retrying. |
-| `payment.rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. | Confirm the account details with the recipient before resending — the same details will most likely be rejected again. |
+| `payment.payout_rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. | Confirm the account details with the recipient before resending — the same details will most likely be rejected again. |
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
 | `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `payout_id`. |
 
@@ -288,7 +288,7 @@ Confirm the account details with the recipient before resending. `requested_targ
   "commission_fees": [],
   "remark": null,
   "failed_reason": {
-    "code": "payment.rejected_by_bank",
+    "code": "payment.payout_rejected_by_bank",
     "message": "The receiving bank rejected this payout. Check the recipient's bank account details with them before resending — resending unchanged will most likely be rejected again."
   },
   "created_timestamp": 1744703000,
