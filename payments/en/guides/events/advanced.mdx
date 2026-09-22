@@ -3,9 +3,9 @@ title: "Advanced events"
 lang: "en"
 ---
 
-Advanced events report the underlying transaction rather than what the payment business needs next. The event for that business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it.
+Advanced events report the underlying transaction itself. You only need to subscribe when that information matters to you — confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail, for example to show a payer the progress of their transfer or to reconcile gas spend.
 
-Subscribe to them when you need confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail — for example to show a payer the progress of their transfer, or to reconcile gas spend. To decide what to do next, use the event for that business instead.
+The event for that payment business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it.
 
 Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 

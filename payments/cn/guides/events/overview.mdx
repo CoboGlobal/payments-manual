@@ -19,9 +19,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | 结算网络 | `payment.transaction.settlement_network.*` | [结算网络事件](/payments/cn/guides/events/settlement-network) |
 | 账户余额 | `payment.account.balance.updated` | [余额变动](/payments/cn/guides/events/balances) |
 
-**其余的支付事件都是高级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，而不是告诉您接下来该做什么。
+**其余的支付事件都是高级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，只在您需要关心底层交易信息时才需要订阅，例如确认数、手续费明细，或替换（丢弃、重发、加速）情况。
 
-当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。每个业务页面会列出属于该链路的高级事件，[高级事件](/payments/cn/guides/events/advanced)则逐个说明，并收录共用的交易字段。
+每个业务页面会列出属于该链路的高级事件，[高级事件](/payments/cn/guides/events/advanced)则逐个说明，并收录共用的交易字段。
 
 ## 事件结构
 
