@@ -19,6 +19,8 @@ The primary event for Order Mode, identified by `order_id`.
 
 **Release goods or services only when `status` is `Completed`. Do not compare amounts yourself.** Completion allows a tolerance (`amount_tolerance`), so comparing the received amount against the expected amount rejects orders that Cobo considers paid in full.
 
+### Trigger conditions
+
 | `status` | `notice_type` | Fires when | What to do |
 | --- | --- | --- | --- |
 | `Pending` | absent | The order is created and no deposit has arrived. | Record the order and show the payer what to pay. |
@@ -31,7 +33,7 @@ The primary event for Order Mode, identified by `order_id`.
 
 The line between `Underpaid` and `Expired` is whether any deposit completed, not how much arrived. An order that expires with every deposit failed, or with deposits still in screening, becomes `Expired`.
 
-### When the event does not fire
+**When the event does not fire.**
 
 While an order sits in `Processing`, deposits keep changing but most of those changes do not produce an event. Detecting a second or later deposit, a deposit entering screening, a deposit passing screening, and a deposit failing all leave the order in `Processing` without a notification, even though `credited_amount` and `outstanding_amount` change.
 
@@ -51,11 +53,11 @@ Always present: `order_id`, `psp_order_code`, `merchant_id` and `merchant_order_
 | `receive_address` | The address the payer sends funds to. |
 | `expired_at` | When the payment window closes, as a Unix timestamp in seconds. |
 | `notice_type` | Why you were notified when `status` did not change. Either `PaymentUpdated` or `LatePaymentReceived`. |
-| `transactions` | Every deposit associated with the order so far. See [Reading the deposits array](#reading-the-deposits-array). |
+| `transactions` | Every deposit associated with the order so far. See [Reading the deposits array](#event-content). |
 
 The order object itself has no `failed_reason`. An order does not fail — it expires or ends underpaid. Failures belong to individual deposits inside `transactions`.
 
-### The three amounts
+**How to use the three amounts.**
 
 | Field | What it is | How to use it |
 | --- | --- | --- |
@@ -67,15 +69,15 @@ The order object itself has no `failed_reason`. An order does not fail — it ex
 
 `outstanding_amount` has a floor of `0` and stays `0` on overpayment, so it never tells you how much was overpaid. It also merges four different situations into one number: the payer has not sent anything, funds are in screening, funds are waiting for information from you, and funds were rejected. Those need different responses, so walk `transactions` and group by each entry's `status` to see where the money is stuck.
 
-### Reading the deposits array
+**Reading the `transactions` array.**
 
 `transactions` is the order's complete current list of deposits, not the change since the last event. Replace your local copy and upsert by `transaction_id`.
 
-Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason` — see [Failure codes](#failure-codes).
+Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason` — see [Failure codes](#failure-reasons).
 
 Deposits below the dust threshold are excluded from the array entirely. The default threshold is `0.05`, and an amount must exceed it to be kept.
 
-### Failure codes
+### Failure reasons
 
 `failed_reason.code` is what you branch on. An entry in `transactions` can carry these three. The ID to quote when you raise a case is `order_id`, not the entry's `transaction_id`.
 
@@ -85,7 +87,7 @@ Deposits below the dust threshold are excluded from the array entirely. The defa
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
 | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case, quoting the ID below. |
 
-### Samples
+### Sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 

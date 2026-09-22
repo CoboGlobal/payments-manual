@@ -17,6 +17,8 @@ lang: "zh-hans"
 
 退款的主事件，以 `refund_id` 标识。
 
+### 事件触发条件
+
 | `status` | 触发时机 | 您该做什么 |
 | --- | --- | --- |
 | `Pending` | 通过退款链接成功创建退款单。 | 记录该退款单并等待。 |
@@ -46,7 +48,7 @@ lang: "zh-hans"
 
 退款没有单独的已完成金额和失败金额字段，因此 `requested_amount` 既是请求退还的金额，也是 `status` 为 `Completed` 后实际退还的金额。
 
-### 失败 code
+### 失败原因
 
 `failed_reason.code` 是您分支的依据。
 
@@ -63,7 +65,7 @@ lang: "zh-hans"
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
 | `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `refund_id`。 |
 
-### 示例
+### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 

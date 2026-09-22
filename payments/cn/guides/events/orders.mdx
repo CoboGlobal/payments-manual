@@ -19,6 +19,8 @@ lang: "zh-hans"
 
 **只有 `status` 为 `Completed` 时才能发货，不要自己比较金额。** 足额判定带容差（`amount_tolerance`），自行拿实收金额与应收金额比较，会把 Cobo 认定已付清的订单判成没付够。
 
+### 事件触发条件
+
 | `status` | `notice_type` | 触发时机 | 您该做什么 |
 | --- | --- | --- | --- |
 | `Pending` | 无 | 订单已创建，尚未收到入金。 | 建立订单记录，向付款方展示应付金额。 |
@@ -31,7 +33,7 @@ lang: "zh-hans"
 
 `Underpaid` 与 `Expired` 的分界在于有没有已完成的入账，而不在于收到多少钱。到期时入金全部失败、或仍停留在筛查中的订单，进入 `Expired`。
 
-### 哪些情况不发事件
+**哪些情况不发事件。**
 
 订单停留在 `Processing` 期间，入金会不断变化，但其中大部分变化不产生事件。检测到第二笔及以后的入金、入金进入筛查、入金通过筛查、入金失败，这些都不会改变订单状态，也不会通知您，即使 `credited_amount` 和 `outstanding_amount` 已经变了。
 
@@ -51,11 +53,11 @@ lang: "zh-hans"
 | `receive_address` | 付款方转账的目标地址。 |
 | `expired_at` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `notice_type` | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
-| `transactions` | 该订单至今关联的全部入金，参见[读取入金数组](#读取入金数组)。 |
+| `transactions` | 该订单至今关联的全部入金，参见[读取入金数组](#事件内容)。 |
 
 订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
 
-### 三个金额字段
+**三个金额字段怎么用。**
 
 | 字段 | 是什么 | 怎么用 |
 | --- | --- | --- |
@@ -67,15 +69,15 @@ lang: "zh-hans"
 
 `outstanding_amount` 下限为 `0`，多付时保持 `0`，因此它无法表达多收了多少。它还把四种情况合并成一个数：付款方没打钱、资金在筛查中、资金在等您补充信息、资金被拒绝。这四种的处理方式完全不同，需要遍历 `transactions` 并按条目的 `status` 分组，才能知道钱卡在哪里。
 
-### 读取入金数组
+**读取 `transactions` 数组。**
 
 `transactions` 是该订单当前的完整入金列表，不是自上条事件以来的增量。请整体替换本地副本，并按 `transaction_id` 做 upsert。
 
-每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，见[失败 code](#失败-code)。
+每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，见[失败 code](#失败原因)。
 
 低于粉尘阈值的入金完全不会出现在数组里。默认阈值为 `0.05`，金额需严格大于该值才会保留。
 
-### 失败 code
+### 失败原因
 
 `failed_reason.code` 是您分支的依据。`transactions` 中的条目只可能携带下面三个。提交问题时要提供的 ID 是 `order_id`，不是条目的 `transaction_id`。
 
@@ -85,7 +87,7 @@ lang: "zh-hans"
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 | 与 Cobo 确认。 |
 | `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供下面这个 ID。 |
 
-### 示例
+### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 

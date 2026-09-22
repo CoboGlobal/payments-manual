@@ -20,6 +20,8 @@ lang: "zh-hans"
 
 **只有 `status` 为 `Completed` 时才能入账**，没有第二个条件。
 
+### 事件触发条件
+
 | `status` | 是否终态 | 可否入账 | 您该做什么 |
 | --- | --- | --- | --- |
 | `Detected` | 否 | 否 | 记录这笔待处理入金。 |
@@ -42,13 +44,9 @@ lang: "zh-hans"
 | `tx_hash` | 链上交易哈希。Cobo 内部划转不上链，此时没有该值。 |
 | `topup_address` | 收到这笔资金的入金地址。 |
 | `source_address` | 链上发送方。链上无法识别时为 `null`。 |
-| `screening_mode` | 筛查进行中时提供，参见[筛查模式](#筛查模式)。 |
-| `message` | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。 |
-| `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取值见[失败 code](#失败-code)。 |
-
-### `status` 为 `ActionRequired` 时
-
-三种情况共用这个状态，靠 `message` 区分。由于 `message` 不能用于程序匹配，这三类目前无法自动分流，需要进入人工队列。
+| `screening_mode` | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。**三种模式下都可能需要您动手，所以它不能用来判断是不是轮到您处理**——那件事由 `status` 表达。筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。 |
+| `message` | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。三种需要您处理的情况共用这一个状态，靠它区分；但它**不能用于程序匹配**，所以这三类目前无法自动分流，需要进入人工队列。三段文案见下表。 |
+| `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取值见[失败原因](#失败原因)。 |
 
 | 您需要做什么 | `message` 会提示 |
 | --- | --- |
@@ -58,13 +56,7 @@ lang: "zh-hans"
 
 提交筛查结论时，调用 [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) 并传入本事件中的 `transaction_id`。资金退回、隔离、解冻同样按 `transaction_id` 定位，这些接口都不接受 `tx_hash`。
 
-### 筛查模式
-
-`screening_mode` 说明这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。
-
-三种模式下都可能需要您动手，因此它不能用来判断是不是轮到您处理——这件事由 `status` 表达。筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。
-
-### 失败 code
+### 失败原因
 
 `failed_reason.code` 是您分支的依据。入金只可能携带下面三个。提交问题时要提供的 ID 是 `transaction_id`。
 
@@ -74,7 +66,7 @@ lang: "zh-hans"
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 | 与 Cobo 确认。 |
 | `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供下面这个 ID。 |
 
-### 充值示例
+### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
@@ -123,7 +115,7 @@ lang: "zh-hans"
 
 #### 筛查需要您处理
 
-把这笔入金放进人工队列。三种可能的动作靠 `message` 区分，参见 [`status` 为 `ActionRequired` 时](#status-为-actionrequired-时)。
+把这笔入金放进人工队列。三种可能的动作靠 `message` 区分，参见 [`status` 为 `ActionRequired` 时](#事件内容)。
 
 ```json
 {
@@ -202,12 +194,6 @@ lang: "zh-hans"
 | `chain` | 该地址所属的链。只有这条链上的地址发生变更。 |
 | `previous_address` | 替换前的地址。 |
 | `updated_address` | 从现在起应使用的地址。 |
-
-### 地址替换示例
-
-以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
-
-#### 付款方的地址被替换
 
 更新展示给该付款方的地址。这是 `payment.address.updated` 事件，不是充值事件。
 

@@ -18,6 +18,8 @@ For batch payouts, see [Bulk send events](/payments/en/guides/events/bulk-send).
 
 The primary payout event, identified by `payout_id`.
 
+### Trigger conditions
+
 | `status` | Final | What to do |
 | --- | --- | --- |
 | `Pending` | No | The request was accepted. Wait. |
@@ -40,10 +42,10 @@ Always present: `payout_id`, `request_id`, `source_account`, `status`, `requeste
 | `requested_target` | Where the money is going, in business terms. Carries `target_type`, which is either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
 | `initiator` | Who initiated the payout. |
 | `remark` | The note attached to the payout. |
-| `transactions` | The outgoing transactions. See [Reading the transactions array](#reading-the-transactions-array). |
+| `transactions` | The outgoing transactions. See [Reading the transactions array](#event-content). |
 | `failed_reason` | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
 
-### The amounts are on two different sides
+**The amounts are on two different sides.**
 
 | Field | Side | Notes |
 | --- | --- | --- |
@@ -56,15 +58,15 @@ Always present: `payout_id`, `request_id`, `source_account`, `status`, `requeste
 
 **Do not reconcile `failed_amounts` against `transactions`.** A payout item can fail before any outgoing transaction is created — during fund consolidation, cross-chain conversion, or commission collection — and in that case no entry exists in the array at all.
 
-### Reading the transactions array
+**Reading the `transactions` array.**
 
 Entries use `result`, not `status`, to avoid confusion with wallet transaction states. The values are `Completed`, `Failed`, and `null`, where `null` means there is no result yet.
 
-Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`. `tx_hash` is empty until the transaction is broadcast. An entry with `result` `Failed` carries its own `failed_reason` — see [Failure codes](#failure-codes).
+Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`. `tx_hash` is empty until the transaction is broadcast. An entry with `result` `Failed` carries its own `failed_reason` — see [Failure codes](#failure-reasons).
 
 After cross-chain conversion, an entry's `amount` is in the token actually sent, which can differ from the source token in `requested_amounts`.
 
-### Failure codes
+### Failure reasons
 
 `failed_reason.code` is what you branch on. When a payout is partially completed, read the object-level `failed_reason` first — it is populated whatever stage the failure happened at, and if an outgoing transaction was the cause, the matching entry in `transactions` carries a more precise reason as well.
 
@@ -84,7 +86,7 @@ After cross-chain conversion, an entry's `amount` is in the token actually sent,
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
 | `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `payout_id`. |
 
-### Samples
+### Sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 

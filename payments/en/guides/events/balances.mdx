@@ -17,7 +17,7 @@ Fires when the available balance of a Payments account changes for a specific to
 
 It is also how you see **what each account actually received**. An order's `credited_amount`, for example, includes the portion split out as your developer fee, so it is not the merchant's credited amount. One order settlement produces one balance event per account involved.
 
-**Event content:**
+### Event content
 
 | Field | Description |
 | --- | --- |
@@ -33,7 +33,7 @@ It is also how you see **what each account actually received**. An order's `cred
 
 To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business record ID. The response model matches this event's `data`.
 
-### Samples
+### Sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 

@@ -17,6 +17,8 @@ Refunds currently apply to orders only. To return funds received through Top-up 
 
 The primary refund event, identified by `refund_id`.
 
+### Trigger conditions
+
 | `status` | Fires when | What to do |
 | --- | --- | --- |
 | `Pending` | The refund order is created through a refund link. | Record the refund and wait. |
@@ -46,7 +48,7 @@ Always present: `refund_id`, `order_id`, `merchant_id`, `request_id`, `to_addres
 
 Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
 
-### Failure codes
+### Failure reasons
 
 `failed_reason.code` is what you branch on.
 
@@ -63,7 +65,7 @@ Because a refund has no completed or failed amount fields, `requested_amount` is
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
 | `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `refund_id`. |
 
-### Samples
+### Sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 

@@ -16,16 +16,18 @@ Bulk send has two levels of events: one for the batch and one for each item in i
 
 The batch-level event, identified by `bulk_send_id`.
 
+### Batch trigger conditions
+
 | `status` | What to do |
 | --- | --- |
-| `Pending` | Record the batch and wait. A batch can sit here for two different reasons — see [Pending can mean waiting for approval](#pending-can-mean-waiting-for-approval). |
+| `Pending` | Record the batch and wait. A batch can sit here for two different reasons — see [Pending can mean waiting for approval](#batch-trigger-conditions). |
 | `Validating` | Wait. Which items will be rejected is not known yet. |
 | `Transferring` | Wait. Item-by-item progress comes from the item event. |
 | `Completed` | Close the batch summary. Item completion is still reported by the item event. |
 | `PartiallyCompleted` | Split your handling by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items that were never submitted. |
 | `Failed` | Read `failed_reason`. A whole batch only fails **before execution starts**. |
 
-### `Pending` can mean waiting for approval
+**`Pending` can mean waiting for approval.**
 
 If your organization has an approval workflow enabled, a new batch enters approval before anything else happens. **The approval step produces no event, and no field distinguishes it.** A batch in `Pending` may be waiting for validation or waiting for a person, and the payload looks the same either way. A batch that stays in `Pending` for a long time is not necessarily stuck.
 
@@ -52,7 +54,7 @@ Always present: `bulk_send_id`, `source_account`, `execution_mode`, `status`, `i
 
 The batch event carries **no item list**. Per-item information only arrives through the item event, and the arrival order of the two is not guaranteed.
 
-### Batch failure codes
+### Batch failure reasons
 
 `failed_reason.code` is what you branch on. A whole batch only fails before execution starts, so all of these mean no funds moved. A batch can also fail because the approval workflow rejected or revoked it; that reason is reported on the items.
 
@@ -65,7 +67,7 @@ The batch event carries **no item list**. Per-item information only arrives thro
 | `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. | Fix Fee Station, then create a new batch. |
 | `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. | Create a new batch. |
 
-### Batch samples
+### Batch sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
@@ -197,6 +199,8 @@ No funds moved. Fix the reported items and create a new batch. Which items were 
 
 The item-level event, identified by `bulk_send_item_id`.
 
+### Item trigger conditions
+
 | `status` | Final | What to do |
 | --- | --- | --- |
 | `Pending` | No | Record the item. This value covers **two stages**: waiting for validation, and validated but not yet submitted. |
@@ -221,7 +225,7 @@ Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount
 | `description` | The note attached to the item. |
 | `failed_reason` | Present when `status` is `Failed` or `NotExecuted`. |
 
-### Item failure codes
+### Item failure reasons
 
 `failed_reason.code` is what you branch on. These are the codes an item can carry.
 
@@ -246,7 +250,7 @@ Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount
 | `payment.batch_payouts_execution_failed` | The transfer failed and the cause could not be classified. | Do not retry. Raise it with Cobo. |
 | `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `bulk_send_item_id`. |
 
-### Item samples
+### Item sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 

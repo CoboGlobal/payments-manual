@@ -20,6 +20,8 @@ The primary event for Top-up Mode. One deposit produces one object, identified b
 
 **Credit the funds only when `status` is `Completed`.** There is no second condition.
 
+### Trigger conditions
+
 | `status` | Final | Creditable | What to do |
 | --- | --- | --- | --- |
 | `Detected` | No | No | Record the incoming deposit. |
@@ -42,13 +44,9 @@ Always present: `transaction_id`, `merchant_id`, `payer_id`, `custom_payer_id`, 
 | `tx_hash` | The on-chain transaction hash. Absent for internal transfers that never touch a chain. |
 | `topup_address` | The deposit address that received the funds. |
 | `source_address` | The on-chain sender. `null` when the chain does not expose it. |
-| `screening_mode` | Present while screening is in progress. See [Screening mode](#screening-mode). |
-| `message` | Present only when `status` is `ActionRequired`. Written for human operators. |
-| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`. |
-
-### When `status` is `ActionRequired`
-
-Three situations share this status, and `message` is what distinguishes them. Because `message` is not safe to match on, these three cannot be routed apart automatically and need a human queue.
+| `screening_mode` | Which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation. **All three modes can require action from you, so it does not tell you whether it is your turn** — `status` does. It can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `message` | Present only when `status` is `ActionRequired`. Written for human operators. Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue. The three strings are below. |
+| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`; values under [Failure reasons](#failure-reasons). |
 
 | What you need to do | `message` says |
 | --- | --- |
@@ -58,13 +56,7 @@ Three situations share this status, and `message` is what distinguishes them. Be
 
 To submit a screening decision, call [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) with the `transaction_id` from this event. Returning, quarantining, and unfreezing funds are also keyed on `transaction_id`. None of these operations accept `tx_hash`.
 
-### Screening mode
-
-`screening_mode` tells you which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.
-
-All three modes can require action from you, so `screening_mode` does not tell you whether it is your turn to act — `status` does. The field can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that no provider is configured.
-
-### Failure codes
+### Failure reasons
 
 `failed_reason.code` is what you branch on. A deposit can carry these three. The ID to quote when you raise a case is `transaction_id`.
 
@@ -74,7 +66,7 @@ All three modes can require action from you, so `screening_mode` does not tell y
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
 | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case, quoting the ID below. |
 
-### Top-up samples
+### Sample events
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
@@ -123,7 +115,7 @@ Keep waiting. `screening_mode` tells you which system is reviewing it, but does 
 
 #### Screening needs you to act
 
-Put the deposit in a human queue. The three possible actions are distinguished by `message` — see [When `status` is `ActionRequired`](#when-status-is-actionrequired).
+Put the deposit in a human queue. The three possible actions are distinguished by `message` — see [When `status` is `ActionRequired`](#event-content).
 
 ```json
 {
@@ -202,12 +194,6 @@ Fires when a payer's top-up address is replaced. Update the address you show tha
 | `chain` | The chain the address belongs to. Only that chain's address changes. |
 | `previous_address` | The address in use before the replacement. |
 | `updated_address` | The address to use from now on. |
-
-### Address replacement sample
-
-Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
-
-#### A payer's address is replaced
 
 Update the address you show that payer. This is a `payment.address.updated` event, not a top-up event.
 

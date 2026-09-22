@@ -16,16 +16,18 @@ lang: "zh-hans"
 
 批次级事件，以 `bulk_send_id` 标识。
 
+### 批次的事件触发条件
+
 | `status` | 您该做什么 |
 | --- | --- |
-| `Pending` | 记录该批次并等待。批次停在这里可能有两种原因，参见 [`Pending` 可能是在等审批](#pending-可能是在等审批)。 |
+| `Pending` | 记录该批次并等待。批次停在这里可能有两种原因，参见 [`Pending` 可能是在等审批](#批次的事件触发条件)。 |
 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
 | `Transferring` | 等待。逐条进度来自条目事件。 |
 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
 | `PartiallyCompleted` | 按两个计数分流处理：`failed_item_count` 是资金已经动过的条目，`not_executed_item_count` 是从未提交过的条目。 |
 | `Failed` | 读取 `failed_reason`。整批失败只发生在**执行开始之前**。 |
 
-### `Pending` 可能是在等审批
+**`Pending` 可能是在等审批。**
 
 如果您的组织启用了审批流，新建批次会先进入审批。**审批过程不产生任何事件，也没有字段能区分。** 停在 `Pending` 的批次既可能在等待校验，也可能在等人审批，payload 看起来完全一样。长时间停在 `Pending` 不一定意味着卡住了。
 
@@ -52,7 +54,7 @@ lang: "zh-hans"
 
 批次事件**不携带条目列表**。逐条信息只通过条目事件送达，且两者的到达顺序不作保证。
 
-### 批次的失败 code
+### 批次的失败原因
 
 `failed_reason.code` 是您分支的依据。整批失败只发生在执行开始之前，因此下面这些都意味着没有资金动过。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
 
@@ -65,7 +67,7 @@ lang: "zh-hans"
 | `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 处理 Fee Station 后创建新批次。 |
 | `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 创建新批次。 |
 
-### 批次示例
+### 批次的示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
@@ -197,6 +199,8 @@ lang: "zh-hans"
 
 条目级事件，以 `bulk_send_item_id` 标识。
 
+### 条目的事件触发条件
+
 | `status` | 是否终态 | 您该做什么 |
 | --- | --- | --- |
 | `Pending` | 否 | 建立条目记录。这个值覆盖**两个阶段**：等待校验，以及校验通过但尚未提交转出。 |
@@ -221,7 +225,7 @@ lang: "zh-hans"
 | `description` | 条目备注。 |
 | `failed_reason` | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
 
-### 条目的失败 code
+### 条目的失败原因
 
 `failed_reason.code` 是您分支的依据。下面是条目可能携带的 code。
 
@@ -246,7 +250,7 @@ lang: "zh-hans"
 | `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 不要重试，联系 Cobo。 |
 | `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `bulk_send_item_id`。 |
 
-### 条目示例
+### 条目的示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 

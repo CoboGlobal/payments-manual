@@ -18,6 +18,8 @@ lang: "zh-hans"
 
 资金转出的主事件，以 `payout_id` 标识。
 
+### 事件触发条件
+
 | `status` | 是否终态 | 您该做什么 |
 | --- | --- | --- |
 | `Pending` | 否 | 请求已受理，等待。 |
@@ -40,10 +42,10 @@ lang: "zh-hans"
 | `requested_target` | 业务意义上的收款目标。包含 `target_type`，取 `Address`（带 `address` 与 `chain_id`）或 `BankAccount`（带 `bank_account_id`、`account_alias`、`bank_name`、`currency`）。它不会暴露合约地址等链上执行细节。 |
 | `initiator` | 转出发起人。 |
 | `remark` | 转出备注。 |
-| `transactions` | 转出交易列表，参见[读取交易数组](#读取交易数组)。 |
+| `transactions` | 转出交易列表，参见[读取交易数组](#事件内容)。 |
 | `failed_reason` | 当 `status` 为 `Failed`、`RejectedByBank` 或 `PartiallyCompleted` 时出现。 |
 
-### 金额分属两侧口径
+**金额分属两侧口径。**
 
 | 字段 | 属于哪一侧 | 说明 |
 | --- | --- | --- |
@@ -56,15 +58,15 @@ lang: "zh-hans"
 
 **不要用 `transactions` 去核对 `failed_amounts`。** 转出项可能在任何转出交易创建之前就失败——资金归集、跨链兑换、佣金扣收阶段——此时数组里根本没有对应条目。
 
-### 读取交易数组
+**读取 `transactions` 数组。**
 
 条目用 `result` 而不是 `status`，以避免与钱包交易状态混淆，取值为 `Completed`、`Failed` 和 `null`，其中 `null` 表示尚无结果。
 
-每个条目包含 `transaction_id`、`amount`、`tx_hash` 和 `result`。交易广播前 `tx_hash` 为空。`result` 为 `Failed` 的条目带自己的 `failed_reason`，见[失败 code](#失败-code)。
+每个条目包含 `transaction_id`、`amount`、`tx_hash` 和 `result`。交易广播前 `tx_hash` 为空。`result` 为 `Failed` 的条目带自己的 `failed_reason`，见[失败 code](#失败原因)。
 
 经过跨链兑换后，条目的 `amount` 是实际转出时的币种，可能与 `requested_amounts` 中的源币种不同。
 
-### 失败 code
+### 失败原因
 
 `failed_reason.code` 是您分支的依据。部分完成时，请先读对象级 `failed_reason`，无论失败发生在哪个阶段它都有值；如果起因是某笔转出交易，`transactions` 中对应的条目还会给出更精确的原因。
 
@@ -84,7 +86,7 @@ lang: "zh-hans"
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
 | `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `payout_id`。 |
 
-### 示例
+### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
