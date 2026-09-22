@@ -1,0 +1,89 @@
+---
+title: "Unexpected deposits"
+lang: "en"
+---
+
+A deposit that belongs to no deposit plan and no order, or that arrives in a token Cobo does not support, is not handled as a top-up or as order collection. It is reported as an unexpected deposit and credited to your developer balance, not to a payer or an order. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| [`payment.transaction.external.created`](#payment-transaction-external) | An unexpected deposit was detected. | Required. Such a deposit belongs to no payer and no order, and no other event tells you it arrived. |
+| [`payment.transaction.external.completed`](#payment-transaction-external) | It cleared screening and was credited to your developer balance. | Required. Same as above; this one tells you it was credited. |
+
+## `payment.transaction.external.*`
+
+### Trigger conditions
+
+| Event | Fires when | What to do |
+| --- | --- | --- |
+| `payment.transaction.external.created` | A deposit arrives that belongs to no deposit plan and no order, or is in an unsupported token. | Record it as unattributed. **The funds are not credited yet.** |
+| `payment.transaction.external.completed` | That deposit cleared compliance screening and was credited to your developer balance. | Apply your own rule for unattributable funds — return them to the sender, attribute them to a payer manually, or book them as platform income. |
+
+Neither event appears in any order's `transactions` array, and neither produces a `payment.topup.updated`. If you need to account for every transfer arriving at your addresses, this is the only source.
+
+### Event content
+
+| Field | Description |
+| --- | --- |
+| `transaction_id` | The deposit's transaction ID. Quote it when you raise a case. |
+| `status` | The transaction status. In progress on `created`, `Completed` on `completed`. |
+| `chain_id` / `token_id` | The chain and token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
+| `transaction_hash` | The on-chain hash. It can be empty before the transaction is broadcast. |
+| `source` | Where the funds came from, typically an external wallet address. Use it if you return them. |
+| `destination` | Where they went: the receiving `address`, the `amount` received, and on some chains a `memo`. |
+| `confirmed_num` / `confirming_threshold` | Confirmations received, and the number that chain needs before a transaction is considered secure. |
+| `created_timestamp` / `updated_timestamp` | Creation and last update time, in Unix timestamp (milliseconds). |
+
+For the complete transaction field list see [Advanced events](/payments/en/guides/events/advanced#transaction-fields) — the table above is the subset that matters for handling an unexpected deposit.
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### An unexpected deposit is detected
+
+Record it. Do not credit anything.
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Submitted",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "address": "0xunknown_sender" },
+  "destination": { "destination_type": "DepositToAddress", "address": "0xtopup_addr_M1001_user_abc", "amount": "35.00" },
+  "confirmed_num": 0,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730000000
+}
+```
+
+#### It was credited to your developer balance
+
+The funds are in your developer balance. Apply your own rule for them.
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Completed",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "address": "0xunknown_sender" },
+  "destination": { "destination_type": "DepositToAddress", "address": "0xtopup_addr_M1001_user_abc", "amount": "35.00" },
+  "confirmed_num": 19,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730600000
+}
+```
+
+## Related
+
+- The matching balance movement when the funds are credited: [Balance changes](/payments/en/guides/events/balances).

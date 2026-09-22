@@ -21,12 +21,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
   <tbody>
     <tr>
       <td rowSpan={5}>**充值**</td>
-      <td>[`payment.topup.updated`](/payments/cn/guides/events/top-up#paymenttopupupdated)</td>
+      <td>[`payment.topup.updated`](/payments/cn/guides/events/top-up#payment-topup-updated)</td>
       <td>**是**</td>
       <td>一笔充值从被检测到、经过筛查，直到可以入账或者失败。</td>
     </tr>
     <tr>
-      <td>[`payment.address.updated`](/payments/cn/guides/events/top-up#paymentaddressupdated)</td>
+      <td>[`payment.address.updated`](/payments/cn/guides/events/top-up#payment-address-updated)</td>
       <td>**是**</td>
       <td>付款方的入金地址被替换。Cobo 也会主动更换地址。</td>
     </tr>
@@ -47,12 +47,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
     </tr>
     <tr>
       <td rowSpan={5}>**订单**</td>
-      <td>[`payment.order.updated`](/payments/cn/guides/events/orders#paymentorderupdated)</td>
+      <td>[`payment.order.updated`](/payments/cn/guides/events/orders#payment-order-updated)</td>
       <td>**是**</td>
       <td>订单的收款结果：已付清、少付、过期、某笔入金需要您处理，或订单结束后又收到钱。</td>
     </tr>
     <tr>
-      <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#paymentorderstatusupdated)</td>
+      <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#payment-order-status-updated)</td>
       <td>否</td>
       <td>订单的交易明细，包括 `transactions` 数组和费用字段。</td>
     </tr>
@@ -73,67 +73,67 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
-      <td>[`payment.transaction.external.created`](/payments/cn/guides/events/top-up#paymenttransactionexternal)</td>
+      <td>[`payment.transaction.external.created`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
       <td>**是**</td>
       <td>收到一笔不属于任何入金计划、也不属于任何订单的入金，或者币种不受支持。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/top-up#paymenttransactionexternal)</td>
+      <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
       <td>**是**</td>
       <td>该笔入金通过筛查，已计入您的开发者余额。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**退款**</td>
-      <td>[`payment.refund.updated`](/payments/cn/guides/events/refunds#paymentrefundupdated)</td>
+      <td>[`payment.refund.updated`](/payments/cn/guides/events/refunds#payment-refund-updated)</td>
       <td>**是**</td>
       <td>退款单：已创建待执行、已完成，或者失败且一分未退。</td>
     </tr>
     <tr>
-      <td>[`payment.refund.status.updated`](/payments/cn/guides/events/advanced#paymentrefundstatusupdated)</td>
+      <td>[`payment.refund.status.updated`](/payments/cn/guides/events/advanced#payment-refund-status-updated)</td>
       <td>否</td>
       <td>退款的交易明细，包括 `transactions` 数组和费用字段。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**资金转出**</td>
-      <td>[`payment.payout.updated`](/payments/cn/guides/events/payouts#paymentpayoutupdated)</td>
+      <td>[`payment.payout.updated`](/payments/cn/guides/events/payouts#payment-payout-updated)</td>
       <td>**是**</td>
       <td>一笔转出：处理中、已完成、部分完成、失败，或被收款银行拒绝。</td>
     </tr>
     <tr>
-      <td>[`payment.payout.status.updated`](/payments/cn/guides/events/advanced#paymentpayoutstatusupdated)</td>
+      <td>[`payment.payout.status.updated`](/payments/cn/guides/events/advanced#payment-payout-status-updated)</td>
       <td>否</td>
       <td>转出的交易明细，包括 `transactions` 数组和 `payout_items`。</td>
     </tr>
     <tr>
       <td rowSpan={1}>**法币提现**</td>
-      <td>[`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#paymentbank_withdrawalstatusupdated)</td>
+      <td>[`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#payment-bank_withdrawal-status-updated)</td>
       <td>**是**</td>
       <td>从您的虚拟账户提现法币到银行账户的状态变更。</td>
     </tr>
     <tr>
       <td rowSpan={4}>**批量下发**</td>
-      <td>[`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send#paymentbulk_sendupdated)</td>
+      <td>[`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send#payment-bulk_send-updated)</td>
       <td>**是**</td>
       <td>批次的结果，以及金额和数量汇总。</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send#paymentbulk_senditemupdated)</td>
+      <td>[`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send#payment-bulk_send-item-updated)</td>
       <td>**是**</td>
       <td>单个条目的结果，区分「已提交后失败」和「从未提交」。</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.status.updated`](/payments/cn/guides/events/advanced#paymentbulk_sendstatusupdated)</td>
+      <td>[`payment.bulk_send.status.updated`](/payments/cn/guides/events/advanced#payment-bulk_send-status-updated)</td>
       <td>否</td>
       <td>批次的交易明细。</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.item.status.updated`](/payments/cn/guides/events/advanced#paymentbulk_senditemstatusupdated)</td>
+      <td>[`payment.bulk_send.item.status.updated`](/payments/cn/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>否</td>
       <td>条目的交易明细，包括 `validation_status`。</td>
     </tr>
     <tr>
       <td rowSpan={1}>**余额**</td>
-      <td>[`payment.account.balance.updated`](/payments/cn/guides/events/balances#paymentaccountbalanceupdated)</td>
+      <td>[`payment.account.balance.updated`](/payments/cn/guides/events/balances#payment-account-balance-updated)</td>
       <td>**是**</td>
       <td>某账户某币种的可用余额变动，给出变动前后的余额和变动来源。</td>
     </tr>

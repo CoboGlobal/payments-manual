@@ -9,10 +9,8 @@ These events cover Top-up Mode, where each payer has a deposit address and every
 
 | Event | What it notifies you of | When you need it |
 | --- | --- | --- |
-| [`payment.topup.updated`](#paymenttopupupdated) | One deposit's whole life: detected, screened, available to credit, or failed. | Always — this is the event for top-up deposits. |
-| [`payment.address.updated`](#paymentaddressupdated) | A payer's deposit address was replaced. | Required. Besides replacements you request yourself, **Cobo also replaces addresses on its own**, and there is no other way to learn about those. |
-| [`payment.transaction.external.created`](#paymenttransactionexternal) | A deposit arrived that belongs to no deposit plan, or is in an unsupported token. | Required. Such a deposit belongs to no payer and no order, and no other event tells you it arrived. |
-| [`payment.transaction.external.completed`](#paymenttransactionexternal) | That unexpected deposit cleared screening and was credited to your developer balance. | Required. Same as above; this one tells you it was credited. |
+| [`payment.topup.updated`](#payment-topup-updated) | One deposit's whole life: detected, screened, available to credit, or failed. | Always — this is the event for top-up deposits. |
+| [`payment.address.updated`](#payment-address-updated) | A payer's deposit address was replaced. | Required. Besides replacements you request yourself, **Cobo also replaces addresses on its own**, and there is no other way to learn about those. |
 
 ## `payment.topup.updated`
 
@@ -208,12 +206,6 @@ Update the address you show that payer. This is a `payment.address.updated` even
   "updated_address": "0xtopup_addr_M1001_user_abc_new"
 }
 ```
-
-## `payment.transaction.external.*`
-
-A deposit that does not belong to any deposit plan, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as a top-up. It is credited to your developer balance, not to a payer.
-
-Both carry the fields listed in [Advanced events](/payments/en/guides/events/advanced#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#paymenttransactionexternal).
 
 ## Related
 

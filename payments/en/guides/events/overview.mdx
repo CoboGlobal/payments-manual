@@ -21,12 +21,12 @@ Subscribe by the business you actually run. **Required means this event is your 
   <tbody>
     <tr>
       <td rowSpan={5}>**Top-up**</td>
-      <td>[`payment.topup.updated`](/payments/en/guides/events/top-up#paymenttopupupdated)</td>
+      <td>[`payment.topup.updated`](/payments/en/guides/events/top-up#payment-topup-updated)</td>
       <td>**Yes**</td>
       <td>A single deposit, from detection through screening to creditable — or failed.</td>
     </tr>
     <tr>
-      <td>[`payment.address.updated`](/payments/en/guides/events/top-up#paymentaddressupdated)</td>
+      <td>[`payment.address.updated`](/payments/en/guides/events/top-up#payment-address-updated)</td>
       <td>**Yes**</td>
       <td>A payer's deposit address was replaced. Cobo also replaces addresses on its own.</td>
     </tr>
@@ -47,12 +47,12 @@ Subscribe by the business you actually run. **Required means this event is your 
     </tr>
     <tr>
       <td rowSpan={5}>**Orders**</td>
-      <td>[`payment.order.updated`](/payments/en/guides/events/orders#paymentorderupdated)</td>
+      <td>[`payment.order.updated`](/payments/en/guides/events/orders#payment-order-updated)</td>
       <td>**Yes**</td>
       <td>An order's collection result: paid in full, underpaid, expired, a deposit needing your action, or money arriving after it ended.</td>
     </tr>
     <tr>
-      <td>[`payment.order.status.updated`](/payments/en/guides/events/advanced#paymentorderstatusupdated)</td>
+      <td>[`payment.order.status.updated`](/payments/en/guides/events/advanced#payment-order-status-updated)</td>
       <td>No</td>
       <td>The order's transaction detail, including the `transactions` array and the fee fields.</td>
     </tr>
@@ -73,67 +73,67 @@ Subscribe by the business you actually run. **Required means this event is your 
     </tr>
     <tr>
       <td rowSpan={2}>**Unexpected deposits**</td>
-      <td>[`payment.transaction.external.created`](/payments/en/guides/events/top-up#paymenttransactionexternal)</td>
+      <td>[`payment.transaction.external.created`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
       <td>**Yes**</td>
       <td>A deposit arrived that belongs to no deposit plan and no order, or is in an unsupported token.</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.external.completed`](/payments/en/guides/events/top-up#paymenttransactionexternal)</td>
+      <td>[`payment.transaction.external.completed`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
       <td>**Yes**</td>
       <td>That deposit cleared screening and was credited to your developer balance.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Refunds**</td>
-      <td>[`payment.refund.updated`](/payments/en/guides/events/refunds#paymentrefundupdated)</td>
+      <td>[`payment.refund.updated`](/payments/en/guides/events/refunds#payment-refund-updated)</td>
       <td>**Yes**</td>
       <td>A refund order: created and waiting, completed, or failed with nothing returned.</td>
     </tr>
     <tr>
-      <td>[`payment.refund.status.updated`](/payments/en/guides/events/advanced#paymentrefundstatusupdated)</td>
+      <td>[`payment.refund.status.updated`](/payments/en/guides/events/advanced#payment-refund-status-updated)</td>
       <td>No</td>
       <td>The refund's transaction detail, including the `transactions` array and the fee fields.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Payouts**</td>
-      <td>[`payment.payout.updated`](/payments/en/guides/events/payouts#paymentpayoutupdated)</td>
+      <td>[`payment.payout.updated`](/payments/en/guides/events/payouts#payment-payout-updated)</td>
       <td>**Yes**</td>
       <td>A payout: in progress, completed, partially completed, failed, or rejected by the receiving bank.</td>
     </tr>
     <tr>
-      <td>[`payment.payout.status.updated`](/payments/en/guides/events/advanced#paymentpayoutstatusupdated)</td>
+      <td>[`payment.payout.status.updated`](/payments/en/guides/events/advanced#payment-payout-status-updated)</td>
       <td>No</td>
       <td>The payout's transaction detail, including the `transactions` array and `payout_items`.</td>
     </tr>
     <tr>
       <td rowSpan={1}>**Fiat withdrawals**</td>
-      <td>[`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#paymentbank_withdrawalstatusupdated)</td>
+      <td>[`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#payment-bank_withdrawal-status-updated)</td>
       <td>**Yes**</td>
       <td>A fiat withdrawal from one of your virtual accounts to a bank account changed status.</td>
     </tr>
     <tr>
       <td rowSpan={4}>**Bulk send**</td>
-      <td>[`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send#paymentbulk_sendupdated)</td>
+      <td>[`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send#payment-bulk_send-updated)</td>
       <td>**Yes**</td>
       <td>The batch's outcome plus its amount and count summaries.</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send#paymentbulk_senditemupdated)</td>
+      <td>[`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send#payment-bulk_send-item-updated)</td>
       <td>**Yes**</td>
       <td>One item's outcome, distinguishing a transfer that failed after submission from one never submitted.</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.status.updated`](/payments/en/guides/events/advanced#paymentbulk_sendstatusupdated)</td>
+      <td>[`payment.bulk_send.status.updated`](/payments/en/guides/events/advanced#payment-bulk_send-status-updated)</td>
       <td>No</td>
       <td>The batch's transaction detail.</td>
     </tr>
     <tr>
-      <td>[`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#paymentbulk_senditemstatusupdated)</td>
+      <td>[`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>No</td>
       <td>The item's transaction detail, including `validation_status`.</td>
     </tr>
     <tr>
       <td rowSpan={1}>**Balances**</td>
-      <td>[`payment.account.balance.updated`](/payments/en/guides/events/balances#paymentaccountbalanceupdated)</td>
+      <td>[`payment.account.balance.updated`](/payments/en/guides/events/balances#payment-account-balance-updated)</td>
       <td>**Yes**</td>
       <td>One account's available balance moved for one token, with the balance before and after and what caused it.</td>
     </tr>

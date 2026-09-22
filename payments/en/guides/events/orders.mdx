@@ -9,9 +9,7 @@ These events cover Order Mode, where each payment order has its own address, exp
 
 | Event | What it notifies you of | When you need it |
 | --- | --- | --- |
-| [`payment.order.updated`](#paymentorderupdated) | An order's collection result: waiting for payment, a deposit needs your action, paid in full, underpaid, expired, or money arrived after it ended. | Always — this is the event for orders. |
-| [`payment.transaction.external.created`](#paymenttransactionexternal) | A deposit arrived that belongs to no order, or is in an unsupported token. | Required. Such a deposit belongs to no order, and no other event tells you it arrived. |
-| [`payment.transaction.external.completed`](#paymenttransactionexternal) | That unexpected deposit cleared screening and was credited to your developer balance. | Required. Same as above; this one tells you it was credited. |
+| [`payment.order.updated`](#payment-order-updated) | An order's collection result: waiting for payment, a deposit needs your action, paid in full, underpaid, expired, or money arrived after it ended. | Always — this is the event for orders. |
 
 ## `payment.order.updated`
 
@@ -316,12 +314,6 @@ These change the order's contents but produce no notification, because the order
 - **A deposit clears screening**, which raises `credited_amount` and lowers `outstanding_amount`.
 - A deposit fails.
 - A late payment arrives but has not cleared screening yet.
-
-## `payment.transaction.external.*`
-
-A deposit that does not belong to any order, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as part of an order. It is credited to your developer balance.
-
-Both carry the fields listed in [Advanced events](/payments/en/guides/events/advanced#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
 
 ## Related
 
