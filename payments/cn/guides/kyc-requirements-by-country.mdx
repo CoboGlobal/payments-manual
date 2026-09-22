@@ -18,6 +18,13 @@ lang: "zh-hans"
 
 KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地区差异体现在可接受取值和必需附件，而不是字段名。
 
+`merchant_type` 与实体类型是两个独立的维度，不要互相推导：
+
+- `merchant_type` 描述经营模式：`B2B` 面向企业，`B2C` 面向消费者。
+- 实体类型由请求中提供的对象决定：企业提供 `company_info`，个人提供 `individual_info`。同一请求中只提供其中一个。
+
+因此面向消费者的企业是 `B2C` + `company_info`，面向企业的企业是 `B2B` + `company_info`。
+
 | 范围 | 字段 |
 | --- | --- |
 | 公司顶层请求 | `merchant_type`、`country`、`merchant_id`、`industry`、`company_info` |
@@ -25,9 +32,73 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | 地址对象 | `country`、`state`、`city`、`postcode`、`line1` |
 | 人员信息 | `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address`、`attachments` |
 
+### 行业类别（`industry`）
+
+`industry` 是字符串数组，取值必须来自下表，按一级类目选择。取值区分大小写，请原样传入，不要翻译。
+
+<Tabs>
+  <Tab title="Tangibles Goods（实物商品）">
+
+| 取值 |
+| --- |
+| `Automotive` |
+| `Baby` |
+| `Beauty and personal care` |
+| `Computers` |
+| `Crafts` |
+| `Electronics` |
+| `Fashion Clothing and Accessories` |
+| `Health and Household` |
+| `Home and Kitchen` |
+| `Industrial and Scientific` |
+| `Luggage` |
+| `Movies Television` |
+| `Pet supplies` |
+| `Sports and Outdoors` |
+| `Tools Home Improvement` |
+| `Toys and Games` |
+| `Food` |
+
+  </Tab>
+  <Tab title="Intangible Goods & Service（虚拟商品与服务）">
+
+| 取值 |
+| --- |
+| `Accounting, Human Resources & Legal` |
+| `Advertising services, advertising publishers, advertising channels and exhibitions` |
+| `Art Design Architecture and Media` |
+| `Data Entry & Admin` |
+| `Digital Goods: Computer software, mobile applications producer developers or selling (Excludes Games)` |
+| `Digital goods: online games` |
+| `Engineering & Science` |
+| `File sharing / storage services (cyber-lockers)` |
+| `Freight, Shipping & Transportation` |
+| `Lodging, hotels, motels resort and accommodation services` |
+| `Media and Internet Video Service` |
+| `Online Education` |
+| `Passenger railways, limousines, taxicabs, motor freight carriers` |
+| `Photographic studios and portraits` |
+| `Telecommunications` |
+| `Translation & Languages` |
+| `Travel agency, ticketing services, and tour operators` |
+| `Websites, IT & Software` |
+
+  </Tab>
+</Tabs>
+
 ## 公司 KYC 要求
 
-对于公司 KYC，将 `merchant_type` 设置为 `B2B`，并提供 `company_info`。请勿在同一请求中提供 `individual_info`。
+对于公司 KYC，提供 `company_info`，并按经营模式将 `merchant_type` 设置为 `B2B` 或 `B2C`。请勿在同一请求中提供 `individual_info`。
+
+### B2B 与 B2C 企业的差异
+
+两者的国家和地区维度要求完全相同：公司附件、法人与 UBO 主证件规则按下文各表执行，不随 `merchant_type` 变化。差异只有两处：
+
+| 维度 | B2B 企业 | B2C 企业 |
+| --- | --- | --- |
+| `merchant_type` | `B2B` | `B2C` |
+| `online_store_url` | 必传，除非改为提供公司附件 `BUSINESS_DOCUMENT` | 不按 B2B 规则校验，可不传 |
+| 公司附件 `PLATFORM_SCREENSHOT` | 非必传 | 必传 |
 
 ### HKG 基准字段
 
@@ -69,7 +140,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 ## 个人 KYC 要求
 
-对于个人 KYC，将 `merchant_type` 设置为 `B2C`，并提供 `individual_info`。
+对于个人 KYC，提供 `individual_info`，并将 `merchant_type` 设置为 `B2C`。个人商户面向消费者经营，因此取值为 `B2C`；但 `B2C` 本身不代表个人，面向消费者的企业同样使用 `B2C`（见上文差异表）。
 
 ### HKG 基准字段
 

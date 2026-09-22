@@ -18,6 +18,13 @@ This guide lists those three differences for Hong Kong SAR (`HKG`), Taiwan, Chin
 
 The KYC request uses consistent JSON keys for all supported countries. Country-specific requirements change the accepted values and required attachments, not the field names.
 
+`merchant_type` and entity type are independent; do not derive one from the other:
+
+- `merchant_type` describes the business model: `B2B` sells to businesses, `B2C` sells to consumers.
+- Entity type is decided by the object you provide: a company provides `company_info`, an individual provides `individual_info`. Provide only one in a request.
+
+A company selling to consumers is therefore `B2C` with `company_info`, and a company selling to businesses is `B2B` with `company_info`.
+
 | Scope | Fields |
 | --- | --- |
 | Top-level company request | `merchant_type`, `country`, `merchant_id`, `industry`, `company_info` |
@@ -25,9 +32,73 @@ The KYC request uses consistent JSON keys for all supported countries. Country-s
 | Address objects | `country`, `state`, `city`, `postcode`, `line1` |
 | Person information | `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, `attachments` |
 
+### Industry categories (`industry`)
+
+`industry` is an array of strings. Use values from the tables below, chosen by level 1 category. Values are case-sensitive; pass them exactly as written.
+
+<Tabs>
+  <Tab title="Tangibles Goods">
+
+| Value |
+| --- |
+| `Automotive` |
+| `Baby` |
+| `Beauty and personal care` |
+| `Computers` |
+| `Crafts` |
+| `Electronics` |
+| `Fashion Clothing and Accessories` |
+| `Health and Household` |
+| `Home and Kitchen` |
+| `Industrial and Scientific` |
+| `Luggage` |
+| `Movies Television` |
+| `Pet supplies` |
+| `Sports and Outdoors` |
+| `Tools Home Improvement` |
+| `Toys and Games` |
+| `Food` |
+
+  </Tab>
+  <Tab title="Intangible Goods & Service">
+
+| Value |
+| --- |
+| `Accounting, Human Resources & Legal` |
+| `Advertising services, advertising publishers, advertising channels and exhibitions` |
+| `Art Design Architecture and Media` |
+| `Data Entry & Admin` |
+| `Digital Goods: Computer software, mobile applications producer developers or selling (Excludes Games)` |
+| `Digital goods: online games` |
+| `Engineering & Science` |
+| `File sharing / storage services (cyber-lockers)` |
+| `Freight, Shipping & Transportation` |
+| `Lodging, hotels, motels resort and accommodation services` |
+| `Media and Internet Video Service` |
+| `Online Education` |
+| `Passenger railways, limousines, taxicabs, motor freight carriers` |
+| `Photographic studios and portraits` |
+| `Telecommunications` |
+| `Translation & Languages` |
+| `Travel agency, ticketing services, and tour operators` |
+| `Websites, IT & Software` |
+
+  </Tab>
+</Tabs>
+
 ## Company KYC requirements
 
-For company KYC, set `merchant_type` to `B2B` and provide `company_info`. Do not provide `individual_info` in the same request.
+For company KYC, provide `company_info` and set `merchant_type` to `B2B` or `B2C` according to the business model. Do not provide `individual_info` in the same request.
+
+### B2B and B2C company differences
+
+Country requirements are identical for both: company attachments and the legal representative and UBO primary document rules follow the tables below and do not vary with `merchant_type`. Only two things differ:
+
+| Dimension | B2B company | B2C company |
+| --- | --- | --- |
+| `merchant_type` | `B2B` | `B2C` |
+| `online_store_url` | Required, unless you provide the `BUSINESS_DOCUMENT` company attachment instead | Not validated under the B2B rule; may be omitted |
+| `PLATFORM_SCREENSHOT` company attachment | Optional | Required |
 
 ### HKG baseline fields
 
@@ -69,7 +140,7 @@ For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_
 
 ## Individual KYC requirements
 
-For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
+For individual KYC, provide `individual_info` and set `merchant_type` to `B2C`. An individual merchant sells to consumers, so the value is `B2C` — but `B2C` does not mean individual: a company selling to consumers uses `B2C` too (see the table above).
 
 ### HKG baseline fields
 
