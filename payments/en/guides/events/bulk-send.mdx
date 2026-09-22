@@ -22,7 +22,7 @@ The batch-level event, identified by `bulk_send_id`.
 
 If your organization has an approval workflow enabled, a new batch enters approval before anything else happens. **The approval step produces no event, and no field distinguishes it.** A batch in `Pending` may be waiting for validation or waiting for a person, and the payload looks the same either way. A batch that stays in `Pending` for a long time is not necessarily stuck.
 
-### Event content
+### Batch event content
 
 Always present: `bulk_send_id`, `source_account`, `execution_mode`, `status`, `item_count`, `failed_item_count`, `not_executed_item_count`, `requested_amounts`, `completed_amounts`, `failed_amounts`, `description`, `commission_fees`, `created_timestamp`, `updated_timestamp`. `request_id` is present when you supplied one.
 
@@ -45,32 +45,18 @@ Always present: `bulk_send_id`, `source_account`, `execution_mode`, `status`, `i
 
 The batch event carries **no item list**. Per-item information only arrives through the item event, and the arrival order of the two is not guaranteed.
 
-### Failure codes
+### Batch failure codes
 
-`failed_reason.code` is what you branch on. A whole batch only fails before execution starts, so these all mean no funds moved.
+`failed_reason.code` is what you branch on. A whole batch only fails before execution starts, so all of these mean no funds moved. A batch can also fail because the approval workflow rejected or revoked it; that reason is reported on the items.
 
-**Fix the items, then create a new batch**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.bulk_send_no_valid_items` | No item passed validation. |
-| `payment.bulk_send_strict_validation_failed` | `execution_mode` is `Strict` and one or more items failed validation, so the batch stopped. |
-| `payment.bulk_send_all_items_failed` | Every item failed or was never executed. The per-item reason is in the item events. |
-
-**Fee Station could not be charged — fix that, then create a new batch**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.bulk_send_commission_fee_all_failed` | The commission fee could not be charged for any item. |
-| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. |
-
-**Nothing to fix — create a new batch**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. |
-
-A batch can also fail because the approval workflow rejected or revoked it. That reason is reported on the items.
+| What to do | `code` | What happened |
+| --- | --- | --- |
+| Fix the items, then create a new batch | `payment.bulk_send_no_valid_items` | No item passed validation. |
+| Fix the items, then create a new batch | `payment.bulk_send_strict_validation_failed` | `execution_mode` is `Strict` and one or more items failed validation, so the batch stopped. |
+| Fix the items, then create a new batch | `payment.bulk_send_all_items_failed` | Every item failed or was never executed. The per-item reason is in the item events. |
+| Fix Fee Station, then create a new batch | `payment.bulk_send_commission_fee_all_failed` | The commission fee could not be charged for any item. |
+| Fix Fee Station, then create a new batch | `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. |
+| Create a new batch as-is | `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. |
 
 ## `payment.bulk_send.item.updated`
 
@@ -86,7 +72,7 @@ The item-level event, identified by `bulk_send_item_id`.
 
 The difference between `Failed` and `NotExecuted` is whether money moved. Handle them separately.
 
-### Event content
+### Item event content
 
 Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount`, `receiving_address`, `tx_hash`, `source_account`, `description`, `created_timestamp`, `updated_timestamp`. `request_id` is present when the batch had one.
 
@@ -100,67 +86,30 @@ Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount
 | `description` | The note attached to the item. |
 | `failed_reason` | Present when `status` is `Failed` or `NotExecuted`. |
 
-### Failure codes
+### Item failure codes
 
-`failed_reason.code` is what you branch on. These are the codes an item can carry, grouped by the response each needs.
+`failed_reason.code` is what you branch on. These are the codes an item can carry.
 
-**Fix the item, then send it again in a new batch**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.bulk_send_invalid_address` | The receiving address is not valid. The `message` includes the address. |
-| `payment.receiving_address_matches_source_address` | The receiving address is the same as the source address. |
-
-**Do not send to this address again**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.address_kya_failed` | The receiving address did not pass KYA screening. The `message` includes the address. |
-
-**Nothing is wrong with this item — a sibling stopped it**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.strict_mode_other_items_validation_failed` | Another item failed validation under `Strict`. Fix that item. |
-| `payment.strict_mode_other_sweep_tasks_failed` | Another sweep failed under `Strict`. |
-| `payment.strict_mode_other_items_commission_fee_failed` | The fee failed for another item under `Strict`. Check Fee Station. |
-
-**Fee Station could not be charged — fix that, then send it again**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.bulk_send_commission_fee_charge_failed` | The Fee Station balance is insufficient. Add funds. |
-| `payment.bulk_send_commission_fee_station_not_configured` | Fee Station is not configured. Configure it. |
-| `payment.bulk_send_commission_fee_charge_failed_unknown` | The charge failed for another reason. Check both the configuration and the balance. |
-
-**The batch was not approved**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.app_workflow_approval_rejected` | The approval workflow rejected the batch. Ask the approver why. |
-| `payment.app_workflow_approval_revoked` | The approval workflow was revoked. |
-
-**Someone on your side rejected the transfer — clear that, then send it again**
-
-| `code` | What happened |
-| --- | --- |
-| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. Adjust the policy in Cobo Portal. |
-| `transaction.rejected_by_approval` | An approver in your organization rejected the transfer. Contact them. |
-| `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). Review the case there. |
-
-**Nothing to fix — send it again**
-
-| `code` | What happened |
-| --- | --- |
-| `payment.sweep_task_failed` | The sweep transaction that prepares the funds failed. |
-
-**Do not retry — raise it with Cobo**
-
-| `code` | What happened |
-| --- | --- |
-| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
-| `payment.batch_payouts_execution_failed` | The transfer failed and the cause could not be classified. |
-| `transaction.failed` | The reason could not be classified. Quote `bulk_send_item_id` when you raise the case. |
+| What to do | `code` | What happened |
+| --- | --- | --- |
+| Fix the item, then send it again in a new batch | `payment.bulk_send_invalid_address` | The receiving address is not valid. The `message` includes the address. |
+| Fix the item, then send it again in a new batch | `payment.receiving_address_matches_source_address` | The receiving address is the same as the source address. |
+| Do not send to this address again | `payment.address_kya_failed` | The receiving address did not pass KYA screening. The `message` includes the address. |
+| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_items_validation_failed` | Another item failed validation under `Strict`. |
+| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_sweep_tasks_failed` | Another sweep failed under `Strict`. |
+| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_items_commission_fee_failed` | The fee failed for another item under `Strict`. Check Fee Station. |
+| Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_charge_failed` | The Fee Station balance is insufficient. Add funds. |
+| Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_station_not_configured` | Fee Station is not configured. Configure it. |
+| Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_charge_failed_unknown` | The charge failed for another reason. Check both the configuration and the balance. |
+| Get the batch approved, then send it again | `payment.app_workflow_approval_rejected` | The approval workflow rejected the batch. Ask the approver why. |
+| Get the batch approved, then send it again | `payment.app_workflow_approval_revoked` | The approval workflow was revoked. |
+| Clear it on your side, then send it again | `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. Adjust the policy in Cobo Portal. |
+| Clear it on your side, then send it again | `transaction.rejected_by_approval` | An approver in your organization rejected the transfer. Contact them. |
+| Clear it on your side, then send it again | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). |
+| Send it again as-is | `payment.sweep_task_failed` | The sweep transaction that prepares the funds failed. |
+| Do not retry — raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
+| Do not retry — raise it with Cobo | `payment.batch_payouts_execution_failed` | The transfer failed and the cause could not be classified. |
+| Do not retry — raise it with Cobo, quoting `bulk_send_item_id` | `transaction.failed` | The reason could not be classified. |
 
 ## Sample events
 

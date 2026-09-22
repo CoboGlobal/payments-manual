@@ -69,27 +69,13 @@ Deposits below the dust threshold are excluded from the array entirely. The defa
 
 ### Failure codes
 
-`failed_reason.code` is what you branch on. These are the codes an entry in `transactions` can carry, grouped by the response each needs.
+`failed_reason.code` is what you branch on. An entry in `transactions` can carry these three. The ID to quote when you raise a case is `order_id`, not the entry's `transaction_id`.
 
-**Your own compliance team made the decision**
-
-| `code` | What happened |
-| --- | --- |
-| `transaction.rejected_by_screening_app` | Your compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). Review the case there to see why. |
-
-**Cobo made the decision**
-
-| `code` | What happened |
-| --- | --- |
-| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. Raise it with Cobo to find out what is required. |
-
-**The reason could not be classified**
-
-| `code` | What happened |
-| --- | --- |
-| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. Raise a case and quote the ID below. |
-
-The ID to quote is `order_id`, not the entry's `transaction_id`.
+| What to do | `code` | What happened |
+| --- | --- | --- |
+| Review the case in the Screening App | `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). |
+| Raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. |
+| Raise a case, quoting the ID below | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. |
 
 ## Unexpected deposits
 

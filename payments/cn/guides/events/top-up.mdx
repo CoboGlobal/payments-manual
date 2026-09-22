@@ -57,27 +57,13 @@ lang: "zh-hans"
 
 ### 失败 code
 
-`failed_reason.code` 是您分支的依据。下面是入金可能携带的 code，按需要采取的处理方式分组。
+`failed_reason.code` 是您分支的依据。入金只可能携带下面三个。提交问题时要提供的 ID 是 `transaction_id`。
 
-**由您自己的合规团队判定**
-
-| `code` | 发生了什么 |
-| --- | --- |
-| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。到该应用查看原因。 |
-
-**由 Cobo 判定**
-
-| `code` | 发生了什么 |
-| --- | --- |
-| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。请与 Cobo 确认需要补充什么。 |
-
-**原因无法归类**
-
-| `code` | 发生了什么 |
-| --- | --- |
-| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。请提交问题并提供下面这个 ID。 |
-
-要提供的 ID 是 `transaction_id`。
+| 怎么处理 | `code` | 发生了什么 |
+| --- | --- | --- |
+| 到 Screening App 查看原因 | `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。 |
+| 与 Cobo 确认 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 |
+| 提交问题并提供下面这个 ID | `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 |
 
 ## `payment.address.updated`
 
