@@ -23,6 +23,37 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 每个业务页面会列出属于该链路的高级事件，[高级事件](/payments/cn/guides/events/advanced)则逐个说明，并收录共用的交易字段。
 
+## 所有支付事件一览
+
+不论您的接入是否需要，这里列出全部支付事件。如果您已经订阅了某个事件、想知道它写在哪一页，从这张表找。
+
+| 事件 | 通知什么 | 新接入是否必须 | 说明在哪 |
+| --- | --- | --- | --- |
+| `payment.topup.updated` | 一笔充值的全过程：检测到、筛查中、可以入账、或者失败。 | **是** | [充值](/payments/cn/guides/events/top-up) |
+| `payment.order.updated` | 一笔订单的收款结果，含少付、过期，以及订单结束后又收到的钱。 | **是** | [订单](/payments/cn/guides/events/orders) |
+| `payment.refund.updated` | 一笔退款单的结果。 | **是** | [退款](/payments/cn/guides/events/refunds) |
+| `payment.payout.updated` | 一笔资金转出的结果，含部分完成和被银行拒绝。 | **是** | [资金转出](/payments/cn/guides/events/payouts) |
+| `payment.bulk_send.updated` | 一个批次的结果，以及金额和数量汇总。 | **是** | [批量下发](/payments/cn/guides/events/bulk-send) |
+| `payment.bulk_send.item.updated` | 单个条目的结果。 | **是** | [批量下发](/payments/cn/guides/events/bulk-send) |
+| `payment.address.updated` | 某个付款方的入金地址被替换了。 | 否 | [充值](/payments/cn/guides/events/top-up) |
+| `payment.transaction.external.created` | 收到一笔不属于任何入金计划或订单的入金。 | 否 | [充值](/payments/cn/guides/events/top-up) |
+| `payment.transaction.external.completed` | 那笔意外入金已计入您的开发者余额。 | 否 | [充值](/payments/cn/guides/events/top-up) |
+| `payment.bank_withdrawal.status.updated` | 提现法币到银行账户的状态变更。 | 否 | [资金转出](/payments/cn/guides/events/payouts) |
+| `payment.account.balance.updated` | 某个账户在某个 token 上的可用余额发生了变动。 | 否 | [余额变动](/payments/cn/guides/events/balances) |
+| `payment.transaction.settlement_network.created` | 创建了一笔结算网络交易。 | 否 | [结算网络](/payments/cn/guides/events/settlement-network) |
+| `payment.transaction.settlement_network.completed` | 该交易完成，结算资金已到账。 | 否 | [结算网络](/payments/cn/guides/events/settlement-network) |
+| `payment.transaction.created` | 入金地址收到一笔新的入金。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.transaction.completed` | 一笔入金通过筛查并已入账。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.transaction.failed` | 一笔入金未通过筛查。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.transaction.late` | 订单结束后又收到一笔通过筛查的入金。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.order.status.updated` | 订单的交易明细。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.refund.status.updated` | 退款的交易明细。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.payout.status.updated` | 转出的交易明细。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.bulk_send.status.updated` | 批次的交易明细。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+| `payment.bulk_send.item.status.updated` | 条目的交易明细。 | 否 | [高级事件](/payments/cn/guides/events/advanced) |
+
+`WebhookEventType` 枚举里还有另外五个取值——`payment.status.updated`、`payment.settlement.status.updated`、`payment.subscription.status.updated`、`payment.charge.status.updated`、`payment.transaction.held`。本文不作说明，也不建议订阅。
+
 ## 事件结构
 
 所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。

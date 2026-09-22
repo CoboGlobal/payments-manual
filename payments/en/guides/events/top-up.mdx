@@ -7,12 +7,12 @@ These events cover Top-up Mode, where each payer has a deposit address and every
 
 ## Events on this page
 
-| Event | What it notifies you of |
-| --- | --- |
-| `payment.topup.updated` | One deposit's whole life: detected, screened, available to credit, or failed. |
-| `payment.address.updated` | A payer's deposit address was replaced. |
-| `payment.transaction.external.created` | A deposit arrived that belongs to no deposit plan, or is in an unsupported token. |
-| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. |
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| `payment.topup.updated` | One deposit's whole life: detected, screened, available to credit, or failed. | Always — this is the event for top-up deposits. |
+| `payment.address.updated` | A payer's deposit address was replaced. | When you show payers a fixed deposit address and must update it when Cobo rotates it. |
+| `payment.transaction.external.created` | A deposit arrived that belongs to no deposit plan, or is in an unsupported token. | When you must account for every transfer arriving at your addresses, not only expected ones. |
+| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. | Same as above — this one tells you it was credited. |
 
 ## `payment.topup.updated`
 

@@ -7,11 +7,11 @@ These events cover Order Mode, where each payment order has its own address, exp
 
 ## Events on this page
 
-| Event | What it notifies you of |
-| --- | --- |
-| `payment.order.updated` | An order's collection result: waiting for payment, a deposit needs your action, paid in full, underpaid, expired, or money arrived after it ended. |
-| `payment.transaction.external.created` | A deposit arrived that belongs to no order, or is in an unsupported token. |
-| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. |
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| `payment.order.updated` | An order's collection result: waiting for payment, a deposit needs your action, paid in full, underpaid, expired, or money arrived after it ended. | Always — this is the event for orders. |
+| `payment.transaction.external.created` | A deposit arrived that belongs to no order, or is in an unsupported token. | When you must account for every transfer arriving at your addresses, not only expected ones. |
+| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. | Same as above — this one tells you it was credited. |
 
 ## `payment.order.updated`
 
