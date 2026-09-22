@@ -25,32 +25,32 @@ Each business page lists the advanced events that belong to its flow, and [Advan
 
 ## All payment events
 
-Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, find it here.
+Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, follow its link.
 
-| Event | What it notifies you of | Needed for a new integration | Documented on |
-| --- | --- | --- | --- |
-| `payment.topup.updated` | One deposit's whole life: detected, screened, available to credit, or failed. | **Yes** | [Top-up](/payments/en/guides/events/top-up) |
-| `payment.order.updated` | An order's collection result, including underpayment, expiry, and money that arrives after it ends. | **Yes** | [Orders](/payments/en/guides/events/orders) |
-| `payment.refund.updated` | A refund order's result. | **Yes** | [Refunds](/payments/en/guides/events/refunds) |
-| `payment.payout.updated` | A payout's result, including partial completion and bank rejection. | **Yes** | [Payouts](/payments/en/guides/events/payouts) |
-| `payment.bulk_send.updated` | A batch's result and its amount and count summaries. | **Yes** | [Bulk send](/payments/en/guides/events/bulk-send) |
-| `payment.bulk_send.item.updated` | One item's result. | **Yes** | [Bulk send](/payments/en/guides/events/bulk-send) |
-| `payment.address.updated` | A payer's deposit address was replaced. | No | [Top-up](/payments/en/guides/events/top-up) |
-| `payment.transaction.external.created` | A deposit arrived that belongs to no deposit plan or order. | No | [Top-up](/payments/en/guides/events/top-up) |
-| `payment.transaction.external.completed` | That unexpected deposit was credited to your developer balance. | No | [Top-up](/payments/en/guides/events/top-up) |
-| `payment.bank_withdrawal.status.updated` | A fiat withdrawal to a bank account changed status. | No | [Payouts](/payments/en/guides/events/payouts) |
-| `payment.account.balance.updated` | One account's available balance moved for one token. | No | [Balance changes](/payments/en/guides/events/balances) |
-| `payment.transaction.settlement_network.created` | A Settlement Network transaction was created. | No | [Settlement Network](/payments/en/guides/events/settlement-network) |
-| `payment.transaction.settlement_network.completed` | It completed and the settled funds reached your balance. | No | [Settlement Network](/payments/en/guides/events/settlement-network) |
-| `payment.transaction.created` | A deposit address received a new deposit. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.transaction.completed` | A deposit cleared screening and was credited. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.transaction.failed` | A deposit did not clear screening. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.transaction.late` | A screened deposit arrived after its order ended. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.order.status.updated` | An order's transaction detail. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.refund.status.updated` | A refund's transaction detail. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.payout.status.updated` | A payout's transaction detail. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.bulk_send.status.updated` | A batch's transaction detail. | No | [Advanced events](/payments/en/guides/events/advanced) |
-| `payment.bulk_send.item.status.updated` | An item's transaction detail. | No | [Advanced events](/payments/en/guides/events/advanced) |
+| Event | Required for a new integration | What it notifies you of |
+| --- | --- | --- |
+| [`payment.topup.updated`](/payments/en/guides/events/top-up#paymenttopupupdated) | **Yes** | A single deposit, from the moment it is detected through screening to the moment it can be credited — or fails. `status` alone tells you whether the money is usable. |
+| [`payment.order.updated`](/payments/en/guides/events/orders#paymentorderupdated) | **Yes** | An order's collection result: paid in full, underpaid at expiry, expired with nothing credited, a deposit that needs your action, or money that arrives after the order already ended. |
+| [`payment.refund.updated`](/payments/en/guides/events/refunds#paymentrefundupdated) | **Yes** | A refund order: created and waiting, completed, or failed with nothing returned. A refund never completes partially. |
+| [`payment.payout.updated`](/payments/en/guides/events/payouts#paymentpayoutupdated) | **Yes** | A single payout: still in progress, completed, partially completed with an amount to send again, failed, or rejected by the receiving bank. |
+| [`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send#paymentbulk_sendupdated) | **Yes** | A batch's outcome plus its amount and count summaries, including how many items failed after funds moved versus how many were never submitted. |
+| [`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send#paymentbulk_senditemupdated) | **Yes** | One item's outcome, so you can close it against your own recipient record. Distinguishes a transfer that failed after submission from one that was never submitted. |
+| [`payment.address.updated`](/payments/en/guides/events/top-up#paymentaddressupdated) | No | A payer's deposit address was replaced, with both the old and the new address. |
+| [`payment.transaction.external.created`](/payments/en/guides/events/top-up#paymenttransactionexternal) | No | A deposit arrived that belongs to no deposit plan and no order, or is in a token Cobo does not support. It is credited to your developer balance, not to a payer or an order. |
+| [`payment.transaction.external.completed`](/payments/en/guides/events/top-up#paymenttransactionexternal) | No | That unexpected deposit cleared screening and was credited to your developer balance. |
+| [`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#paymentbank_withdrawalstatusupdated) | No | A fiat withdrawal from one of your virtual accounts to a bank account changed status. Carries a `timeline` instead of an `updated_timestamp`. |
+| [`payment.account.balance.updated`](/payments/en/guides/events/balances#paymentaccountbalanceupdated) | No | One account's available balance moved for one token, with the balance before and after and what caused it. This is how you see what each account actually received. |
+| [`payment.transaction.settlement_network.created`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | No | A Settlement Network transaction was created. |
+| [`payment.transaction.settlement_network.completed`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | No | The Settlement Network transaction completed. The amount that landed comes from the matching balance event, not from this one. |
+| [`payment.transaction.created`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit address received a new deposit, with the on-chain detail behind it. Top-up Mode. |
+| [`payment.transaction.completed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit cleared screening and was credited, with confirmation counts, fees and block information. |
+| [`payment.transaction.failed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit did not clear screening, with the transaction-level detail. |
+| [`payment.transaction.late`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A screened deposit arrived after its order had already reached a final state. Reports the same fact as the order event's `LatePaymentReceived`. |
+| [`payment.order.status.updated`](/payments/en/guides/events/advanced#paymentorderstatusupdated) | No | An order's transaction detail, including the `transactions` array and the fee fields. |
+| [`payment.refund.status.updated`](/payments/en/guides/events/advanced#paymentrefundstatusupdated) | No | A refund's transaction detail, including the `transactions` array and the fee fields. |
+| [`payment.payout.status.updated`](/payments/en/guides/events/advanced#paymentpayoutstatusupdated) | No | A payout's transaction detail, including the `transactions` array and `payout_items`. |
+| [`payment.bulk_send.status.updated`](/payments/en/guides/events/advanced#paymentbulk_sendstatusupdated) | No | A batch's transaction detail. |
+| [`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#paymentbulk_senditemstatusupdated) | No | An item's transaction detail, including `validation_status` and the item's `token_id` and `amount` as separate fields. |
 
 Five more values exist in the `WebhookEventType` enumeration — `payment.status.updated`, `payment.settlement.status.updated`, `payment.subscription.status.updated`, `payment.charge.status.updated`, and `payment.transaction.held`. They are not described here and you should not subscribe to them.
 

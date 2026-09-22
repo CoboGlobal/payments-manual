@@ -9,9 +9,9 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 什么时候需要订阅 |
 | --- | --- | --- |
-| `payment.order.updated` | 一笔订单的收款结果：等待付款、某笔入金需要您处理、已付清、少付、过期，或订单结束后又收到钱。 | 必选——这是订单业务的事件。 |
-| `payment.transaction.external.created` | 收到一笔不属于任何订单、或使用了不支持币种的入金。 | 当您需要核对流入自己地址的每一笔资金，而不只是预期内的入金时。 |
-| `payment.transaction.external.completed` | 那笔意外入金通过了筛查，已计入您的开发者余额。 | 同上——这一条告诉您它已经入账。 |
+| [`payment.order.updated`](#paymentorderupdated) | 一笔订单的收款结果：等待付款、某笔入金需要您处理、已付清、少付、过期，或订单结束后又收到钱。 | 必选——这是订单业务的事件。 |
+| [`payment.transaction.external.created`](#paymenttransactionexternal) | 收到一笔不属于任何订单、或使用了不支持币种的入金。 | 当您需要核对流入自己地址的每一笔资金，而不只是预期内的入金时。 |
+| [`payment.transaction.external.completed`](#paymenttransactionexternal) | 那笔意外入金通过了筛查，已计入您的开发者余额。 | 同上——这一条告诉您它已经入账。 |
 
 ## `payment.order.updated`
 

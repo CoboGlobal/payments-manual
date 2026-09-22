@@ -9,8 +9,8 @@ Bulk send has two levels of events: one for the batch and one for each item in i
 
 | Event | What it notifies you of | When you need it |
 | --- | --- | --- |
-| `payment.bulk_send.updated` | A batch's result and its amount and count summaries. | Always — this is the event for a batch. |
-| `payment.bulk_send.item.updated` | One item's result, so you can reconcile it against your own recipient record. | When you reconcile item by item rather than only on the batch result. |
+| [`payment.bulk_send.updated`](#paymentbulk_sendupdated) | A batch's result and its amount and count summaries. | Always — this is the event for a batch. |
+| [`payment.bulk_send.item.updated`](#paymentbulk_senditemupdated) | One item's result, so you can reconcile it against your own recipient record. | When you reconcile item by item rather than only on the batch result. |
 
 ## `payment.bulk_send.updated`
 
