@@ -5,7 +5,7 @@ lang: "zh-hans"
 
 高级事件汇报的是底层链上交易的细节，只在您需要关心这些细节时才需要订阅，例如确认数、手续费明细、区块信息，或替换（丢弃、重发、加速）情况——比如向付款方展示转账进度，或核对 gas 支出。
 
-支付业务自己的事件已经告诉您能否入账、能否发货、能否关闭转出；高级事件位于它下面一层，暴露背后的细节。
+支付业务自己的事件已经告诉您能否入账、能否发货、能否关闭转出；高级事件位于它下面一层，暴露背后的细节。**判断请用该笔支付业务自己的事件，高级事件只用于对账。**
 
 请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
@@ -17,174 +17,205 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 |
 | --- | --- |
-| `payment.transaction.created` | 入金地址收到一笔新的入金。仅充值模式。 |
-| `payment.transaction.completed` | 一笔入金通过筛查并已入账。 |
-| `payment.transaction.failed` | 一笔入金未通过筛查。 |
-| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 |
-| `payment.order.status.updated` | 订单的交易信息，与 `payment.order.updated` 同时投递。 |
-| `payment.refund.status.updated` | 退款的交易信息，与 `payment.refund.updated` 同时投递。 |
-| `payment.payout.status.updated` | 转出的交易信息，与 `payment.payout.updated` 同时投递。 |
-| `payment.bulk_send.status.updated` | 批次的交易信息，与 `payment.bulk_send.updated` 同时投递。 |
-| `payment.bulk_send.item.status.updated` | 条目的交易信息，与 `payment.bulk_send.item.updated` 同时投递。 |
+| [`payment.transaction.created`](#payment-transaction-created) | 入金地址收到一笔新的入金。仅充值模式。 |
+| [`payment.transaction.completed`](#payment-transaction-completed) | 一笔入金通过筛查并已入账。 |
+| [`payment.transaction.failed`](#payment-transaction-failed) | 一笔入金未通过筛查。 |
+| [`payment.transaction.late`](#payment-transaction-late) | 订单进入终态后，又收到一笔通过筛查的入金。 |
+| [`payment.order.status.updated`](#payment-order-status-updated) | 订单的交易信息，与 `payment.order.updated` 同时投递。 |
+| [`payment.refund.status.updated`](#payment-refund-status-updated) | 退款的交易信息，与 `payment.refund.updated` 同时投递。 |
+| [`payment.payout.status.updated`](#payment-payout-status-updated) | 转出的交易信息，与 `payment.payout.updated` 同时投递。 |
+| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | 批次的交易信息，与 `payment.bulk_send.updated` 同时投递。 |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | 条目的交易信息，与 `payment.bulk_send.item.updated` 同时投递。 |
 
-## 入金交易
+## `payment.transaction.created`
 
-| 事件 | 触发时机 | 适用范围 |
-| --- | --- | --- |
-| `payment.transaction.created` | 入金地址收到一笔新的入金。 | 充值模式 |
-| `payment.transaction.completed` | 一笔入金通过合规筛查并已入账。 | 两种收款模式 |
-| `payment.transaction.failed` | 一笔入金未通过合规筛查。 | 两种收款模式 |
-| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 | 订单模式 |
+**触发条件：** 入金地址收到一笔新的入金。仅充值模式。同一个事实也会通过 [`payment.topup.updated`](/payments/cn/guides/events/top-up) 的 `status` 为 `Detected` 送达。
 
-它们在共用[交易字段](#交易字段)之外，各自附加以下字段：
+**事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
-| 事件 | 附加字段 |
+| 字段 | 说明 |
 | --- | --- |
-| `payment.transaction.created` | `acquiring_type`（必填，值为 `TopUp`）、`payer_id`（选填）、`custom_payer_id`（选填） |
-| `payment.transaction.completed` | 订单模式：`acquiring_type`（必填，值为 `Order`）、`order_id`（选填）、`psp_order_code`（选填）。充值模式：`acquiring_type`（必填，值为 `TopUp`）、`payer_id`（选填）、`custom_payer_id`（选填） |
-| `payment.transaction.failed` | `acquiring_type`（必填，`Order` 或 `TopUp`）、`order_id`（选填）、`psp_order_code`（选填）、`payer_id`（选填）、`custom_payer_id`（选填） |
-| `payment.transaction.late` | `acquiring_type`（必填，值为 `Order`）、`order_id`（选填）、`psp_order_code`（选填） |
+| `acquiring_type`（必填） | 收款模式，此事件恒为 `TopUp`。 |
+| `payer_id`（选填） | Cobo 分配的付款方 ID。 |
+| `custom_payer_id`（选填） | 您自己的付款方 ID。 |
 
-对于分多笔付清的订单，`payment.transaction.completed` 在每笔资金入账时各触发一次，而订单事件汇报的是累计结果。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+## `payment.transaction.completed`
 
-`payment.transaction.late` 不会重开订单，也不会改变订单的终态。同一个事实也会通过订单事件的 `notice_type` 为 `LatePaymentReceived` 送达。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+**触发条件：** 一笔入金通过合规筛查并已入账。两种收款模式都有。对于分多笔付清的订单，每笔资金入账时各触发一次；订单事件汇报的是累计结果，参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
 
-## 各支付业务的高级事件
+**事件内容：** 共用[交易字段](#交易字段)，外加以下字段。哪几个字段有值取决于收款模式。
 
-这些事件返回的是各笔支付业务底层交易的细节——`transactions` 数组、费用字段、校验状态——而不是这笔业务接下来需要什么。每一个都与同一笔业务自己的事件同时投递，对应关系见下表。
-
-| 高级事件 | 同一笔业务自己的事件 |
+| 字段 | 说明 |
 | --- | --- |
-| `payment.order.status.updated` | [`payment.order.updated`](/payments/cn/guides/events/orders) |
-| `payment.refund.status.updated` | [`payment.refund.updated`](/payments/cn/guides/events/refunds) |
-| `payment.payout.status.updated` | [`payment.payout.updated`](/payments/cn/guides/events/payouts) |
-| `payment.bulk_send.status.updated` | [`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send) |
-| `payment.bulk_send.item.status.updated` | [`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send) |
+| `acquiring_type`（必填） | 收款模式，`Order` 或 `TopUp`。 |
+| `order_id`（选填） | 订单 ID。仅订单模式。 |
+| `psp_order_code`（选填） | 您为该订单指定的唯一参考编码。仅订单模式。 |
+| `payer_id`（选填） | Cobo 分配的付款方 ID。仅充值模式。 |
+| `custom_payer_id`（选填） | 您自己的付款方 ID。仅充值模式。 |
 
-**判断请用该笔支付业务自己的事件，高级事件只用于对账。** 不要用两边各触发一次入账、发货或关闭转出。
+## `payment.transaction.failed`
 
-### `payment.order.status.updated`
+**触发条件：** 一笔入金未通过合规筛查。两种收款模式都有。
 
-**触发条件：** 支付订单状态发生变更时触发（仅限订单模式）。会触发的节点包括：
-- `Pending`：此状态通知仅限于通过支付链接成功创建订单时触发。
-- `Completed`：在订单有效期内收到全额付款。
-- `Expired`：订单有效期内没有已完成的充币交易，或者订单已被取消。
-- `Underpaid`：订单有效期内存在已完成的充币交易，但实收金额少于应付金额。
+**事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
+
+| 字段 | 说明 |
+| --- | --- |
+| `acquiring_type`（必填） | 收款模式，`Order` 或 `TopUp`。 |
+| `order_id`（选填） | 订单 ID。仅订单模式。 |
+| `psp_order_code`（选填） | 您为该订单指定的唯一参考编码。仅订单模式。 |
+| `payer_id`（选填） | Cobo 分配的付款方 ID。仅充值模式。 |
+| `custom_payer_id`（选填） | 您自己的付款方 ID。仅充值模式。 |
+
+失败的具体原因请读该笔业务自己的事件里的 `failed_reason`；交易字段里的 `failed_reason` 是自由文本，且仅在审批失败和签名失败时有值。
+
+## `payment.transaction.late`
+
+**触发条件：** 订单进入终态后，又收到一笔通过筛查的入金。仅订单模式。它不会重开订单，也不会改变订单的终态。同一个事实也会通过 [`payment.order.updated`](/payments/cn/guides/events/orders) 的 `notice_type` 为 `LatePaymentReceived` 送达，参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
+
+**事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
+
+| 字段 | 说明 |
+| --- | --- |
+| `acquiring_type`（必填） | 收款模式，此事件恒为 `Order`。 |
+| `order_id`（选填） | 这笔晚付所属的订单 ID。 |
+| `psp_order_code`（选填） | 您为该订单指定的唯一参考编码。 |
+
+## `payment.order.status.updated`
+
+与 [`payment.order.updated`](/payments/cn/guides/events/orders) 同时投递，返回的是该订单底层交易的细节，包括 `transactions` 数组和费用字段。
+
+**触发条件：** 支付订单状态变更，仅订单模式。会触发的节点包括 `Pending`（通过支付链接成功创建订单）、`Completed`（有效期内收到全额付款）、`Underpaid`（有效期内有已完成的入金但不足额）、`Expired`（有效期内没有已完成的入金，或订单已被取消）。
 
 **事件内容：**
-- `order_id`（必填）— 订单 ID。
-- `merchant_id`（选填）— 商户 ID。
-- `merchant_order_code`（选填）— 商户分配的唯一参考编码。
-- `psp_order_code`（必填）— 开发者用于标识该订单的唯一参考编码。
-- `pricing_currency`（选填）— 订单的计价货币。
-- `pricing_amount`（选填）— 订单的基础金额（不含开发者手续费）。
-- `fee_amount`（必填）— 该订单的开发者手续费。
-- `payable_currency`（选填）— 用于付款的加密货币 ID。
-- `chain_id`（必填）— 区块链网络 ID。
-- `payable_amount`（必填）— 该订单需支付的加密货币金额。
-- `exchange_rate`（必填）— `payable_currency` 与 `pricing_currency` 之间的汇率。
-- `amount_tolerance`（选填）— 允许的金额偏差。
-- `receive_address`（必填）— 收款钱包地址。
-- `status`（必填）— 当前订单状态，可能的值：`Pending`、`Processing`、`Completed`、`Expired`、`Underpaid`。
-- `received_token_amount`（必填）— 该订单已收到的加密货币总金额。
-- `expired_at`（选填）— 过期时间，Unix 时间戳（秒）。
-- `created_timestamp`（选填）— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（选填）— 最后更新时间，Unix 时间戳（秒）。
-- `transactions`（选填）— 与该订单关联的支付交易数组。
+
+| 字段 | 说明 |
+| --- | --- |
+| `order_id`（必填） | 订单 ID。 |
+| `merchant_id`（选填） | 商户 ID。 |
+| `merchant_order_code`（选填） | 商户分配的唯一参考编码。 |
+| `psp_order_code`（必填） | 您用于标识该订单的唯一参考编码。 |
+| `pricing_currency`（选填） | 订单的计价货币。 |
+| `pricing_amount`（选填） | 订单的基础金额，不含开发者手续费。 |
+| `fee_amount`（必填） | 该订单的开发者手续费。 |
+| `payable_currency`（选填） | 用于付款的加密货币 ID。 |
+| `chain_id`（必填） | 区块链网络 ID。 |
+| `payable_amount`（必填） | 该订单需支付的加密货币金额。 |
+| `exchange_rate`（必填） | `payable_currency` 与 `pricing_currency` 之间的汇率。 |
+| `amount_tolerance`（选填） | 允许的金额偏差。 |
+| `receive_address`（必填） | 收款钱包地址。 |
+| `status`（必填） | 当前订单状态，取值为 `Pending`、`Processing`、`Completed`、`Expired`、`Underpaid` 之一。 |
+| `received_token_amount`（必填） | 该订单已收到的加密货币总金额。 |
+| `expired_at`（选填） | 过期时间，Unix 时间戳（秒）。 |
+| `created_timestamp`（选填） | 创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp`（选填） | 最后更新时间，Unix 时间戳（秒）。 |
+| `transactions`（选填） | 与该订单关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
 完整字段说明请参考 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。
 
-### `payment.refund.status.updated`
+## `payment.refund.status.updated`
 
-返回的是该退款底层交易的细节，包括 `transactions` 数组和费用字段。
+与 [`payment.refund.updated`](/payments/cn/guides/events/refunds) 同时投递，返回的是该退款底层交易的细节，包括 `transactions` 数组和费用字段。
 
 **触发条件：** 退款单状态变更。关键节点为 `Pending`（通过退款链接成功创建退款单）、`Completed`（全部退款交易完成）、`Failed`（全部退款交易失败）。
 
 **事件内容：**
 
-- `refund_id`（必填）—— 退款单 ID。
-- `request_id`（选填）—— 您创建退款时提供的请求 ID。
-- `order_id`（选填）—— 本次退款对应的收款订单 ID。
-- `merchant_id`（选填）—— 商户 ID。
-- `token_id`（必填）—— 退款使用的加密货币 ID。
-- `chain_id`（必填）—— 区块链网络 ID。
-- `amount`（必填）—— 本次退款需退还的加密货币金额。
-- `to_address`（必填）—— 收款钱包地址。
-- `status`（必填）—— 当前退款状态，取值为 `AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation` 之一。
-- `refund_type`（选填）—— 资金来源，取值为 `Merchant` 或 `Psp`。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-- `initiator`（选填）—— 退款请求发起人。
-- `transactions`（选填）—— 与该退款关联的支付交易数组。
-- `charge_merchant_fee`（选填）—— 是否向商户收取开发者手续费。
-- `merchant_fee_amount`（选填）—— 向商户收取的开发者手续费金额。
-- `merchant_fee_token_id`（选填）—— 开发者手续费使用的加密货币 ID。
-- `commission_fee`（选填）—— 佣金明细。
+| 字段 | 说明 |
+| --- | --- |
+| `refund_id`（必填） | 退款单 ID。 |
+| `request_id`（选填） | 您创建退款时提供的请求 ID。 |
+| `order_id`（选填） | 本次退款对应的收款订单 ID。 |
+| `merchant_id`（选填） | 商户 ID。 |
+| `token_id`（必填） | 退款使用的加密货币 ID。 |
+| `chain_id`（必填） | 区块链网络 ID。 |
+| `amount`（必填） | 本次退款需退还的加密货币金额。 |
+| `to_address`（必填） | 收款钱包地址。 |
+| `status`（必填） | 当前退款状态，取值为 `AddressPending`、`AddressSubmitted`、`Pending`、`Processing`、`Completed`、`Failed`、`PendingConfirmation` 之一。 |
+| `refund_type`（选填） | 资金来源，取值为 `Merchant` 或 `Psp`。 |
+| `initiator`（选填） | 退款请求发起人。 |
+| `charge_merchant_fee`（选填） | 是否向商户收取开发者手续费。 |
+| `merchant_fee_amount`（选填） | 向商户收取的开发者手续费金额。 |
+| `merchant_fee_token_id`（选填） | 开发者手续费使用的加密货币 ID。 |
+| `commission_fee`（选填） | 佣金明细。 |
+| `created_timestamp`（必填） | 创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp`（必填） | 最近更新时间，Unix 时间戳（秒）。 |
+| `transactions`（选填） | 与该退款关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
 完整说明请参见 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。
 
-### `payment.payout.status.updated`
+## `payment.payout.status.updated`
 
-返回的是该次转出底层交易的细节，包括 `transactions` 数组和 `payout_items`。
+与 [`payment.payout.updated`](/payments/cn/guides/events/payouts) 同时投递，返回的是该次转出底层交易的细节，包括 `transactions` 数组和 `payout_items`。
 
 **触发条件：** 资金转出或转账请求状态变更。`Completed` 表示全部转账完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败，`RejectedByBank` 表示收款银行拒绝了 Off-Ramp 转出。
 
 **事件内容：**
 
-- `payout_id`（必填）—— 资金转出 ID。
-- `request_id`（必填）—— 您创建本次转出时提供的请求 ID。
-- `payout_channel`（必填）—— 转出渠道，取值为 `Crypto` 或 `OffRamp`。
-- `source_account`（选填）—— 转出来源账户。
-- `payout_items`（选填）—— 转出项数组。
-- `recipient_info`（选填）—— 收款方信息。
-- `initiator`（选填）—— 转出请求发起人。
-- `actual_payout_amount`（选填）—— 收款方实际收到的金额。
-- `commission_fees`（选填）—— 本次转出的佣金数组。
-- `remark`（选填）—— 转出备注。
-- `status`（必填）—— 当前转出状态，取值为 `Pending`、`Preparing`、`Transferring`、`Completed`、`PartiallyCompleted`、`Failed`、`RejectedByBank` 之一。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
-- `transactions`（选填）—— 与该次转出关联的支付交易数组。
+| 字段 | 说明 |
+| --- | --- |
+| `payout_id`（必填） | 资金转出 ID。 |
+| `request_id`（必填） | 您创建本次转出时提供的请求 ID。 |
+| `payout_channel`（必填） | 转出渠道，取值为 `Crypto` 或 `OffRamp`。 |
+| `source_account`（选填） | 转出来源账户。 |
+| `payout_items`（选填） | 转出项数组。 |
+| `recipient_info`（选填） | 收款方信息。 |
+| `initiator`（选填） | 转出请求发起人。 |
+| `actual_payout_amount`（选填） | 收款方实际收到的金额。 |
+| `commission_fees`（选填） | 本次转出的佣金数组。 |
+| `remark`（选填） | 转出备注。 |
+| `status`（必填） | 当前转出状态，取值为 `Pending`、`Preparing`、`Transferring`、`Completed`、`PartiallyCompleted`、`Failed`、`RejectedByBank` 之一。 |
+| `created_timestamp`（必填） | 创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp`（必填） | 最近更新时间，Unix 时间戳（秒）。 |
+| `transactions`（选填） | 与该次转出关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
 完整说明请参见 [Get payout information](/payments/en/api-references/payment/get-payout-information)。
 
-### `payment.bulk_send.status.updated`
+## `payment.bulk_send.status.updated`
+
+与 [`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send) 同时投递，返回的是该批次底层交易的细节。
 
 **触发条件：** 批量下发请求状态变更。`Completed` 表示全部下发完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败。
 
 **事件内容：**
 
-- `bulk_send_id`（必填）—— 批量下发 ID。
-- `request_id`（选填）—— 您创建批量下发时提供的请求 ID。
-- `source_account`（必填）—— 批量下发的来源账户。
-- `description`（选填）—— 整个批次的描述。
-- `execution_mode`（必填）—— 执行模式。
-- `status`（必填）—— 当前批量下发状态。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
+| 字段 | 说明 |
+| --- | --- |
+| `bulk_send_id`（必填） | 批量下发 ID。 |
+| `request_id`（选填） | 您创建批量下发时提供的请求 ID。 |
+| `source_account`（必填） | 批量下发的来源账户。 |
+| `description`（选填） | 整个批次的描述。 |
+| `execution_mode`（必填） | 执行模式。 |
+| `status`（必填） | 当前批量下发状态。 |
+| `created_timestamp`（必填） | 创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp`（必填） | 最近更新时间，Unix 时间戳（秒）。 |
 
 完整说明请参见 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
 
-### `payment.bulk_send.item.status.updated`
+## `payment.bulk_send.item.status.updated`
+
+与 [`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send) 同时投递，返回的是该条目底层交易的细节，包括 `validation_status` 和 `tx_hash`。
 
 **触发条件：** 单个批量下发条目的状态变更。可用于跟踪条目级执行结果，尤其是批次部分完成、或个别条目校验失败或转账失败时。
 
 **事件内容：**
 
-- `bulk_send_item_id`（必填）—— 批量下发条目 ID。
-- `bulk_send_id`（必填）—— 该条目所属的批量下发 ID。
-- `request_id`（选填）—— 批次的请求 ID。
-- `source_account`（必填）—— 批次的来源账户 ID。
-- `token_id`（必填）—— 下发给收款方的加密货币 ID。
-- `receiving_address`（必填）—— 收款方的加密货币地址。
-- `amount`（必填）—— 下发给收款方的加密货币金额。
-- `description`（选填）—— 该条目的备注。
-- `tx_hash`（选填）—— 该条目的交易哈希。
-- `status`（必填）—— 条目执行状态，取值为 `Pending`、`Processing`、`Completed`、`Failed`、`NotExecuted` 之一。
-- `validation_status`（必填）—— 条目校验状态，取值为 `Pending`、`Validated`、`ValidationFailed`、`NotExecuted` 之一。
-- `failed_reason`（选填）—— 该条目失败的原因。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-- `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
+| 字段 | 说明 |
+| --- | --- |
+| `bulk_send_item_id`（必填） | 批量下发条目 ID。 |
+| `bulk_send_id`（必填） | 该条目所属的批量下发 ID。 |
+| `request_id`（选填） | 批次的请求 ID。 |
+| `source_account`（必填） | 批次的来源账户 ID。 |
+| `token_id`（必填） | 下发给收款方的加密货币 ID。 |
+| `receiving_address`（必填） | 收款方的加密货币地址。 |
+| `amount`（必填） | 下发给收款方的加密货币金额。 |
+| `description`（选填） | 该条目的备注。 |
+| `tx_hash`（选填） | 该条目的交易哈希。 |
+| `status`（必填） | 条目执行状态，取值为 `Pending`、`Processing`、`Completed`、`Failed`、`NotExecuted` 之一。 |
+| `validation_status`（必填） | 条目校验状态，取值为 `Pending`、`Validated`、`ValidationFailed`、`NotExecuted` 之一。 |
+| `failed_reason`（选填） | 该条目失败的原因。 |
+| `created_timestamp`（必填） | 创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp`（必填） | 最近更新时间，Unix 时间戳（秒）。 |
 
 要测试投递到您已注册的 Webhook 接收端，请使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设为 `payment.bulk_send.item.status.updated`。
 

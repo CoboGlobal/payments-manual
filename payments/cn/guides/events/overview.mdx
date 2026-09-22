@@ -31,17 +31,17 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
       <td>付款方的入金地址被替换。Cobo 也会主动更换地址。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.created`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.created`](/payments/cn/guides/events/advanced#payment-transaction-created)</td>
       <td>可选</td>
       <td>入金地址收到一笔新的入金，附带链上细节。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>可选</td>
       <td>一笔入金通过筛查，附带确认数、手续费和区块信息。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>可选</td>
       <td>一笔入金未通过筛查，附带交易细节。</td>
     </tr>
@@ -57,17 +57,17 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
       <td>订单的交易明细，包括 `transactions` 数组和费用字段。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.late`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.late`](/payments/cn/guides/events/advanced#payment-transaction-late)</td>
       <td>可选</td>
       <td>订单进入终态后又收到一笔通过筛查的入金。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>可选</td>
       <td>一笔入金通过筛查，附带链上细节。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#入金交易)</td>
+      <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>可选</td>
       <td>一笔入金未通过筛查，附带交易细节。</td>
     </tr>
