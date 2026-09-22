@@ -19,19 +19,15 @@ The primary refund event, identified by `refund_id`.
 
 ### Trigger conditions
 
-| `status` | Fires when | What to do |
+**One event per change of this refund order's `status`.** Only these three values occur.
+
+| When you receive it | `status` | What to do |
 | --- | --- | --- |
-| `Pending` | The refund order is created through a refund link. | Record the refund and wait. |
-| `Completed` | The refund completed. | Reconcile and close the refund, using `refund_id` as the idempotency key. |
-| `Failed` | The refund failed and **nothing was returned**. | Read `failed_reason` and handle it. |
-
-Only these three values reach you. The public `RefundStatus` enumeration also contains `PendingConfirmation`, `AddressPending`, `AddressSubmitted`, `Processing`, and `PartiallyCompleted`, but none of them has a send point, so no event carries them. Your SDK will still expose those values; you do not need a branch for them.
-
-A refund either succeeds in full or fails in full. There is no partial refund outcome.
+| The refund order is created through a refund link | `Pending` | Record the refund and wait. |
+| The refund completes | `Completed` | Reconcile and close it, using `refund_id` as the idempotency key. |
+| The refund fails and **nothing was returned** | `Failed` | Read `failed_reason` and handle it. |
 
 ### Event content
-
-Always present: `refund_id`, `order_id`, `merchant_id`, `request_id`, `to_address`, `status`, `requested_amount`, `tx_hash`, `refund_type`, `initiator`, `commission_fee`, `created_timestamp`, `updated_timestamp`.
 
 | Field | Description |
 | --- | --- |

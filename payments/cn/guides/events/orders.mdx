@@ -19,29 +19,19 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-| `status` | `notice_type` | 触发时机 | 您该做什么 |
+**订单 `status` 每变化一次发一条事件。** `status` 不变但您仍需要处理时，也会发一条，用 `notice_type` 说明为什么。除此之外不发——包括订单在 `Processing` 期间入金反复变化，见下方。
+
+| 什么时候会收到 | `status` | `notice_type` | 您该做什么 |
 | --- | --- | --- | --- |
-| `Pending` | 无 | 订单已创建，尚未收到入金。 | 建立订单记录，向付款方展示应付金额。 |
-| `Processing` | 无 | 检测到**首笔**入金。 | 更新进度，不要发货。 |
-| `Processing` | `PaymentUpdated` | 某笔入金进入 `ActionRequired`。 | 按该条目的 `message` 处理，这笔资金在您处理前会一直挂起。 |
-| `Completed` | 无 | 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态。 | 发货，以 `order_id` 作为幂等键。 |
-| `Underpaid` | 无 | 有效期结束，存在已完成入账但未达阈值。 | 进入少付处理，不要按足额订单发货。 |
-| `Expired` | 无 | 有效期结束且没有任何已完成入账，或订单被撤销。 | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 保持不变 | `LatePaymentReceived` | 订单进入终态后又收到资金，且该笔通过筛查。 | 人工决定退款还是补发，不要重开原订单。 |
-
-`Underpaid` 与 `Expired` 的分界在于有没有已完成的入账，而不在于收到多少钱。到期时入金全部失败、或仍停留在筛查中的订单，进入 `Expired`。
-
-**哪些情况不发事件。**
-
-订单停留在 `Processing` 期间，入金会不断变化，但其中大部分变化不产生事件。检测到第二笔及以后的入金、入金进入筛查、入金通过筛查、入金失败，这些都不会改变订单状态，也不会通知您，即使 `credited_amount` 和 `outstanding_amount` 已经变了。
-
-只有上表列出的情况才会发事件。判据是您此刻能不能动手、动手有没有用：入金失败是终局，您无法挽回；晚到款未通过筛查等于什么都没到账。信息不会丢失——订单终态事件会携带完整的 `transactions` 数组。
-
-如果您需要在有效期内展示实时收款进度，请轮询 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)，不要依赖 Webhook。
+| 订单创建成功 | `Pending` | 无 | 建立订单记录，向付款方展示应付金额。 |
+| 检测到该订单的**第一笔**入金，订单从 `Pending` 变为 `Processing` | `Processing` | 无 | 更新进度，不要发货。 |
+| 某笔入金进入 `ActionRequired`，**订单状态不变** | `Processing` | `PaymentUpdated` | 按该条目的 `message` 处理，这笔资金在您处理前会一直挂起。 |
+| 累计实收达到足额阈值，订单变为 `Completed`。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | 无 | 发货，以 `order_id` 作为幂等键。 |
+| 有效期结束，存在已完成入账但未达阈值 | `Underpaid` | 无 | 进入少付处理，不要按足额订单发货。 |
+| 有效期结束且没有任何已完成入账，或订单被撤销 | `Expired` | 无 | 关闭付款窗口。需要继续收款时创建新订单。 |
+| 订单已是终态，又收到一笔入金**且该笔通过筛查**，**订单状态保持终态** | 保持原终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
 
 ### 事件内容
-
-始终提供：`order_id`、`psp_order_code`、适用时的 `merchant_id` 与 `merchant_order_code`、`status`、`notice_type`、`receive_address`、`expired_at`、`requested_amount`、`credited_amount`、`outstanding_amount`、`transactions`、`created_timestamp`、`updated_timestamp`。
 
 | 字段 | 说明 |
 | --- | --- |

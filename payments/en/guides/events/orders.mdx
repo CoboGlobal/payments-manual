@@ -19,29 +19,19 @@ The primary event for Order Mode, identified by `order_id`.
 
 ### Trigger conditions
 
-| `status` | `notice_type` | Fires when | What to do |
+**One event per change of the order's `status`.** You also get one when `status` has not changed but you still need to act, and `notice_type` says why. Nothing else fires — including the deposit activity that goes on while an order sits in `Processing`, see below.
+
+| When you receive it | `status` | `notice_type` | What to do |
 | --- | --- | --- | --- |
-| `Pending` | absent | The order is created and no deposit has arrived. | Record the order and show the payer what to pay. |
-| `Processing` | absent | The **first** deposit is detected. | Update progress. Do not release goods. |
-| `Processing` | `PaymentUpdated` | A deposit entered `ActionRequired`. | Act on that entry's `message`. Those funds are held until you do. |
-| `Completed` | absent | Cumulative receipts reached the completion threshold. Overpayment also lands here; there is no `Overpaid` status. | Release goods, using `order_id` as the idempotency key. |
-| `Underpaid` | absent | The order expired with completed deposits that did not reach the threshold. | Handle as underpaid. Do not treat as fully paid. |
-| `Expired` | absent | The order expired with no completed deposit, or was canceled. | Close the payment window. Create a new order to keep collecting. |
-| unchanged | `LatePaymentReceived` | A deposit arrived after the order reached a final state and passed screening. | Decide whether to refund or fulfil. Do not reopen the original order. |
-
-The line between `Underpaid` and `Expired` is whether any deposit completed, not how much arrived. An order that expires with every deposit failed, or with deposits still in screening, becomes `Expired`.
-
-**When the event does not fire.**
-
-While an order sits in `Processing`, deposits keep changing but most of those changes do not produce an event. Detecting a second or later deposit, a deposit entering screening, a deposit passing screening, and a deposit failing all leave the order in `Processing` without a notification, even though `credited_amount` and `outstanding_amount` change.
-
-Only the rows in the table above fire. The rule behind this is whether you can act on the change and whether acting helps: a failed deposit is final and you cannot recover it, and a late payment that has not cleared screening means nothing has arrived. No information is lost — the order's final event carries the complete `transactions` array.
-
-If you need live collection progress during the order's validity period, poll [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information) instead of relying on webhooks.
+| The order is created | `Pending` | absent | Record the order and show the payer what to pay. |
+| The **first** deposit for this order is detected, moving the order from `Pending` to `Processing` | `Processing` | absent | Update progress. Do not release goods. |
+| A deposit enters `ActionRequired`, **the order's status does not change** | `Processing` | `PaymentUpdated` | Act on that entry's `message`. Those funds are held until you do. |
+| Cumulative receipts reach the completion threshold, moving the order to `Completed`. Overpayment also lands here; there is no `Overpaid` status | `Completed` | absent | Release goods, using `order_id` as the idempotency key. |
+| The order expires with completed deposits that did not reach the threshold | `Underpaid` | absent | Handle as underpaid. Do not treat as fully paid. |
+| The order expires with no completed deposit, or is canceled | `Expired` | absent | Close the payment window. Create a new order to keep collecting. |
+| The order is already final and another deposit arrives **and clears screening**, **the order keeps its final status** | unchanged | `LatePaymentReceived` | Decide whether to refund or fulfil. Do not reopen the original order. |
 
 ### Event content
-
-Always present: `order_id`, `psp_order_code`, `merchant_id` and `merchant_order_code` where applicable, `status`, `notice_type`, `receive_address`, `expired_at`, `requested_amount`, `credited_amount`, `outstanding_amount`, `transactions`, `created_timestamp`, `updated_timestamp`.
 
 | Field | Description |
 | --- | --- |

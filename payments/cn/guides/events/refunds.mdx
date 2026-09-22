@@ -19,19 +19,15 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-| `status` | 触发时机 | 您该做什么 |
+**这笔退款单的 `status` 每变化一次发一条事件。** 只会出现下面三个值。
+
+| 什么时候会收到 | `status` | 您该做什么 |
 | --- | --- | --- |
-| `Pending` | 通过退款链接成功创建退款单。 | 记录该退款单并等待。 |
-| `Completed` | 退款完成。 | 对账并关闭退款，以 `refund_id` 作为幂等键。 |
-| `Failed` | 退款失败，**一分未退**。 | 读取 `failed_reason` 并处理。 |
-
-只有这三个值会送达您。公开的 `RefundStatus` 枚举还包含 `PendingConfirmation`、`AddressPending`、`AddressSubmitted`、`Processing`、`PartiallyCompleted`，但它们都没有对应的发送点，不会出现在任何事件中。您的 SDK 里仍会有这些枚举值，但不需要为它们编写分支。
-
-一笔退款要么全额成功，要么全额失败，不存在部分退款的结果。
+| 通过退款链接成功创建退款单 | `Pending` | 记录该退款单并等待。 |
+| 退款完成 | `Completed` | 对账并关闭退款，以 `refund_id` 作为幂等键。 |
+| 退款失败，**一分未退** | `Failed` | 读取 `failed_reason` 并处理。 |
 
 ### 事件内容
-
-始终提供：`refund_id`、`order_id`、`merchant_id`、`request_id`、`to_address`、`status`、`requested_amount`、`tx_hash`、`refund_type`、`initiator`、`commission_fee`、`created_timestamp`、`updated_timestamp`。
 
 | 字段 | 说明 |
 | --- | --- |

@@ -20,19 +20,19 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-| `status` | 是否终态 | 您该做什么 |
+**这笔转出的 `status` 每变化一次发一条事件。** 后四个是终态，**未到终态不能关闭付款**，即使部分转出交易已经完成。
+
+| 什么时候会收到 | `status` | 您该做什么 |
 | --- | --- | --- |
-| `Pending` | 否 | 请求已受理，等待。 |
-| `Preparing` | 否 | 等待。 |
-| `Transferring` | 否 | 等待。**未到终态不能关闭本次转出**，即使部分转出交易已经完成。 |
-| `Completed` | 是 | 关闭本次转出。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
-| `PartiallyCompleted` | 是 | 按 `failed_amounts` 的金额**另建一笔新的 Payout** 补发，不要重复支付已成功的部分。 |
-| `Failed` | 是 | 读取 `failed_reason` 并处理，不要原地重试。 |
-| `RejectedByBank` | 是 | 收款银行拒绝了这笔 Off-Ramp 转账。先与收款方核对账户信息，原样重发大概率会再次被拒。 |
+| 转出请求被受理 | `Pending` | 记录本次转出，不要重复提交。 |
+| 开始准备资金（归集、跨链兑换、扣佣金） | `Preparing` | 等待。 |
+| 开始执行转出交易 | `Transferring` | 等待。 |
+| 全部转出成功 | `Completed` | 关闭本次转出。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
+| 有一部分没有成功 | `PartiallyCompleted` | 按 `failed_amounts` 的金额另建一笔转出补发，不要重复支付已成功的部分。 |
+| 全部没有成功 | `Failed` | 读取 `failed_reason` 并处理，不要原地重试。 |
+| 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 先与收款方核对账户信息，原样重发大概率会再次被拒。 |
 
 ### 事件内容
-
-始终提供：`payout_id`、`request_id`、`source_account`、`status`、`requested_amounts`、`failed_amounts`、`requested_target`、`transactions`、`actual_payout_amount`、`initiator`、`commission_fees`、`remark`、`created_timestamp`、`updated_timestamp`。
 
 | 字段 | 说明 |
 | --- | --- |

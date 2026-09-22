@@ -20,19 +20,17 @@ The primary event for Top-up Mode. One deposit produces one object, identified b
 
 ### Trigger conditions
 
-| `status` | Final | Creditable | What to do |
-| --- | --- | --- | --- |
-| `Detected` | No | No | Record the incoming deposit. |
-| `PendingScreening` | No | No | Wait. Compliance screening is in progress. |
-| `ActionRequired` | No | No | Act. Read `message` to find out which action is needed. |
-| `Completed` | Yes | Yes | Credit `amount`, using `transaction_id` as the idempotency key. |
-| `Failed` | Yes | No | Read `failed_reason.code` to decide what happens next. |
+**One event per change of this deposit's `status`.** Every deposit goes through screening, so there is no direct path from `Detected` to `Completed`; `ActionRequired` returning to `PendingScreening` is the only backward edge. `Completed` and `Failed` are terminal.
 
-Every deposit goes through screening, so there is no direct path from `Detected` to `Completed`. `ActionRequired` returns to `PendingScreening` once you have acted, and is the only state that can move backwards.
+| When you receive it | `status` | Creditable | What to do |
+| --- | --- | --- | --- |
+| The funds are detected on a deposit address | `Detected` | ❌ | Record the incoming deposit. |
+| The deposit enters compliance screening | `PendingScreening` | ❌ | Wait. |
+| Screening needs you to act — supply information, submit your own KYT result, or complete a manual review | `ActionRequired` | ❌ | Act on `message`. |
+| Screening passed and the transaction has at least one on-chain confirmation | `Completed` | ✅ | Credit `amount`, using `transaction_id` as the idempotency key. |
+| The deposit was rejected or failed | `Failed` | ❌ | Read `failed_reason.code` to decide what happens next. |
 
 ### Event content
-
-Always present: `transaction_id`, `merchant_id`, `payer_id`, `custom_payer_id`, `status`, `amount`, `tx_hash`, `topup_address`, `source_address`, `created_timestamp`, `updated_timestamp`.
 
 | Field | Description |
 | --- | --- |

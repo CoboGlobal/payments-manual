@@ -18,22 +18,18 @@ The batch-level event, identified by `bulk_send_id`.
 
 ### Batch trigger conditions
 
-| `status` | What to do |
-| --- | --- |
-| `Pending` | Record the batch and wait. A batch can sit here for two different reasons — see [Pending can mean waiting for approval](#batch-trigger-conditions). |
-| `Validating` | Wait. Which items will be rejected is not known yet. |
-| `Transferring` | Wait. Item-by-item progress comes from the item event. |
-| `Completed` | Close the batch summary. Item completion is still reported by the item event. |
-| `PartiallyCompleted` | Split your handling by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items that were never submitted. |
-| `Failed` | Read `failed_reason`. A whole batch only fails **before execution starts**. |
+**One event per change of the batch's `status`.** Per-item progress is not here; it is in the item event.
 
-**`Pending` can mean waiting for approval.**
-
-If your organization has an approval workflow enabled, a new batch enters approval before anything else happens. **The approval step produces no event, and no field distinguishes it.** A batch in `Pending` may be waiting for validation or waiting for a person, and the payload looks the same either way. A batch that stays in `Pending` for a long time is not necessarily stuck.
+| When you receive it | `status` | What to do |
+| --- | --- | --- |
+| The batch is created | `Pending` | Record the batch and wait. ⚠️ Sitting here does not necessarily mean validation is running — see below. |
+| The batch enters per-item validation | `Validating` | Wait. Which items will be rejected is not known yet. |
+| Validation passed and execution starts | `Transferring` | Wait. |
+| Every item succeeded | `Completed` | Close the batch summary. Item completion is still reported by the item event. |
+| The batch result is settled and some items did not succeed | `PartiallyCompleted` | Split by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items never submitted. |
+| The whole batch fails, which **only happens before execution starts** | `Failed` | Read `failed_reason`. No funds moved. |
 
 ### Batch event content
-
-Always present: `bulk_send_id`, `source_account`, `execution_mode`, `status`, `item_count`, `failed_item_count`, `not_executed_item_count`, `requested_amounts`, `completed_amounts`, `failed_amounts`, `description`, `commission_fees`, `created_timestamp`, `updated_timestamp`. `request_id` is present when you supplied one.
 
 | Field | Description |
 | --- | --- |
@@ -201,19 +197,17 @@ The item-level event, identified by `bulk_send_item_id`.
 
 ### Item trigger conditions
 
-| `status` | Final | What to do |
-| --- | --- | --- |
-| `Pending` | No | Record the item. This value covers **two stages**: waiting for validation, and validated but not yet submitted. |
-| `Processing` | No | The transfer has been submitted. Wait. |
-| `Completed` | Yes | Save the amount and `tx_hash`, and close the item. |
-| `Failed` | Yes | The transfer was submitted and failed. Locked funds were released and the fee was returned. Whether you can resend as-is depends on `failed_reason.code`. |
-| `NotExecuted` | Yes | The item was never submitted and **no funds moved**. Read `failed_reason.code`: resending without fixing the cause fails again. |
+**One event per change of the item's `status`.**
 
-The difference between `Failed` and `NotExecuted` is whether money moved. Handle them separately.
+| When you receive it | `status` | What to do |
+| --- | --- | --- |
+| The item is created with the batch, or passed validation but has not been submitted yet | `Pending` | Record the item. **This value covers two stages**, so sitting here does not mean it is stuck in validation. |
+| The item's transfer has been submitted | `Processing` | Wait for the result. Do not mark it complete. |
+| The transfer succeeded | `Completed` | Save the amount and `tx_hash`, and close the item. |
+| The transfer was submitted and failed | `Failed` | Locked funds were released and the fee was returned. Whether you can resend as-is depends on `failed_reason.code`. |
+| The item was never submitted | `NotExecuted` | **No funds moved.** Read `failed_reason.code`; resending without fixing the cause fails again. |
 
 ### Item event content
-
-Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount`, `receiving_address`, `tx_hash`, `source_account`, `description`, `created_timestamp`, `updated_timestamp`. `request_id` is present when the batch had one.
 
 | Field | Description |
 | --- | --- |

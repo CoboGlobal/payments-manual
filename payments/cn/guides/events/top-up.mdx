@@ -20,19 +20,17 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-| `status` | 是否终态 | 可否入账 | 您该做什么 |
-| --- | --- | --- | --- |
-| `Detected` | 否 | 否 | 记录这笔待处理入金。 |
-| `PendingScreening` | 否 | 否 | 等待，合规筛查进行中。 |
-| `ActionRequired` | 否 | 否 | 需要您处理。读取 `message` 判断需要做哪件事。 |
-| `Completed` | 是 | 是 | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
-| `Failed` | 是 | 否 | 读取 `failed_reason.code` 决定下一步。 |
+**这笔充值的 `status` 每变化一次发一条事件。** 所有入金都要过筛查，没有 `Detected` 直达 `Completed` 的路径；`ActionRequired` 回到 `PendingScreening` 是唯一的回边。`Completed` 与 `Failed` 是终态。
 
-所有入金都会经过筛查，因此不存在从 `Detected` 直达 `Completed` 的路径。`ActionRequired` 在您处理之后回到 `PendingScreening`，是唯一会回退的状态。
+| 什么时候会收到 | `status` | 可否入账 | 您该做什么 |
+| --- | --- | --- | --- |
+| 入金地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理入金。 |
+| 该笔入金进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
+| 筛查需要您处理（补材料、提交自有 KYT 结论，或完成人工复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
+| 筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
+| 该笔入金被拒绝或失败 | `Failed` | ❌ | 读取 `failed_reason.code` 决定下一步。 |
 
 ### 事件内容
-
-始终提供：`transaction_id`、`merchant_id`、`payer_id`、`custom_payer_id`、`status`、`amount`、`tx_hash`、`topup_address`、`source_address`、`created_timestamp`、`updated_timestamp`。
 
 | 字段 | 说明 |
 | --- | --- |

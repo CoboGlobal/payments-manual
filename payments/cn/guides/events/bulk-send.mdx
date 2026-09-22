@@ -18,22 +18,18 @@ lang: "zh-hans"
 
 ### 批次的事件触发条件
 
-| `status` | 您该做什么 |
-| --- | --- |
-| `Pending` | 记录该批次并等待。批次停在这里可能有两种原因，参见 [`Pending` 可能是在等审批](#批次的事件触发条件)。 |
-| `Validating` | 等待。此时还不知道哪些条目会被拒。 |
-| `Transferring` | 等待。逐条进度来自条目事件。 |
-| `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
-| `PartiallyCompleted` | 按两个计数分流处理：`failed_item_count` 是资金已经动过的条目，`not_executed_item_count` 是从未提交过的条目。 |
-| `Failed` | 读取 `failed_reason`。整批失败只发生在**执行开始之前**。 |
+**批次 `status` 每变化一次发一条事件。** 逐条进度不在这里，在条目事件里。
 
-**`Pending` 可能是在等审批。**
-
-如果您的组织启用了审批流，新建批次会先进入审批。**审批过程不产生任何事件，也没有字段能区分。** 停在 `Pending` 的批次既可能在等待校验，也可能在等人审批，payload 看起来完全一样。长时间停在 `Pending` 不一定意味着卡住了。
+| 什么时候会收到 | `status` | 您该做什么 |
+| --- | --- | --- |
+| 批次创建成功 | `Pending` | 建立批次记录并等待。⚠️ 停在这里不一定是在校验，见下。 |
+| 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
+| 校验通过，开始逐项执行 | `Transferring` | 等待。 |
+| 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
+| 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 是资金动过的，`not_executed_item_count` 是从未提交的。 |
+| 批次整体失败，**只发生在执行开始之前** | `Failed` | 读取 `failed_reason`。没有资金动过。 |
 
 ### 批次的事件内容
-
-始终提供：`bulk_send_id`、`source_account`、`execution_mode`、`status`、`item_count`、`failed_item_count`、`not_executed_item_count`、`requested_amounts`、`completed_amounts`、`failed_amounts`、`description`、`commission_fees`、`created_timestamp`、`updated_timestamp`。您创建时提供了 `request_id` 的话，该字段也会出现。
 
 | 字段 | 说明 |
 | --- | --- |
@@ -201,19 +197,17 @@ lang: "zh-hans"
 
 ### 条目的事件触发条件
 
-| `status` | 是否终态 | 您该做什么 |
-| --- | --- | --- |
-| `Pending` | 否 | 建立条目记录。这个值覆盖**两个阶段**：等待校验，以及校验通过但尚未提交转出。 |
-| `Processing` | 否 | 转出已提交，等待结果。 |
-| `Completed` | 是 | 保存金额和 `tx_hash`，关闭该条目。 |
-| `Failed` | 是 | 转出已提交但失败。锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
-| `NotExecuted` | 是 | 条目从未提交，**资金完全没有动过**。读取 `failed_reason.code`：不修正原因就重发会再次失败。 |
+**条目 `status` 每变化一次发一条事件。**
 
-`Failed` 与 `NotExecuted` 的区别在于钱有没有动过，两者需要分开处理。
+| 什么时候会收到 | `status` | 您该做什么 |
+| --- | --- | --- |
+| 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停在这里不等于卡在校验。 |
+| 该条目的转出已提交 | `Processing` | 等待结果，不要标记完成。 |
+| 转出成功 | `Completed` | 保存金额和 `tx_hash`，关闭该条目。 |
+| 转出已提交但失败 | `Failed` | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
+| 该条目从未提交执行 | `NotExecuted` | **资金完全没有动过。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
 
 ### 条目的事件内容
-
-始终提供：`bulk_send_item_id`、`bulk_send_id`、`status`、`requested_amount`、`receiving_address`、`tx_hash`、`source_account`、`description`、`created_timestamp`、`updated_timestamp`。批次有 `request_id` 时该字段也会出现。
 
 | 字段 | 说明 |
 | --- | --- |

@@ -20,19 +20,19 @@ The primary payout event, identified by `payout_id`.
 
 ### Trigger conditions
 
-| `status` | Final | What to do |
+**One event per change of this payout's `status`.** The last four are terminal; **do not close the payout before a terminal status**, even if some outgoing transactions have already completed.
+
+| When you receive it | `status` | What to do |
 | --- | --- | --- |
-| `Pending` | No | The request was accepted. Wait. |
-| `Preparing` | No | Wait. |
-| `Transferring` | No | Wait. **Do not close the payout before a final status**, even if some outgoing transactions have already completed. |
-| `Completed` | Yes | Close the payout. This means Cobo completed the transfer; it does not mean the recipient's platform has credited it. |
-| `PartiallyCompleted` | Yes | Create a **new** payout for the amount in `failed_amounts`. Do not resend the part that already succeeded. |
-| `Failed` | Yes | Read `failed_reason` and handle it. Do not retry in place. |
-| `RejectedByBank` | Yes | The receiving bank rejected the Off-Ramp transfer. Confirm the account details with the recipient first; resending unchanged is likely to be rejected again. |
+| The payout request is accepted | `Pending` | Record it and do not submit it again. |
+| Fund preparation starts — consolidation, cross-chain conversion, commission | `Preparing` | Wait. |
+| The outgoing transactions start executing | `Transferring` | Wait. |
+| Everything was paid out | `Completed` | Close the payout. This means Cobo completed the transfer, not that the recipient's platform has credited it. |
+| Part of it did not go through | `PartiallyCompleted` | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
+| None of it went through | `Failed` | Read `failed_reason` and handle it. Do not retry in place. |
+| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Confirm the account details with the recipient first; resending unchanged is likely to be rejected again. |
 
 ### Event content
-
-Always present: `payout_id`, `request_id`, `source_account`, `status`, `requested_amounts`, `failed_amounts`, `requested_target`, `transactions`, `actual_payout_amount`, `initiator`, `commission_fees`, `remark`, `created_timestamp`, `updated_timestamp`.
 
 | Field | Description |
 | --- | --- |
