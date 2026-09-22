@@ -14,7 +14,7 @@ lang: "zh-hans"
 
 ## `payment.transaction.settlement_network.*`
 
-两个事件携带的基础字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)，没有额外的 Payment 字段。
+两个事件携带的基础字段见[高级事件](/payments/cn/guides/events/advanced#交易字段)，没有额外的 Payment 字段。
 
 交易完成时，结算资金会以 `SettlementNetwork` 这个 `source_type` 反映到您的 Payment 账户余额。到账金额由对应的 [`payment.account.balance.updated`](/payments/cn/guides/events/balances) 事件告知——本页这两个事件携带的是交易而不是余额。
 

@@ -1,25 +1,16 @@
 ---
-title: "交易级事件"
+title: "高级事件"
 lang: "zh-hans"
 ---
 
-交易级事件汇报的是底层交易本身，而不是这个业务对象接下来需要什么，属于高级选项：业务对象事件已经告诉您能否入账、能否发货、能否关闭转出，而交易级事件位于它下面一层，暴露背后的细节。
+高级事件汇报的是底层交易本身，而不是这笔支付业务接下来需要什么。支付业务自己的事件已经告诉您能否入账、能否发货、能否关闭转出；高级事件位于它下面一层，暴露背后的细节。
 
-这一类别包含两族事件：
-
-| 族 | 事件 |
-| --- | --- |
-| `payment.transaction.*` | 单笔链上交易，列在本页。 |
-| `*.status.updated` | `payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`。它们各自返回所属对象的交易信息——`transactions` 数组、费用字段、校验状态——说明在对应的业务页面上。 |
-
-当您需要确认数、手续费明细、区块信息，或替换（丢弃、重发、加速）信息时订阅它们——例如向付款方展示转账进度，或核对 gas 支出。判断下一步该做什么，请使用业务对象事件。
+当您需要确认数、手续费明细、区块信息，或替换（丢弃、重发、加速）信息时订阅它们——例如向付款方展示转账进度，或核对 gas 支出。判断下一步该做什么，请用该笔支付业务自己的事件。
 
 请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
-`*.status.updated` 这一族请到对应的业务页面查看：[订单](/payments/cn/guides/events/orders)、[退款](/payments/cn/guides/events/refunds)、[资金转出](/payments/cn/guides/events/payouts)、[批量下发](/payments/cn/guides/events/bulk-send)。本页其余部分覆盖 `payment.transaction.*` 这一族，以及它们共用的交易字段。
-
 <Note>
-  不要同时用业务对象事件和交易级事件驱动同一个不可逆动作。入账、发货、关闭付款三件事各自选定一个来源，另一个仅用于对账。
+  不要让同一个不可逆动作被两个事件各触发一次。入账、发货、关闭付款三件事各自选定一个来源，另一个仅用于对账。
 </Note>
 
 ## 本页的事件
@@ -59,11 +50,11 @@ lang: "zh-hans"
 
 `payment.transaction.late` 不会重开订单，也不会改变订单的终态。同一个事实也会通过订单事件的 `notice_type` 为 `LatePaymentReceived` 送达。参见[少付、多付、部分付款和晚付](/payments/cn/guides/create-orders#少付多付部分付款和晚付)。
 
-## 对象的交易级事件
+## 各支付业务的高级事件
 
-这些事件返回的是对象底层的交易信息——`transactions` 数组、费用字段、校验状态——而不是这个对象接下来需要什么。每一个都与覆盖同一链路的业务对象事件同时投递，对应关系见下表。
+这些事件返回的是各笔支付业务底层的交易信息——`transactions` 数组、费用字段、校验状态——而不是这笔业务接下来需要什么。每一个都与同一笔业务自己的事件同时投递，对应关系见下表。
 
-| 事件 | 覆盖同一链路的业务对象事件 |
+| 高级事件 | 同一笔业务自己的事件 |
 | --- | --- |
 | `payment.order.status.updated` | [`payment.order.updated`](/payments/cn/guides/events/orders) |
 | `payment.refund.status.updated` | [`payment.refund.updated`](/payments/cn/guides/events/refunds) |
@@ -71,7 +62,7 @@ lang: "zh-hans"
 | `payment.bulk_send.status.updated` | [`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send) |
 | `payment.bulk_send.item.status.updated` | [`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send) |
 
-**判断请用业务对象事件，这些事件用于对账。** 不要用两边各触发一次入账、发货或关闭转出。
+**判断请用该笔支付业务自己的事件，高级事件只用于对账。** 不要用两边各触发一次入账、发货或关闭转出。
 
 ### `payment.order.status.updated`
 
@@ -221,7 +212,7 @@ lang: "zh-hans"
 - `type`（string，选填）—— 交易类型。
 - `status`（string，必填）—— 交易状态，例如 `Submitted`、`PendingScreening`、`Confirming`、`Completed`、`Failed`、`Rejected`。完整生命周期参见 [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status)。其中 `PendingAuthorization` 既涵盖人工审批环节，也涵盖内部自动的风控、KYT、合规检查，不一定需要人工操作。
 - `sub_status`（string，选填）—— 与 `status` 并列的更细粒度状态，例如 `PendingApproverCheck`、`RejectedKYT`、`FailedOnChain`。完整取值同样参见上述[状态与子状态文档](https://www.cobo.com/developers/v2/guides/transactions/status)。
-- `failed_reason`（string，选填）—— 交易失败的原因，仅在审批失败和签名失败时有值。它是一个自由文本字符串，与业务对象事件携带的 `{ code, message }` 对象不同。
+- `failed_reason`（string，选填）—— 交易失败的原因，仅在审批失败和签名失败时有值。它是一个自由文本字符串，与各支付业务的事件携带的 `{ code, message }` 对象不同。
 - `initiator`（string，选填）—— 交易发起人。
 - `chain_id`（string，选填）—— 链 ID。
 - `token_id`（string，选填）—— token ID。

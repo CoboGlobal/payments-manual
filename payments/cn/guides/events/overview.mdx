@@ -3,13 +3,13 @@ title: "事件概述"
 lang: "zh-hans"
 ---
 
-Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组织：找到与您业务对应的页面，该页面会列出这条链路所需的全部事件。
+Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组织：找到与您业务对应的页面，该页面会列出这条链路所需的全部事件。
 
-## 按业务对象选择事件
+## 按支付业务选择事件
 
-只订阅您实际使用的业务对象所对应的事件。每个页面覆盖该对象自己的事件，以及这条链路还需要、但没有业务对象事件可替代的其他事件。
+只订阅您实际使用的支付业务所对应的事件。每个页面覆盖该业务自己的事件，以及这条链路还需要的补充事件。
 
-| 您的业务 | 业务对象事件 | 页面 |
+| 您的业务 | 事件 | 页面 |
 | --- | --- | --- |
 | 充值（付款方直接入金） | `payment.topup.updated` | [充值事件](/payments/cn/guides/events/top-up) |
 | 收款订单（订单模式） | `payment.order.updated` | [订单事件](/payments/cn/guides/events/orders) |
@@ -19,9 +19,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 | 结算网络 | `payment.transaction.settlement_network.*` | [结算网络事件](/payments/cn/guides/events/settlement-network) |
 | 账户余额 | `payment.account.balance.updated` | [余额变动](/payments/cn/guides/events/balances) |
 
-**其余的支付事件都是交易级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，而不是告诉您这个业务对象接下来需要什么。
+**其余的支付事件都是高级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层交易信息，而不是告诉您接下来该做什么。
 
-它们属于高级选项。当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。每个业务页面会列出属于该链路的交易级事件，[交易级事件](/payments/cn/guides/events/transaction-level)则说明这一类别本身和共用字段。
+当您需要确认数、手续费明细、替换（丢弃、重发、加速）等链上细节时订阅它们。每个业务页面会列出属于该链路的高级事件，[高级事件](/payments/cn/guides/events/advanced)则逐个说明，并收录共用的交易字段。
 
 ## 事件结构
 
@@ -38,7 +38,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 }
 ```
 
-| `type` | `data.data_type` | 对象 ID |
+| `type` | `data.data_type` | 业务单据 ID |
 | --- | --- | --- |
 | `payment.topup.updated` | `PaymentTopUpUpdate` | `transaction_id` |
 | `payment.order.updated` | `PaymentOrderUpdate` | `order_id` |
@@ -54,9 +54,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 | ID | 防的是什么 |
 | --- | --- |
 | `event_id` | 重复投递。同一条消息重投时 `event_id` 不变。 |
-| 对象 ID | 同一个业务事实被不同事件或不同代码路径处理两次。 |
+| 业务单据 ID | 同一个业务事实被不同事件或不同代码路径处理两次。 |
 
-两层都要做。对 `event_id` 建唯一约束用于投递去重，再对每个不可逆动作（入账、发货、关闭付款）按对象 ID 建第二个唯一约束。
+两层都要做。对 `event_id` 建唯一约束用于投递去重，再对每个不可逆动作（入账、发货、关闭付款）按业务单据 ID 建第二个唯一约束。
 
 ## 所有事件通用的规则
 
@@ -68,7 +68,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 
 **数组是全量快照。** `transactions` 等字段携带的是该对象当前的完整列表，不是自上条事件以来的增量。请整体替换本地副本，不要往里追加。
 
-**投递不保证顺序。** 按对象 ID 做 upsert，并丢弃比本地已记录状态更早的事件。终态不能被后到的处理中事件回退。
+**投递不保证顺序。** 按业务单据 ID 做 upsert，并丢弃比本地已记录状态更早的事件。终态不能被后到的处理中事件回退。
 
 **没有值的字段不会出现。** 字段不适用时，整个键会被省略而不是给 `null`。读取可选字段时请使用防御性写法，例如用 `payload.get("failed_reason")` 而不是 `payload["failed_reason"]`。
 
@@ -86,11 +86,11 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 
 每个业务页面会列出该对象上可能出现的 code，并按需要采取的处理方式分组：[充值](/payments/cn/guides/events/top-up#失败-code)、[订单](/payments/cn/guides/events/orders#失败-code)、[退款](/payments/cn/guides/events/refunds#失败-code)、[资金转出](/payments/cn/guides/events/payouts#失败-code)、[批量下发](/payments/cn/guides/events/bulk-send#批次的失败-code)。
 
-### 提交问题时报业务对象 ID
+### 提交问题时报业务单据 ID
 
-需要排查失败时，请提供业务对象 ID 而不是交易 ID：充值用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的对象 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
+需要排查失败时，请提供业务单据 ID 而不是交易 ID：充值用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的单据 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
 
-对于 Payout，一个 `payout_id` 下可能有多笔转出交易，因此只有对象 ID 才能追溯整个请求。
+对于 Payout，一个 `payout_id` 下可能有多笔转出交易，因此只有单据 ID 才能追溯整个请求。
 
 ## 读取金额
 

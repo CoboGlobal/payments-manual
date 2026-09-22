@@ -1,25 +1,16 @@
 ---
-title: "Transaction-level events"
+title: "Advanced events"
 lang: "en"
 ---
 
-Transaction-level events report the underlying transaction rather than what the business object needs next. They are the advanced option: each business object event already tells you whether you can credit funds, release goods, or close a payout, and these events sit one level below that, exposing the detail behind it.
+Advanced events report the underlying transaction rather than what the payment business needs next. The event for that business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it.
 
-Two families belong to this category:
-
-| Family | Events |
-| --- | --- |
-| `payment.transaction.*` | Individual blockchain transactions, listed on this page. |
-| `*.status.updated` | `payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`. Each returns its object's transaction detail — the `transactions` array, fee fields, validation status — and is documented on that object's page. |
-
-Subscribe to them when you need confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail — for example to show a payer the progress of their transfer, or to reconcile gas spend. For deciding what to do next, use the business object event instead.
+Subscribe to them when you need confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail — for example to show a payer the progress of their transfer, or to reconcile gas spend. To decide what to do next, use the event for that business instead.
 
 Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
-For the `*.status.updated` events, go to the business page: [Order](/payments/en/guides/events/orders), [Refund](/payments/en/guides/events/refunds), [Payout](/payments/en/guides/events/payouts), [Bulk send](/payments/en/guides/events/bulk-send). The rest of this page covers the `payment.transaction.*` family and the transaction fields they all share.
-
 <Note>
-  Do not drive an irreversible action from both a business object event and a transaction-level event. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
+  Do not let one irreversible action be triggered by two events. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
 </Note>
 
 ## Events on this page
@@ -59,11 +50,11 @@ For an order paid in several instalments, `payment.transaction.completed` fires 
 
 `payment.transaction.late` does not reopen or change the order's final status. The same fact reaches you through the order event as `notice_type` `LatePaymentReceived`. See [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
 
-## Object transaction events
+## Advanced events per payment business
 
-These report an object's underlying transaction detail — the `transactions` array, fee fields, validation status — rather than what the object needs next. Each one is delivered alongside the object event that covers the same flow, listed in the table below.
+These report the underlying transaction detail for one payment business — the `transactions` array, fee fields, validation status — rather than what that business needs next. Each one is delivered alongside that business's own event, listed in the table below.
 
-| Event | Object event that covers the same flow |
+| Advanced event | That business's own event |
 | --- | --- |
 | `payment.order.status.updated` | [`payment.order.updated`](/payments/en/guides/events/orders) |
 | `payment.refund.status.updated` | [`payment.refund.updated`](/payments/en/guides/events/refunds) |
@@ -71,7 +62,7 @@ These report an object's underlying transaction detail — the `transactions` ar
 | `payment.bulk_send.status.updated` | [`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send) |
 | `payment.bulk_send.item.status.updated` | [`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send) |
 
-**Drive the decision from the object event and use these for reconciliation.** Do not credit funds, release goods, or close a payout from both.
+**Drive the decision from that business's own event and use the advanced one for reconciliation only.** Do not credit funds, release goods, or close a payout from both.
 
 ### `payment.order.status.updated`
 
@@ -221,7 +212,7 @@ These fields appear in all `payment.transaction.*` events. Not every field is po
 - `type` (string, optional) — The transaction type.
 - `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
 - `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
-- `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures. This is a free-text string, unlike the `{ code, message }` object that business object events carry.
+- `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures. This is a free-text string, unlike the `{ code, message }` object that the events for each payment business carry.
 - `initiator` (string, optional) — The transaction initiator.
 - `chain_id` (string, optional) — The chain ID.
 - `token_id` (string, optional) — The token ID.

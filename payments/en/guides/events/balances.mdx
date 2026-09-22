@@ -3,7 +3,7 @@ title: "Balance changes"
 lang: "en"
 ---
 
-Balance events report the ledger movement behind any flow, whichever business object caused it. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+Balance changes report the ledger movement behind any flow, whichever payment business caused it. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
 ## Events on this page
 
@@ -13,7 +13,7 @@ Balance events report the ledger movement behind any flow, whichever business ob
 
 ## `payment.account.balance.updated`
 
-Fires when the available balance of a Payments account changes for a specific token. This is the event to use for internal accounting, because business object events deliberately do not carry balances.
+Fires when the available balance of a Payments account changes for a specific token. This is the event to use for internal accounting, because the events for each payment business deliberately do not carry balances.
 
 It is also how you see **what each account actually received**. An order's `credited_amount`, for example, includes the portion split out as your developer fee, so it is not the merchant's credited amount. One order settlement produces one balance event per account involved.
 
@@ -22,7 +22,7 @@ It is also how you see **what each account actually received**. An order's `cred
 | Field | Description |
 | --- | --- |
 | `source_account` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
-| `source_id` | The ID of the business object that caused the change, such as the order ID. |
+| `source_id` | The ID of the business record that caused the change, such as the order ID. |
 | `source_type` | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
 | `token_id` | The token whose balance changed. |
 | `amount` / `amount_raw` | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
@@ -31,7 +31,7 @@ It is also how you see **what each account actually received**. An order's `cred
 | `flow_direction` | The direction of the change. Either `in` or `out`. |
 | `update_time` | When the balance was updated, in Unix timestamp (seconds). |
 
-To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business object ID. The response model matches this event's `data`.
+To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business record ID. The response model matches this event's `data`.
 
 ### Samples
 

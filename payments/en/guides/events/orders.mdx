@@ -319,8 +319,8 @@ These change the order's contents but produce no notification, because the order
 
 A deposit that does not belong to any order, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as part of an order. It is credited to your developer balance.
 
-Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
+Both carry the fields listed in [Advanced events](/payments/en/guides/events/advanced#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
 
 ## Related
 
-- For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Transaction-level events](/payments/en/guides/events/transaction-level).
+- For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Advanced events](/payments/en/guides/events/advanced).

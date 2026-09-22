@@ -319,8 +319,8 @@ lang: "zh-hans"
 
 不属于任何订单、或使用了不支持币种的入金，不会计入订单，而是作为意外入金上报，并计入您的开发者余额。
 
-两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
+两者携带的字段见[高级事件](/payments/cn/guides/events/advanced#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
 
 ## 相关
 
-- 每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[交易级事件](/payments/cn/guides/events/transaction-level)。
+- 每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[高级事件](/payments/cn/guides/events/advanced)。

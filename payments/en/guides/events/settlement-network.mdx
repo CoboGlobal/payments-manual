@@ -14,7 +14,7 @@ These events report transfers settled through the [Settlement Network](/payments
 
 ## `payment.transaction.settlement_network.*`
 
-Both events carry the base fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields) and add no Payment-specific fields of their own.
+Both events carry the base fields listed in [Advanced events](/payments/en/guides/events/advanced#transaction-fields) and add no Payment-specific fields of their own.
 
 On completion, the settled funds appear in your Payment account balance with the `SettlementNetwork` `source_type`. The matching [`payment.account.balance.updated`](/payments/en/guides/events/balances) event is what tells you the amount that landed, because these two events carry the transaction, not the balance.
 

@@ -92,7 +92,7 @@
                       "payments/en/guides/events/bulk-send",
                       "payments/en/guides/events/settlement-network",
                       "payments/en/guides/events/balances",
-                      "payments/en/guides/events/transaction-level"
+                      "payments/en/guides/events/advanced"
                     ]
                   },
                   "payments/en/guides/roles-and-permissions",
@@ -399,7 +399,7 @@
                       "payments/cn/guides/events/bulk-send",
                       "payments/cn/guides/events/settlement-network",
                       "payments/cn/guides/events/balances",
-                      "payments/cn/guides/events/transaction-level"
+                      "payments/cn/guides/events/advanced"
                     ]
                   },
                   "payments/cn/guides/roles-and-permissions",

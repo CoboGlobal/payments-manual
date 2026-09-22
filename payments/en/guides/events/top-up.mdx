@@ -227,9 +227,9 @@ Update the address you show that payer. This is a `payment.address.updated` even
 
 A deposit that does not belong to any deposit plan, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as a top-up. It is credited to your developer balance, not to a payer.
 
-Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#paymenttransactionexternal).
+Both carry the fields listed in [Advanced events](/payments/en/guides/events/advanced#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#paymenttransactionexternal).
 
 ## Related
 
-- For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Transaction-level events](/payments/en/guides/events/transaction-level).
+- For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Advanced events](/payments/en/guides/events/advanced).
 - `payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance changes](/payments/en/guides/events/balances).

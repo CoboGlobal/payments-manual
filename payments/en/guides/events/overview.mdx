@@ -3,13 +3,13 @@ title: "Events overview"
 lang: "en"
 ---
 
-Cobo Payments notifies your system through webhook events. This section is organized by business object: pick the page that matches what you are building, and it lists every event you need for that flow.
+Cobo Payments notifies your system through webhook events. This section is organized by payment business: pick the page that matches what you are building, and it lists every event you need for that flow.
 
-## Choose events by business object
+## Choose events by payment business
 
-Subscribe to the events for the business objects you actually use. Each page covers that object's own event, plus the other events its flow needs that no object event replaces.
+Subscribe to the events for the payment businesses you actually use. Each page covers that business's own event, plus the other events its flow needs that nothing else replaces.
 
-| Your business | Object event | Page |
+| Your business | Event | Page |
 | --- | --- | --- |
 | Top-up deposits from payers | `payment.topup.updated` | [Top-up events](/payments/en/guides/events/top-up) |
 | Payment orders (Order Mode) | `payment.order.updated` | [Order events](/payments/en/guides/events/orders) |
@@ -19,9 +19,9 @@ Subscribe to the events for the business objects you actually use. Each page cov
 | Settlement Network | `payment.transaction.settlement_network.*` | [Settlement Network events](/payments/en/guides/events/settlement-network) |
 | Account balances | `payment.account.balance.updated` | [Balance changes](/payments/en/guides/events/balances) |
 
-**Every other payment event is transaction-level.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return the underlying transaction information rather than telling you what the business object needs next.
+**Every other payment event is an advanced event.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return the underlying transaction information rather than telling you what to do next.
 
-They are the advanced option. Subscribe to them when you need on-chain detail such as confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information. Each business page lists the transaction-level events that belong to its flow, and [Transaction-level events](/payments/en/guides/events/transaction-level) describes the category and the shared field reference.
+Subscribe to them when you need on-chain detail such as confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information. Each business page lists the advanced events that belong to its flow, and [Advanced events](/payments/en/guides/events/advanced) describes them all and holds the shared field reference.
 
 ## Event structure
 
@@ -38,7 +38,7 @@ Every webhook message shares the same envelope. Route on `type`, then deserializ
 }
 ```
 
-| `type` | `data.data_type` | Object ID |
+| `type` | `data.data_type` | Business record ID |
 | --- | --- | --- |
 | `payment.topup.updated` | `PaymentTopUpUpdate` | `transaction_id` |
 | `payment.order.updated` | `PaymentOrderUpdate` | `order_id` |
@@ -47,16 +47,16 @@ Every webhook message shares the same envelope. Route on `type`, then deserializ
 | `payment.bulk_send.updated` | `PaymentBulkSendUpdate` | `bulk_send_id` |
 | `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
 
-A top-up has no separate `topup_id`. Its object ID is `transaction_id`, because one top-up is one deposit transaction.
+A top-up has no separate `topup_id`. Its record ID is `transaction_id`, because one top-up is one deposit transaction.
 
 ## Deduplicate at two levels
 
 | ID | What it protects against |
 | --- | --- |
 | `event_id` | Redelivery. The same message retried carries the same `event_id`. |
-| Object ID | The same business fact being acted on twice through different events or code paths. |
+| Business record ID | The same business fact being acted on twice through different events or code paths. |
 
-Implement both. Put a unique constraint on `event_id` for delivery, and a second one on the object ID for each irreversible action such as crediting funds, releasing goods, or closing a payout.
+Implement both. Put a unique constraint on `event_id` for delivery, and a second one on the business record ID for each irreversible action such as crediting funds, releasing goods, or closing a payout.
 
 ## Rules that apply to every event
 
@@ -68,7 +68,7 @@ Implement both. Put a unique constraint on `event_id` for delivery, and a second
 
 **Arrays are full snapshots.** Fields such as `transactions` carry the object's complete current list, not the delta since the last event. Replace your local copy rather than appending to it.
 
-**Delivery is not ordered.** Upsert by object ID, and discard any event that reports a state earlier than the one you have already recorded. A terminal state must never be rolled back by a later-arriving in-progress event.
+**Delivery is not ordered.** Upsert by business record ID, and discard any event that reports a state earlier than the one you have already recorded. A terminal state must never be rolled back by a later-arriving in-progress event.
 
 **A field with no value is absent.** When a field does not apply, the key is omitted rather than set to `null`. Read optional fields defensively, for example `payload.get("failed_reason")` rather than `payload["failed_reason"]`.
 
@@ -86,11 +86,11 @@ Events that can report a failure carry a `failed_reason` object.
 
 Each business page lists the codes that can appear on that object, grouped by the response they need: [Top-up](/payments/en/guides/events/top-up#failure-codes), [Order](/payments/en/guides/events/orders#failure-codes), [Refund](/payments/en/guides/events/refunds#failure-codes), [Payout](/payments/en/guides/events/payouts#failure-codes), [Bulk send](/payments/en/guides/events/bulk-send#batch-failure-codes).
 
-### Report the business object ID
+### Report the business record ID
 
-When a failure needs investigation, supply the business object ID rather than a transaction ID: `transaction_id` for a top-up, or `order_id`, `refund_id`, `payout_id`, `bulk_send_id`, `bulk_send_item_id`. Every payload carries its own object ID, whereas a transaction ID is not present in refund or bulk send item payloads at all.
+When a failure needs investigation, supply the business record ID rather than a transaction ID: `transaction_id` for a top-up, or `order_id`, `refund_id`, `payout_id`, `bulk_send_id`, `bulk_send_item_id`. Every payload carries its own record ID, whereas a transaction ID is not present in refund or bulk send item payloads at all.
 
-For a payout, one `payout_id` can cover several outgoing transactions, so the object ID is what allows the whole request to be traced.
+For a payout, one `payout_id` can cover several outgoing transactions, so the record ID is what allows the whole request to be traced.
 
 ## Read amounts
 
