@@ -10,9 +10,9 @@ lang: "zh-hans"
 | 事件 | 通知什么 | 什么时候需要订阅 |
 | --- | --- | --- |
 | [`payment.topup.updated`](#paymenttopupupdated) | 一笔充值的全过程：检测到、筛查中、可以入账、或者失败。 | 必选——这是充值业务的事件。 |
-| [`payment.address.updated`](#paymentaddressupdated) | 某个付款方的入金地址被替换了。 | 当您向付款方展示固定入金地址、需要在 Cobo 更换后同步更新时。 |
-| [`payment.transaction.external.created`](#paymenttransactionexternal) | 收到一笔不属于任何入金计划、或使用了不支持币种的入金。 | 当您需要核对流入自己地址的每一笔资金，而不只是预期内的入金时。 |
-| [`payment.transaction.external.completed`](#paymenttransactionexternal) | 那笔意外入金通过了筛查，已计入您的开发者余额。 | 同上——这一条告诉您它已经入账。 |
+| [`payment.address.updated`](#paymentaddressupdated) | 某个付款方的入金地址被替换了。 | 必选。除了您自己发起的更换，**Cobo 也会主动更换地址**，那种情况下没有别的途径能知道。 |
+| [`payment.transaction.external.created`](#paymenttransactionexternal) | 收到一笔不属于任何入金计划、或使用了不支持币种的入金。 | 必选。这类入金不属于任何付款方或订单，没有别的事件会告诉您它到了。 |
+| [`payment.transaction.external.completed`](#paymenttransactionexternal) | 那笔意外入金通过了筛查，已计入您的开发者余额。 | 必选。同上，这一条告诉您它已经入账。 |
 
 ## `payment.topup.updated`
 

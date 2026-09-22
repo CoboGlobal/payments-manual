@@ -9,8 +9,8 @@ These events report transfers settled through the [Settlement Network](/payments
 
 | Event | What it notifies you of | When you need it |
 | --- | --- | --- |
-| [`payment.transaction.settlement_network.created`](#paymenttransactionsettlement_network) | A Settlement Network transaction was created. | When you settle through the Settlement Network. |
-| [`payment.transaction.settlement_network.completed`](#paymenttransactionsettlement_network) | It completed, and the settled funds reached your Payment account balance. | Same as above — read the balance event for the amount. |
+| [`payment.transaction.settlement_network.created`](#paymenttransactionsettlement_network) | A Settlement Network transaction was created. | Required if you use the Settlement Network. |
+| [`payment.transaction.settlement_network.completed`](#paymenttransactionsettlement_network) | It completed, and the settled funds reached your Payment account balance. | Required if you use the Settlement Network. Read the balance event for the amount. |
 
 ## `payment.transaction.settlement_network.*`
 

@@ -25,7 +25,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 ## 所有支付事件一览
 
-不论您的接入是否需要，这里列出全部支付事件。如果您已经订阅了某个事件、想知道它写在哪，点它的链接。「必选」指新接入必须订阅的那几个。
+不论您的接入是否需要，这里列出全部支付事件。如果您已经订阅了某个事件、想知道它写在哪，点它的链接。**「必选」的判据是：这是您知道这件事的唯一途径。** 标「否」的那些，同一个事实在别处也拿得到——它们只是在更低一层重复了一遍，多给了链上细节。必选仍然按业务划分：只做订单收款时，充值相关的几个用不上。
 
 | 事件 | 必选 | 通知什么 |
 | --- | --- | --- |
@@ -35,13 +35,13 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | [`payment.payout.updated`](/payments/cn/guides/events/payouts#paymentpayoutupdated) | **是** | 一笔资金转出：处理中、已完成、部分完成（有一笔金额需要重发）、失败，或者被收款银行拒绝。 |
 | [`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send#paymentbulk_sendupdated) | **是** | 一个批次的结果，以及金额和数量汇总——包括资金动过后失败的条目数，与从未提交的条目数。 |
 | [`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send#paymentbulk_senditemupdated) | **是** | 单个条目的结果，用于与您自己的收款人记录核销。它区分「已提交后失败」和「从未提交」。 |
-| [`payment.address.updated`](/payments/cn/guides/events/top-up#paymentaddressupdated) | 否 | 某个付款方的入金地址被替换，同时给出替换前与替换后的地址。 |
-| [`payment.transaction.external.created`](/payments/cn/guides/events/top-up#paymenttransactionexternal) | 否 | 收到一笔不属于任何入金计划、也不属于任何订单的入金，或者币种不受支持。它计入您的开发者余额，不计入付款方或订单。 |
-| [`payment.transaction.external.completed`](/payments/cn/guides/events/top-up#paymenttransactionexternal) | 否 | 那笔意外入金通过了筛查，已计入您的开发者余额。 |
-| [`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#paymentbank_withdrawalstatusupdated) | 否 | 从您的某个虚拟账户提现法币到银行账户的状态变更。它带的是 `timeline`，没有 `updated_timestamp`。 |
-| [`payment.account.balance.updated`](/payments/cn/guides/events/balances#paymentaccountbalanceupdated) | 否 | 某个账户在某个 token 上的可用余额发生变动，给出变动前后的余额和变动来源。每个账户实际收到多少，看这个事件。 |
-| [`payment.transaction.settlement_network.created`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | 否 | 创建了一笔结算网络交易。 |
-| [`payment.transaction.settlement_network.completed`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | 否 | 该结算网络交易完成。到账金额由对应的余额事件给出，不在这个事件里。 |
+| [`payment.address.updated`](/payments/cn/guides/events/top-up#paymentaddressupdated) | **是** | 某个付款方的入金地址被替换，同时给出替换前与替换后的地址。**Cobo 也会主动更换地址**，此时这是您唯一的通知来源。 |
+| [`payment.transaction.external.created`](/payments/cn/guides/events/top-up#paymenttransactionexternal) | **是** | 收到一笔不属于任何入金计划、也不属于任何订单的入金，或者币种不受支持。它计入您的开发者余额，不计入付款方或订单。 |
+| [`payment.transaction.external.completed`](/payments/cn/guides/events/top-up#paymenttransactionexternal) | **是** | 那笔意外入金通过了筛查，已计入您的开发者余额。 |
+| [`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#paymentbank_withdrawalstatusupdated) | **是** | 从您的某个虚拟账户提现法币到银行账户的状态变更。它带的是 `timeline`，没有 `updated_timestamp`。 |
+| [`payment.account.balance.updated`](/payments/cn/guides/events/balances#paymentaccountbalanceupdated) | **是** | 某个账户在某个 token 上的可用余额发生变动，给出变动前后的余额和变动来源。每个账户实际收到多少，看这个事件。 |
+| [`payment.transaction.settlement_network.created`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | **是** | 创建了一笔结算网络交易。 |
+| [`payment.transaction.settlement_network.completed`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | **是** | 该结算网络交易完成。到账金额由对应的余额事件给出，不在这个事件里。 |
 | [`payment.transaction.created`](/payments/cn/guides/events/advanced#入金交易) | 否 | 入金地址收到一笔新的入金，并给出背后的链上细节。仅充值模式。 |
 | [`payment.transaction.completed`](/payments/cn/guides/events/advanced#入金交易) | 否 | 一笔入金通过筛查并已入账，附带确认数、手续费和区块信息。 |
 | [`payment.transaction.failed`](/payments/cn/guides/events/advanced#入金交易) | 否 | 一笔入金未通过筛查，附带交易层面的细节。 |

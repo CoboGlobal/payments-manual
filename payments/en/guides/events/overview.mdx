@@ -25,7 +25,7 @@ Each business page lists the advanced events that belong to its flow, and [Advan
 
 ## All payment events
 
-Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, follow its link. **Required** means a new integration has to subscribe to it.
+Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, follow its link. **Required means this event is your only way to learn the fact it reports.** The ones marked No report something you can obtain elsewhere — they repeat it one level down, with the on-chain detail added. Required is still scoped by business: if you only take orders, the top-up events do not apply to you.
 
 | Event | Required | What it notifies you of |
 | --- | --- | --- |
@@ -35,13 +35,13 @@ Every payment event, whether or not your integration needs it. If you already su
 | [`payment.payout.updated`](/payments/en/guides/events/payouts#paymentpayoutupdated) | **Yes** | A single payout: still in progress, completed, partially completed with an amount to send again, failed, or rejected by the receiving bank. |
 | [`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send#paymentbulk_sendupdated) | **Yes** | A batch's outcome plus its amount and count summaries, including how many items failed after funds moved versus how many were never submitted. |
 | [`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send#paymentbulk_senditemupdated) | **Yes** | One item's outcome, so you can close it against your own recipient record. Distinguishes a transfer that failed after submission from one that was never submitted. |
-| [`payment.address.updated`](/payments/en/guides/events/top-up#paymentaddressupdated) | No | A payer's deposit address was replaced, with both the old and the new address. |
-| [`payment.transaction.external.created`](/payments/en/guides/events/top-up#paymenttransactionexternal) | No | A deposit arrived that belongs to no deposit plan and no order, or is in a token Cobo does not support. It is credited to your developer balance, not to a payer or an order. |
-| [`payment.transaction.external.completed`](/payments/en/guides/events/top-up#paymenttransactionexternal) | No | That unexpected deposit cleared screening and was credited to your developer balance. |
-| [`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#paymentbank_withdrawalstatusupdated) | No | A fiat withdrawal from one of your virtual accounts to a bank account changed status. Carries a `timeline` instead of an `updated_timestamp`. |
-| [`payment.account.balance.updated`](/payments/en/guides/events/balances#paymentaccountbalanceupdated) | No | One account's available balance moved for one token, with the balance before and after and what caused it. This is how you see what each account actually received. |
-| [`payment.transaction.settlement_network.created`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | No | A Settlement Network transaction was created. |
-| [`payment.transaction.settlement_network.completed`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | No | The Settlement Network transaction completed. The amount that landed comes from the matching balance event, not from this one. |
+| [`payment.address.updated`](/payments/en/guides/events/top-up#paymentaddressupdated) | **Yes** | A payer's deposit address was replaced, with both the old and the new address. **Cobo also replaces addresses on its own**, and this event is your only notice when it does. |
+| [`payment.transaction.external.created`](/payments/en/guides/events/top-up#paymenttransactionexternal) | **Yes** | A deposit arrived that belongs to no deposit plan and no order, or is in a token Cobo does not support. It is credited to your developer balance, not to a payer or an order. |
+| [`payment.transaction.external.completed`](/payments/en/guides/events/top-up#paymenttransactionexternal) | **Yes** | That unexpected deposit cleared screening and was credited to your developer balance. |
+| [`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#paymentbank_withdrawalstatusupdated) | **Yes** | A fiat withdrawal from one of your virtual accounts to a bank account changed status. Carries a `timeline` instead of an `updated_timestamp`. |
+| [`payment.account.balance.updated`](/payments/en/guides/events/balances#paymentaccountbalanceupdated) | **Yes** | One account's available balance moved for one token, with the balance before and after and what caused it. This is how you see what each account actually received. |
+| [`payment.transaction.settlement_network.created`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | **Yes** | A Settlement Network transaction was created. |
+| [`payment.transaction.settlement_network.completed`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | **Yes** | The Settlement Network transaction completed. The amount that landed comes from the matching balance event, not from this one. |
 | [`payment.transaction.created`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit address received a new deposit, with the on-chain detail behind it. Top-up Mode. |
 | [`payment.transaction.completed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit cleared screening and was credited, with confirmation counts, fees and block information. |
 | [`payment.transaction.failed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit did not clear screening, with the transaction-level detail. |

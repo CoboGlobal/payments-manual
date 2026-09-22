@@ -9,8 +9,8 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 什么时候需要订阅 |
 | --- | --- | --- |
-| [`payment.transaction.settlement_network.created`](#paymenttransactionsettlement_network) | 创建了一笔结算网络交易。 | 当您通过结算网络结算时。 |
-| [`payment.transaction.settlement_network.completed`](#paymenttransactionsettlement_network) | 该交易完成，结算资金已到您的 Payment 账户余额。 | 同上——到账金额看余额事件。 |
+| [`payment.transaction.settlement_network.created`](#paymenttransactionsettlement_network) | 创建了一笔结算网络交易。 | 必选（使用结算网络时）。 |
+| [`payment.transaction.settlement_network.completed`](#paymenttransactionsettlement_network) | 该交易完成，结算资金已到您的 Payment 账户余额。 | 必选（使用结算网络时）。到账金额看余额事件。 |
 
 ## `payment.transaction.settlement_network.*`
 
