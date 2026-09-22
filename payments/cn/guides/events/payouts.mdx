@@ -68,21 +68,21 @@ lang: "zh-hans"
 
 `failed_reason.code` 是您分支的依据。部分完成时，请先读对象级 `failed_reason`，无论失败发生在哪个阶段它都有值；如果起因是某笔转出交易，`transactions` 中对应的条目还会给出更精确的原因。
 
-| 怎么处理 | `code` | 发生了什么 |
+| `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
-| 剩下的另建一笔转出 | `payment.payout_partially_failed` | 这笔转出有一部分未能完成。`failed_amounts` 就是需要重新转出的金额。 |
-| 在您这边处理掉，然后重新创建转出 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。请在 Cobo Portal 中调整该策略。 |
-| 在您这边处理掉，然后重新创建转出 | `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。请联系对方。 |
-| 在您这边处理掉，然后重新创建转出 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 |
-| 处理 Fee Station，然后重新创建转出 | `payment.payout_fee_charge_failed` | Fee Station 余额不足。请充值。 |
-| 处理 Fee Station，然后重新创建转出 | `payment.payout_fee_station_not_configured` | 未配置 Fee Station。请先配置。 |
-| 处理 Fee Station，然后重新创建转出 | `payment.payout_fee_charge_failed_unknown` | 因其他原因扣收失败。请同时检查配置与余额。 |
-| 直接重新创建转出 | `payment.payout_sweep_failed` | 准备资金的归集交易失败。 |
-| 确认跨链路径后重新创建转出 | `payment.payout_bridge_failed` | 全部跨链交易失败，资产无法兑换。 |
-| 先看交易明细 | `payment.payout_transactions_failed` | 全部转出交易均失败。逐笔原因在 `transactions` 中。 |
-| 先与收款方核对账户信息 | `payment.rejected_by_bank` | 收款银行退回了这笔转账，仅 Off-Ramp 会出现。原样重发大概率会再次被拒。 |
-| 不要重试，联系 Cobo | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 |
-| 不要重试，联系 Cobo 并提供 `payout_id` | `transaction.failed` | 原因无法归类。 |
+| `payment.payout_partially_failed` | 这笔转出有一部分未能完成。`failed_amounts` 就是没有转出去的金额。 | 这部分金额另建一笔转出。 |
+| `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重新创建转出。 |
+| `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。 | 联系对方，然后重新创建转出。 |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重新创建转出。 |
+| `payment.payout_fee_charge_failed` | Fee Station 余额不足。 | 充值后重新创建转出。 |
+| `payment.payout_fee_station_not_configured` | 未配置 Fee Station。 | 配置后重新创建转出。 |
+| `payment.payout_fee_charge_failed_unknown` | 手续费因其他原因扣收失败。 | 检查 Fee Station 的配置与余额，然后重新创建转出。 |
+| `payment.payout_sweep_failed` | 准备资金的归集交易失败。 | 重新创建转出。 |
+| `payment.payout_bridge_failed` | 全部跨链交易失败，资产无法兑换。 | 确认该币种对存在可用的跨链路径，然后重新创建转出。 |
+| `payment.payout_transactions_failed` | 全部转出交易均失败。逐笔原因在 `transactions` 中。 | 先看那里的明细再重试。 |
+| `payment.rejected_by_bank` | 收款银行退回了这笔转账，仅 Off-Ramp 会出现。 | 重发前先与收款方核对账户信息——原样重发大概率会再次被拒。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
+| `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `payout_id`。 |
 
 ### 示例
 

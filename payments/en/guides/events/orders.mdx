@@ -79,11 +79,11 @@ Deposits below the dust threshold are excluded from the array entirely. The defa
 
 `failed_reason.code` is what you branch on. An entry in `transactions` can carry these three. The ID to quote when you raise a case is `order_id`, not the entry's `transaction_id`.
 
-| What to do | `code` | What happened |
+| `code` | What happened | What to do |
 | --- | --- | --- |
-| Review the case in the Screening App | `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). |
-| Raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. |
-| Raise a case, quoting the ID below | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. |
+| `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
+| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case, quoting the ID below. |
 
 ### Samples
 

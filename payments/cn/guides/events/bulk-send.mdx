@@ -56,14 +56,14 @@ lang: "zh-hans"
 
 `failed_reason.code` 是您分支的依据。整批失败只发生在执行开始之前，因此下面这些都意味着没有资金动过。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
 
-| 怎么处理 | `code` | 发生了什么 |
+| `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
-| 修正条目后创建新批次 | `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 |
-| 修正条目后创建新批次 | `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 |
-| 修正条目后创建新批次 | `payment.bulk_send_all_items_failed` | 所有条目都失败或从未执行。逐条原因在条目事件中。 |
-| 处理 Fee Station 后创建新批次 | `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 |
-| 处理 Fee Station 后创建新批次 | `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 |
-| 直接创建新批次 | `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 |
+| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 修正条目后创建新批次。 |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 修正那些条目后创建新批次。 |
+| `payment.bulk_send_all_items_failed` | 所有条目都失败或从未执行。逐条原因在条目事件中。 | 看完条目事件后创建新批次。 |
+| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 创建新批次。 |
 
 ### 批次示例
 
@@ -225,26 +225,26 @@ lang: "zh-hans"
 
 `failed_reason.code` 是您分支的依据。下面是条目可能携带的 code。
 
-| 怎么处理 | `code` | 发生了什么 |
+| `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
-| 修正该条目后在新批次中重发 | `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 |
-| 修正该条目后在新批次中重发 | `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 |
-| 不要再向该地址发送 | `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 |
-| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_items_validation_failed` | `Strict` 模式下有别的条目未通过校验。 |
-| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_sweep_tasks_failed` | `Strict` 模式下有别的归集失败。 |
-| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_items_commission_fee_failed` | `Strict` 模式下有别的条目佣金扣收失败。请检查 Fee Station。 |
-| 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足。请充值。 |
-| 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。请先配置。 |
-| 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_charge_failed_unknown` | 因其他原因扣收失败。请同时检查配置与余额。 |
-| 让批次通过审批后重发 | `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。请向审批人确认原因。 |
-| 让批次通过审批后重发 | `payment.app_workflow_approval_revoked` | 审批流被撤销。 |
-| 在您这边处理掉，然后重发 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。请在 Cobo Portal 中调整该策略。 |
-| 在您这边处理掉，然后重发 | `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。请联系对方。 |
-| 在您这边处理掉，然后重发 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 |
-| 直接重发 | `payment.sweep_task_failed` | 准备资金的归集交易失败。 |
-| 不要重试，联系 Cobo | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 |
-| 不要重试，联系 Cobo | `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 |
-| 不要重试，联系 Cobo 并提供 `bulk_send_item_id` | `transaction.failed` | 原因无法归类。 |
+| `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 | 修正后在新批次中重发该条目。 |
+| `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 | 修正后在新批次中重发该条目。 |
+| `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
+| `payment.strict_mode_other_items_validation_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目未通过校验。 | 修正那个条目后重发本条目。 |
+| `payment.strict_mode_other_sweep_tasks_failed` | 该条目本身没有问题。`Strict` 模式下有别的归集失败。 | 在新批次中重发。 |
+| `payment.strict_mode_other_items_commission_fee_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目佣金扣收失败。 | 处理 Fee Station 后重发。 |
+| `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足。 | 充值后重发。 |
+| `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。 | 配置后重发。 |
+| `payment.bulk_send_commission_fee_charge_failed_unknown` | 佣金因其他原因扣收失败。 | 检查 Fee Station 的配置与余额，然后重发。 |
+| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后重发。 |
+| `payment.app_workflow_approval_revoked` | 审批流被撤销。 | 让批次通过审批，然后重发。 |
+| `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重发。 |
+| `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。 | 联系对方，然后重发。 |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重发。 |
+| `payment.sweep_task_failed` | 准备资金的归集交易失败。 | 重发。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
+| `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 不要重试，联系 Cobo。 |
+| `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `bulk_send_item_id`。 |
 
 ### 条目示例
 
