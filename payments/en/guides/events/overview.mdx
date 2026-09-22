@@ -52,8 +52,6 @@ Every payment event, whether or not your integration needs it. If you already su
 | [`payment.bulk_send.status.updated`](/payments/en/guides/events/advanced#paymentbulk_sendstatusupdated) | No | A batch's transaction detail. |
 | [`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#paymentbulk_senditemstatusupdated) | No | An item's transaction detail, including `validation_status` and the item's `token_id` and `amount` as separate fields. |
 
-Five more values exist in the `WebhookEventType` enumeration — `payment.status.updated`, `payment.settlement.status.updated`, `payment.subscription.status.updated`, `payment.charge.status.updated`, and `payment.transaction.held`. They are not described here and you should not subscribe to them.
-
 ## Event structure
 
 Every webhook message shares the same envelope. Route on `type`, then deserialize `data` according to `data_type`.

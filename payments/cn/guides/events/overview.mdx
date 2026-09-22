@@ -52,8 +52,6 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | [`payment.bulk_send.status.updated`](/payments/cn/guides/events/advanced#paymentbulk_sendstatusupdated) | 否 | 批次的交易明细。 |
 | [`payment.bulk_send.item.status.updated`](/payments/cn/guides/events/advanced#paymentbulk_senditemstatusupdated) | 否 | 条目的交易明细，包括 `validation_status`，以及拆成独立字段的 `token_id` 与 `amount`。 |
 
-`WebhookEventType` 枚举里还有另外五个取值——`payment.status.updated`、`payment.settlement.status.updated`、`payment.subscription.status.updated`、`payment.charge.status.updated`、`payment.transaction.held`。本文不作说明，也不建议订阅。
-
 ## 事件结构
 
 所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。
