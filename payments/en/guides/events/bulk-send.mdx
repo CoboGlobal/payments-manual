@@ -95,9 +95,9 @@ Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount
 | Fix the item, then send it again in a new batch | `payment.bulk_send_invalid_address` | The receiving address is not valid. The `message` includes the address. |
 | Fix the item, then send it again in a new batch | `payment.receiving_address_matches_source_address` | The receiving address is the same as the source address. |
 | Do not send to this address again | `payment.address_kya_failed` | The receiving address did not pass KYA screening. The `message` includes the address. |
-| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_items_validation_failed` | Another item failed validation under `Strict`. |
-| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_sweep_tasks_failed` | Another sweep failed under `Strict`. |
-| Nothing wrong with this item — fix the sibling that stopped it | `payment.strict_mode_other_items_commission_fee_failed` | The fee failed for another item under `Strict`. Check Fee Station. |
+| Nothing wrong with this item — fix the other item that stopped it | `payment.strict_mode_other_items_validation_failed` | Another item failed validation under `Strict`. |
+| Nothing wrong with this item — fix the other item that stopped it | `payment.strict_mode_other_sweep_tasks_failed` | Another sweep failed under `Strict`. |
+| Nothing wrong with this item — fix the other item that stopped it | `payment.strict_mode_other_items_commission_fee_failed` | The fee failed for another item under `Strict`. Check Fee Station. |
 | Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_charge_failed` | The Fee Station balance is insufficient. Add funds. |
 | Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_station_not_configured` | Fee Station is not configured. Configure it. |
 | Fix Fee Station, then send it again | `payment.bulk_send_commission_fee_charge_failed_unknown` | The charge failed for another reason. Check both the configuration and the balance. |
@@ -287,7 +287,7 @@ Funds moved and came back: locked funds were released and the fee was returned. 
 
 ### An item was never executed
 
-**No funds moved.** Fix the cause before resending, or it fails the same way. Here the item itself was fine and was stopped by a sibling under `Strict` mode.
+**No funds moved.** Fix the cause before resending, or it fails the same way. Here the item itself was fine and was not executed because another item in the batch failed under `Strict` mode.
 
 ```json
 {

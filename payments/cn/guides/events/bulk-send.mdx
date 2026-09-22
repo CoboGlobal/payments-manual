@@ -95,9 +95,9 @@ lang: "zh-hans"
 | 修正该条目后在新批次中重发 | `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 |
 | 修正该条目后在新批次中重发 | `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 |
 | 不要再向该地址发送 | `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 |
-| 该条目本身没问题——修正连累它的那个条目 | `payment.strict_mode_other_items_validation_failed` | `Strict` 模式下有别的条目未通过校验。 |
-| 该条目本身没问题——修正连累它的那个条目 | `payment.strict_mode_other_sweep_tasks_failed` | `Strict` 模式下有别的归集失败。 |
-| 该条目本身没问题——修正连累它的那个条目 | `payment.strict_mode_other_items_commission_fee_failed` | `Strict` 模式下有别的条目佣金扣收失败。请检查 Fee Station。 |
+| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_items_validation_failed` | `Strict` 模式下有别的条目未通过校验。 |
+| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_sweep_tasks_failed` | `Strict` 模式下有别的归集失败。 |
+| 该条目本身没问题——修正同批中出错的那个条目 | `payment.strict_mode_other_items_commission_fee_failed` | `Strict` 模式下有别的条目佣金扣收失败。请检查 Fee Station。 |
 | 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足。请充值。 |
 | 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。请先配置。 |
 | 处理 Fee Station 后重发 | `payment.bulk_send_commission_fee_charge_failed_unknown` | 因其他原因扣收失败。请同时检查配置与余额。 |
@@ -287,7 +287,7 @@ lang: "zh-hans"
 
 ### 某个条目从未执行
 
-**没有资金动过。** 修正原因后再重发，否则会以同样的方式失败。本例条目自身没有问题，是 `Strict` 模式下被同批其他条目连累。
+**没有资金动过。** 修正原因后再重发，否则会以同样的方式失败。本例条目自身没有问题，是 `Strict` 模式下同批的其他条目出错导致它没有执行。
 
 ```json
 {
