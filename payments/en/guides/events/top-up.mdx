@@ -35,7 +35,7 @@ Always present: `transaction_id`, `merchant_id`, `payer_id`, `custom_payer_id`, 
 | `source_address` | The on-chain sender. `null` when the chain does not expose it. |
 | `screening_mode` | Present while screening is in progress. See [Screening mode](#screening-mode). |
 | `message` | Present only when `status` is `ActionRequired`. Written for human operators. |
-| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`. Takes transaction-layer codes, listed in [Events overview](/payments/en/guides/events/overview#transaction-layer-codes). |
+| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`. |
 
 ### When `status` is `ActionRequired`
 
@@ -54,6 +54,30 @@ To submit a screening decision, call [Submit KYT screening decision](https://www
 `screening_mode` tells you which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.
 
 All three modes can require action from you, so `screening_mode` does not tell you whether it is your turn to act — `status` does. The field can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that no provider is configured.
+
+### Failure codes
+
+`failed_reason.code` is what you branch on. These are the codes a deposit can carry, grouped by the response each needs.
+
+**Your own compliance team made the decision**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). Review the case there to see why. |
+
+**Cobo made the decision**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. Raise it with Cobo to find out what is required. |
+
+**The reason could not be classified**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. Raise a case and quote the ID below. |
+
+The ID to quote is `transaction_id`.
 
 ## `payment.address.updated`
 

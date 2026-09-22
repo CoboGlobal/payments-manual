@@ -42,15 +42,42 @@ Because a refund has no completed or failed amount fields, `requested_amount` is
 
 ### Failure codes
 
-When the underlying transfer itself was rejected, `failed_reason.code` is a transaction-layer code — see [Events overview](/payments/en/guides/events/overview#transaction-layer-codes). When the refund failed before or around the transfer, it is one of the following.
+`failed_reason.code` is what you branch on. These are the codes a refund can carry, grouped by the response each needs.
 
-| `code` | What happened | What to do |
-| --- | --- | --- |
-| `payment.refund_sweep_failed` | Funds could not be prepared because the sweep transaction failed. | Retry the refund. |
-| `payment.refund_fee_charge_failed` | The refund fee could not be charged because the Fee Station balance is insufficient. | Add funds to Fee Station, then retry. |
-| `payment.refund_fee_station_not_configured` | The refund fee could not be charged because Fee Station is not configured. | Configure Fee Station, then retry. |
-| `payment.refund_fee_charge_failed_unknown` | The refund fee could not be charged for another reason. | Check your Fee Station configuration and balance, then retry. |
-| `payment.refund_transactions_failed` | Every refund transaction failed. | Read the transaction-layer detail before retrying. |
+**Someone on your side rejected it — clear that, then create the refund again**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. Adjust the policy in Cobo Portal. |
+| `transaction.rejected_by_approval` | An approver in your organization rejected the transfer. Contact them. |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). Review the case there. |
+
+**Fee Station could not be charged — fix that, then create the refund again**
+
+| `code` | What happened |
+| --- | --- |
+| `payment.refund_fee_charge_failed` | The Fee Station balance is insufficient. Add funds. |
+| `payment.refund_fee_station_not_configured` | Fee Station is not configured. Configure it. |
+| `payment.refund_fee_charge_failed_unknown` | The charge failed for another reason. Check both the configuration and the balance. |
+
+**Nothing to fix — create the refund again**
+
+| `code` | What happened |
+| --- | --- |
+| `payment.refund_sweep_failed` | The sweep transaction that prepares the funds failed. |
+
+**Look at the transaction detail before retrying**
+
+| `code` | What happened |
+| --- | --- |
+| `payment.refund_transactions_failed` | Every refund transaction failed. The per-transaction reason is in `payment.refund.status.updated`. |
+
+**Do not retry — raise it with Cobo**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
+| `transaction.failed` | The reason could not be classified. Quote `refund_id` when you raise the case. |
 
 ## Sample events
 
@@ -104,7 +131,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
 
 ### The refund failed
 
-**Nothing was returned.** Here the transfer never reached the chain, so `tx_hash` is empty and the reason is a transaction-layer code.
+**Nothing was returned.** Here the transfer never reached the chain, so `tx_hash` is empty.
 
 ```json
 {
@@ -131,7 +158,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
 
 ### The refund failed before the transfer
 
-The fee could not be charged, so the reason is a payments-layer code. Top up Fee Station and create the refund again.
+The fee could not be charged. Top up Fee Station and create the refund again.
 
 ```json
 {

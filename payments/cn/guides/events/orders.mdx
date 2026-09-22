@@ -63,9 +63,33 @@ lang: "zh-hans"
 
 `transactions` 是该订单当前的完整入金列表，不是自上条事件以来的增量。请整体替换本地副本，并按 `transaction_id` 做 upsert。
 
-每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，取交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。
+每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，见[失败 code](#失败-code)。
 
 低于粉尘阈值的入金完全不会出现在数组里。默认阈值为 `0.05`，金额需严格大于该值才会保留。
+
+### 失败 code
+
+`failed_reason.code` 是您分支的依据。下面是`transactions` 中的条目可能携带的 code，按需要采取的处理方式分组。
+
+**由您自己的合规团队判定**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。到该应用查看原因。 |
+
+**由 Cobo 判定**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。请与 Cobo 确认需要补充什么。 |
+
+**原因无法归类**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。请提交问题并提供下面这个 ID。 |
+
+要提供的 ID 是 `order_id`，不是条目的 `transaction_id`。
 
 ## 意外入金
 

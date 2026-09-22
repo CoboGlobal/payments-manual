@@ -63,9 +63,33 @@ The order object itself has no `failed_reason`. An order does not fail — it ex
 
 `transactions` is the order's complete current list of deposits, not the change since the last event. Replace your local copy and upsert by `transaction_id`.
 
-Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason`, which takes the transaction-layer codes listed in [Events overview](/payments/en/guides/events/overview#transaction-layer-codes).
+Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason` — see [Failure codes](#failure-codes).
 
 Deposits below the dust threshold are excluded from the array entirely. The default threshold is `0.05`, and an amount must exceed it to be kept.
+
+### Failure codes
+
+`failed_reason.code` is what you branch on. These are the codes an entry in `transactions` can carry, grouped by the response each needs.
+
+**Your own compliance team made the decision**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). Review the case there to see why. |
+
+**Cobo made the decision**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. Raise it with Cobo to find out what is required. |
+
+**The reason could not be classified**
+
+| `code` | What happened |
+| --- | --- |
+| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. Raise a case and quote the ID below. |
+
+The ID to quote is `order_id`, not the entry's `transaction_id`.
 
 ## Unexpected deposits
 

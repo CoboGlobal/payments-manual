@@ -35,7 +35,7 @@ lang: "zh-hans"
 | `source_address` | 链上发送方。链上无法识别时为 `null`。 |
 | `screening_mode` | 筛查进行中时提供，参见[筛查模式](#筛查模式)。 |
 | `message` | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。 |
-| `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取交易层 code，见[事件概述](/payments/cn/guides/events/overview#交易层-code)。 |
+| `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取值见[失败 code](#失败-code)。 |
 
 ### `status` 为 `ActionRequired` 时
 
@@ -54,6 +54,30 @@ lang: "zh-hans"
 `screening_mode` 说明这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。
 
 三种模式下都可能需要您动手，因此它不能用来判断是不是轮到您处理——这件事由 `status` 表达。筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。
+
+### 失败 code
+
+`failed_reason.code` 是您分支的依据。下面是入金可能携带的 code，按需要采取的处理方式分组。
+
+**由您自己的合规团队判定**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。到该应用查看原因。 |
+
+**由 Cobo 判定**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。请与 Cobo 确认需要补充什么。 |
+
+**原因无法归类**
+
+| `code` | 发生了什么 |
+| --- | --- |
+| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。请提交问题并提供下面这个 ID。 |
+
+要提供的 ID 是 `transaction_id`。
 
 ## `payment.address.updated`
 

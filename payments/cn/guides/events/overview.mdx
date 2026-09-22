@@ -80,24 +80,13 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按业务对象组
 "failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
 ```
 
-`code` 是受控枚举，也是您分支的依据。请保留完整字符串（包括前缀），不要按点号拆开。前缀说明失败发生在哪一层：`payment.*` 是支付编排层，例如手续费扣收、资金准备、校验；`transaction.*` 是交易层。
+`code` 是受控枚举，也是您分支的依据。请保留完整字符串，不要按点号拆开——前缀是取值的一部分，不是需要您解读的信息。
 
 `message` 面向运营人员，措辞可能调整，因此可以展示但绝不能用于匹配。
 
-### 交易层 code
+每个业务页面会列出该对象上可能出现的 code，并按需要采取的处理方式分组：[充值](/payments/cn/guides/events/top-up#失败-code)、[订单](/payments/cn/guides/events/orders#失败-code)、[退款](/payments/cn/guides/events/refunds#失败-code)、[资金转出](/payments/cn/guides/events/payouts#失败-code)、[批量下发](/payments/cn/guides/events/bulk-send#失败-code)。
 
-这些 code 可能出现在任何涉及资金转移的对象上。
-
-| `code` | 什么情况下会发生 | 您该做什么 |
-| --- | --- | --- |
-| `transaction.rejected_by_screening_app` | 您的合规团队在 Screening App 中拒绝了这笔交易。 | 到 Screening App 查看原因，放行后再重发。 |
-| `transaction.rejected_by_policy` | 这笔交易命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整对应策略，然后重发。 |
-| `transaction.rejected_by_approval` | 您组织内的审批人拒绝了这笔交易。 | 联系该审批人，然后重发。 |
-| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔交易。 | 不要重发，先与 Cobo 解决该问题。 |
-| `transaction.rejected_by_bank` | 收款银行退回了这笔付款，仅 Off-Ramp 付款会出现。 | 重发前先与收款方核对银行账户信息，原样重发大概率会再次被拒。 |
-| `transaction.failed` | 失败原因无法归类，涵盖链上失败、广播失败、余额不足、签名失败、交易取消，以及受链重组影响的入金。 | 提交问题时提供业务对象 ID。 |
-
-支付层 code 因业务对象而异，列在各对象自己的页面上。
+### 提交问题时报业务对象 ID
 
 ### 提交问题时报业务对象 ID
 

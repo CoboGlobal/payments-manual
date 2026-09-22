@@ -80,24 +80,13 @@ Events that can report a failure carry a `failed_reason` object.
 "failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
 ```
 
-`code` is a controlled enumeration and is what you branch on. Keep the full string, including the prefix, and do not split it on the dot. The prefix tells you which layer failed: `payment.*` is the payments orchestration layer, such as fee collection, fund preparation, or validation; `transaction.*` is the transaction layer.
+`code` is a controlled enumeration and is what you branch on. Keep the full string and do not split it on the dot — the prefix is part of the value, not information you need to interpret.
 
 `message` is written for human operators and its wording can change, so display it but never match on it.
 
-### Transaction-layer codes
+Each business page lists the codes that can appear on that object, grouped by the response they need: [Top-up](/payments/en/guides/events/top-up#failure-codes), [Order](/payments/en/guides/events/orders#failure-codes), [Refund](/payments/en/guides/events/refunds#failure-codes), [Payout](/payments/en/guides/events/payouts#failure-codes), [Bulk send](/payments/en/guides/events/bulk-send#failure-codes).
 
-These codes can appear on any object that moves funds.
-
-| `code` | When it happens | What to do |
-| --- | --- | --- |
-| `transaction.rejected_by_screening_app` | Your compliance team rejected the transaction in the Screening App. | Review the case there, then resend once it is cleared. |
-| `transaction.rejected_by_policy` | The transaction matched one of your own transaction policies. | Adjust the relevant policy in Cobo Portal, then resend. |
-| `transaction.rejected_by_approval` | An approver in your organization rejected the transaction. | Contact that approver, then resend. |
-| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transaction. | Do not resend. Resolve the issue with Cobo first. |
-| `transaction.rejected_by_bank` | The receiving bank returned the payout. Off-Ramp payouts only. | Confirm the recipient's bank account details before resending. Resending unchanged is likely to be rejected again. |
-| `transaction.failed` | The failure could not be classified. Covers on-chain failures, broadcast failures, insufficient balance, signing failures, cancellations, and deposits affected by a chain reorganization. | Report the business object ID when you raise the case. |
-
-Payments-layer codes are specific to each business object and are listed on that object's page.
+### Report the business object ID
 
 ### Report the business object ID
 
