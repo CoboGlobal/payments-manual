@@ -25,9 +25,9 @@ Each business page lists the advanced events that belong to its flow, and [Advan
 
 ## All payment events
 
-Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, follow its link.
+Every payment event, whether or not your integration needs it. If you already subscribe to an event and want to know where it is described, follow its link. **Required** means a new integration has to subscribe to it.
 
-| Event | Required for a new integration | What it notifies you of |
+| Event | Required | What it notifies you of |
 | --- | --- | --- |
 | [`payment.topup.updated`](/payments/en/guides/events/top-up#paymenttopupupdated) | **Yes** | A single deposit, from the moment it is detected through screening to the moment it can be credited — or fails. `status` alone tells you whether the money is usable. |
 | [`payment.order.updated`](/payments/en/guides/events/orders#paymentorderupdated) | **Yes** | An order's collection result: paid in full, underpaid at expiry, expired with nothing credited, a deposit that needs your action, or money that arrives after the order already ended. |

@@ -25,9 +25,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 ## 所有支付事件一览
 
-不论您的接入是否需要，这里列出全部支付事件。如果您已经订阅了某个事件、想知道它写在哪，点它的链接。
+不论您的接入是否需要，这里列出全部支付事件。如果您已经订阅了某个事件、想知道它写在哪，点它的链接。「必选」指新接入必须订阅的那几个。
 
-| 事件 | 新接入是否必须 | 通知什么 |
+| 事件 | 必选 | 通知什么 |
 | --- | --- | --- |
 | [`payment.topup.updated`](/payments/cn/guides/events/top-up#paymenttopupupdated) | **是** | 一笔充值从被检测到、经过筛查，直到可以入账或者失败的全过程。能不能入账只看 `status`。 |
 | [`payment.order.updated`](/payments/cn/guides/events/orders#paymentorderupdated) | **是** | 一笔订单的收款结果：已付清、到期少付、到期且无入账、某笔入金需要您处理，或者订单结束后又收到钱。 |
