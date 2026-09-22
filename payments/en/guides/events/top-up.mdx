@@ -41,14 +41,8 @@ The primary event for Top-up Mode. One deposit produces one object, identified b
 | `topup_address` | The deposit address that received the funds. |
 | `source_address` | The on-chain sender. `null` when the chain does not expose it. |
 | `screening_mode` | Which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation. **All three modes can require action from you, so it does not tell you whether it is your turn** — `status` does. It can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
-| `message` | Present only when `status` is `ActionRequired`. Written for human operators. Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue. The three strings are below. |
+| `message` | Present only when `status` is `ActionRequired`. Written for human operators. Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue. The three fixed strings:<br/>1. `Additional information is required…Please check the email…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>2. `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>3. `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`; values under [Failure reasons](#failure-reasons). |
-
-| What you need to do | `message` says |
-| --- | --- |
-| Check the email Cobo sent to your account contact, and supply the information it asks for. | `Additional information is required…Please check the email…` |
-| Submit the screening result from your own KYT provider in the Screening App. | `A screening result from your own KYT provider is required…` |
-| Complete a manual compliance review in the Screening App. | `A manual compliance review by your team is required…` |
 
 To submit a screening decision, call [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) with the `transaction_id` from this event. Returning, quarantining, and unfreezing funds are also keyed on `transaction_id`. None of these operations accept `tx_hash`.
 

@@ -41,29 +41,12 @@ lang: "zh-hans"
 | `receive_address` | 付款方转账的目标地址。 |
 | `expired_at` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `notice_type` | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
-| `transactions` | 该订单至今关联的全部入金，参见[读取入金数组](#事件内容)。 |
+| `requested_amount` | 订单应收总额，**含您的手续费**。展示给付款方用。⚠️ **它不是发货阈值**——足额判定带容差，能否发货以 `status=Completed` 为准。 |
+| `credited_amount` | 已收到并计入订单的总额，用于对账。⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**——两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
+| `outstanding_amount` | 还差多少未收到，用于告知付款方还需支付多少。下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。⚠️ 它把四种情况合并成一个数：付款方没打钱、打了在筛查、打了待补件、打了被拒——这四种处理方式完全不同，要知道钱卡在哪，请遍历 `transactions` 按条目 `status` 分组。 |
+| `transactions` | 该订单**至今的全部入金**，不是自上条事件以来的增量：请整体替换本地副本，按 `transaction_id` upsert。每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）；处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
 
 订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
-
-**三个金额字段怎么用。**
-
-| 字段 | 是什么 | 怎么用 |
-| --- | --- | --- |
-| `requested_amount` | 订单应收总额，**含您的手续费**。 | 展示给付款方。它不是发货阈值。 |
-| `credited_amount` | 已收到并计入订单的总额。 | 用于对账。不要自己对数组求和：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。 |
-| `outstanding_amount` | 还差多少未收到。 | 用于告知付款方还需支付多少。 |
-
-`credited_amount` 包含将要分给您的那部分手续费，因此它不是商户的入账金额。两个账户各自实际收到多少，请读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。
-
-`outstanding_amount` 下限为 `0`，多付时保持 `0`，因此它无法表达多收了多少。它还把四种情况合并成一个数：付款方没打钱、资金在筛查中、资金在等您补充信息、资金被拒绝。这四种的处理方式完全不同，需要遍历 `transactions` 并按条目的 `status` 分组，才能知道钱卡在哪里。
-
-**读取 `transactions` 数组。**
-
-`transactions` 是该订单当前的完整入金列表，不是自上条事件以来的增量。请整体替换本地副本，并按 `transaction_id` 做 upsert。
-
-每个条目包含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`，取值与充值相同的五个。处于 `PendingScreening` 或 `ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`。失败的条目带自己的 `failed_reason`，见[失败 code](#失败原因)。
-
-低于粉尘阈值的入金完全不会出现在数组里。默认阈值为 `0.05`，金额需严格大于该值才会保留。
 
 ### 失败原因
 

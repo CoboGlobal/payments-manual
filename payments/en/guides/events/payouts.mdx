@@ -36,35 +36,18 @@ The primary payout event, identified by `payout_id`.
 
 | Field | Description |
 | --- | --- |
-| `payout_id` | The payout's identity, and the key you use when closing the payout and when raising a support case. |
+| `payout_id` | The payout's identity, and the key you use when closing it and when raising a case. |
 | `request_id` | The request ID you supplied when creating the payout. |
 | `source_account` | The account the funds are paid from. |
-| `requested_target` | Where the money is going, in business terms. Carries `target_type`, which is either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
+| `requested_target` | Where the money is going, in business terms. Carries `target_type`, either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
 | `initiator` | Who initiated the payout. |
 | `remark` | The note attached to the payout. |
-| `transactions` | The outgoing transactions. See [Reading the transactions array](#event-content). |
+| `requested_amounts` | **Source side**: what you asked to pay out, grouped by source token. |
+| `failed_amounts` | **Source side**: the part that was not paid out, grouped by source token. At a final status, the amount that succeeded is the difference between the two. ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction is created, during fund consolidation, cross-chain conversion, or commission collection, and then no entry exists in the array at all. |
+| `actual_payout_amount` | **Delivery side**: what the recipient actually received. For crypto this is the destination token; for Off-Ramp it is the bank account's currency. Absent until the payout finishes. ⚠️ **Do not subtract it from the source-side amounts** — cross-chain conversion and fiat settlement mean the two sides are not the same asset. |
+| `commission_fees` | **Source side**: the commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
+| `transactions` | The outgoing transactions. Entries use **`result`**, not `status`, to avoid confusion with wallet transaction states: `Completed`, `Failed`, or `null` when there is no result yet. Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`; `tx_hash` is empty until the transaction is broadcast, and an entry with `result` `Failed` carries its own `failed_reason`. ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
 | `failed_reason` | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
-
-**The amounts are on two different sides.**
-
-| Field | Side | Notes |
-| --- | --- | --- |
-| `requested_amounts` | Source | What you asked to pay out, grouped by source token. |
-| `failed_amounts` | Source | The part that was not paid out, grouped by source token. At a final status, the amount that succeeded is the difference between the two. |
-| `actual_payout_amount` | Delivery | What the recipient actually received. For crypto this is in the destination token; for Off-Ramp it is in the bank account's currency. Absent until the payout finishes. |
-| `commission_fees` | Source | The commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
-
-**Do not subtract across the two sides.** Cross-chain conversion and fiat settlement mean the source and delivery figures are not the same asset.
-
-**Do not reconcile `failed_amounts` against `transactions`.** A payout item can fail before any outgoing transaction is created — during fund consolidation, cross-chain conversion, or commission collection — and in that case no entry exists in the array at all.
-
-**Reading the `transactions` array.**
-
-Entries use `result`, not `status`, to avoid confusion with wallet transaction states. The values are `Completed`, `Failed`, and `null`, where `null` means there is no result yet.
-
-Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`. `tx_hash` is empty until the transaction is broadcast. An entry with `result` `Failed` carries its own `failed_reason` — see [Failure codes](#failure-reasons).
-
-After cross-chain conversion, an entry's `amount` is in the token actually sent, which can differ from the source token in `requested_amounts`.
 
 ### Failure reasons
 

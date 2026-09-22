@@ -41,14 +41,8 @@ lang: "zh-hans"
 | `topup_address` | 收到这笔资金的入金地址。 |
 | `source_address` | 链上发送方。链上无法识别时为 `null`。 |
 | `screening_mode` | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。**三种模式下都可能需要您动手，所以它不能用来判断是不是轮到您处理**——那件事由 `status` 表达。筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。 |
-| `message` | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。三种需要您处理的情况共用这一个状态，靠它区分；但它**不能用于程序匹配**，所以这三类目前无法自动分流，需要进入人工队列。三段文案见下表。 |
+| `message` | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。三种需要您处理的情况共用这一个状态，靠它区分，但它**不能用于程序匹配**，因此这三类目前无法自动分流，需要进入人工队列。三段固定文案：<br/>① `Additional information is required…Please check the email…`——查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>② `A screening result from your own KYT provider is required…`——在 Screening App 中提交您自有 KYT 供应商的扫描结论。<br/>③ `A manual compliance review by your team is required…`——在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取值见[失败原因](#失败原因)。 |
-
-| 您需要做什么 | `message` 会提示 |
-| --- | --- |
-| 查收 Cobo 发给您账户联系人的邮件，并按邮件要求补充材料。 | `Additional information is required…Please check the email…` |
-| 在 Screening App 中提交您自有 KYT 供应商的扫描结论。 | `A screening result from your own KYT provider is required…` |
-| 在 Screening App 中完成人工合规复核。 | `A manual compliance review by your team is required…` |
 
 提交筛查结论时，调用 [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) 并传入本事件中的 `transaction_id`。资金退回、隔离、解冻同样按 `transaction_id` 定位，这些接口都不接受 `tx_hash`。
 

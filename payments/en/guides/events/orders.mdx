@@ -41,29 +41,12 @@ The primary event for Order Mode, identified by `order_id`.
 | `receive_address` | The address the payer sends funds to. |
 | `expired_at` | When the payment window closes, as a Unix timestamp in seconds. |
 | `notice_type` | Why you were notified when `status` did not change. Either `PaymentUpdated` or `LatePaymentReceived`. |
-| `transactions` | Every deposit associated with the order so far. See [Reading the deposits array](#event-content). |
+| `requested_amount` | The total the order expects, **including your fee**. Show it to the payer. ⚠️ **It is not a fulfilment threshold** — completion allows a tolerance, so release goods on `status=Completed`, not on an amount comparison. |
+| `credited_amount` | The total received and counted towards the order. Use it for reconciliation. ⚠️ **Do not sum `transactions` yourself**: a late payment is a `Completed` entry that does not count towards the order, so your sum comes out higher. ⚠️ It **includes the portion that will be split out as your fee, so it is not the merchant's credited amount** — for what each account actually received, read `payment.account.balance.updated` or call `GET /payments/balance_changes?source_id=<order_id>`. |
+| `outstanding_amount` | How much is still missing. Use it to tell the payer what is left. It has a floor of `0` and stays `0` on overpayment, so it **never tells you how much was overpaid**. ⚠️ It merges four situations into one number: the payer has not sent anything, funds are in screening, funds are waiting for information from you, and funds were rejected. Those need different responses, so walk `transactions` and group by each entry's `status` to see where the money is stuck. |
+| `transactions` | **Every deposit associated with the order so far**, not the change since the last event: replace your local copy and upsert by `transaction_id`. Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status` (the same five values as a top-up); entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, `ActionRequired` entries carry `message`, and a failed entry carries its own `failed_reason`. ⚠️ **Deposits below the dust threshold are not in the array at all** — the default is `0.05`, and an amount must exceed it to be kept. |
 
 The order object itself has no `failed_reason`. An order does not fail — it expires or ends underpaid. Failures belong to individual deposits inside `transactions`.
-
-**How to use the three amounts.**
-
-| Field | What it is | How to use it |
-| --- | --- | --- |
-| `requested_amount` | The total the order expects, **including your fee**. | Show it to the payer. It is not a fulfilment threshold. |
-| `credited_amount` | The total received and counted towards the order. | Use it for reconciliation. Do not sum the array yourself: a late payment is a `Completed` entry that does not count towards the order, so your sum comes out higher. |
-| `outstanding_amount` | How much is still missing. | Use it to tell the payer what is left. |
-
-`credited_amount` includes the portion that will be split out as your fee, so it is not the merchant's credited amount. For what each account actually received, read `payment.account.balance.updated` or call `GET /payments/balance_changes?source_id=<order_id>`.
-
-`outstanding_amount` has a floor of `0` and stays `0` on overpayment, so it never tells you how much was overpaid. It also merges four different situations into one number: the payer has not sent anything, funds are in screening, funds are waiting for information from you, and funds were rejected. Those need different responses, so walk `transactions` and group by each entry's `status` to see where the money is stuck.
-
-**Reading the `transactions` array.**
-
-`transactions` is the order's complete current list of deposits, not the change since the last event. Replace your local copy and upsert by `transaction_id`.
-
-Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status`, which uses the same five values as a top-up. Entries in `PendingScreening` or `ActionRequired` also carry `screening_mode`, and `ActionRequired` entries carry `message`. An entry that failed carries its own `failed_reason` — see [Failure codes](#failure-reasons).
-
-Deposits below the dust threshold are excluded from the array entirely. The default threshold is `0.05`, and an amount must exceed it to be kept.
 
 ### Failure reasons
 

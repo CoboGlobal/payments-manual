@@ -42,29 +42,12 @@ lang: "zh-hans"
 | `requested_target` | 业务意义上的收款目标。包含 `target_type`，取 `Address`（带 `address` 与 `chain_id`）或 `BankAccount`（带 `bank_account_id`、`account_alias`、`bank_name`、`currency`）。它不会暴露合约地址等链上执行细节。 |
 | `initiator` | 转出发起人。 |
 | `remark` | 转出备注。 |
-| `transactions` | 转出交易列表，参见[读取交易数组](#事件内容)。 |
+| `requested_amounts` | **源侧**：您请求付出的金额，按源币种分组。 |
+| `failed_amounts` | **源侧**：其中没有付出去的部分，按源币种分组。到终态时，成功的金额等于两者之差。⚠️ **不要用 `transactions` 去核对它**——转出项可能在任何转出交易创建之前就失败（资金归集、跨链兑换、佣金扣收），此时数组里根本没有对应条目。 |
+| `actual_payout_amount` | **交付侧**：收款方实际收到的金额。加密货币结算时为目标币种，Off-Ramp 时为银行账户的币种。转出完成前没有该值。⚠️ **不要与源侧金额相减**——跨链兑换和法币结算都会让两边不是同一种资产。 |
+| `commission_fees` | **源侧**：Cobo 收取的佣金，每个 token 一条。收取与冲回相抵时某条可能为 `0` 或负数。 |
+| `transactions` | 转出交易列表。条目用 **`result`** 而不是 `status`，以避免与钱包交易状态混淆，取值为 `Completed`、`Failed` 和 `null`（`null` 表示尚无结果）。每个条目含 `transaction_id`、`amount`、`tx_hash` 和 `result`；交易广播前 `tx_hash` 为空，`result` 为 `Failed` 的条目带自己的 `failed_reason`。⚠️ 经过跨链兑换后，条目的 `amount` 是**实际转出时的币种**，可能与 `requested_amounts` 中的源币种不同。 |
 | `failed_reason` | 当 `status` 为 `Failed`、`RejectedByBank` 或 `PartiallyCompleted` 时出现。 |
-
-**金额分属两侧口径。**
-
-| 字段 | 属于哪一侧 | 说明 |
-| --- | --- | --- |
-| `requested_amounts` | 源侧 | 您请求付出的金额，按源币种分组。 |
-| `failed_amounts` | 源侧 | 其中没有付出去的部分，按源币种分组。到终态时，成功的金额等于两者之差。 |
-| `actual_payout_amount` | 交付侧 | 收款方实际收到的金额。加密货币结算时为目标币种，Off-Ramp 时为银行账户的币种。转出完成前没有该值。 |
-| `commission_fees` | 源侧 | Cobo 收取的佣金，每个 token 一条。收取与冲回相抵时某条可能为 `0` 或负数。 |
-
-**不要跨两侧相减。** 跨链兑换和法币结算都会让两边不是同一种资产。
-
-**不要用 `transactions` 去核对 `failed_amounts`。** 转出项可能在任何转出交易创建之前就失败——资金归集、跨链兑换、佣金扣收阶段——此时数组里根本没有对应条目。
-
-**读取 `transactions` 数组。**
-
-条目用 `result` 而不是 `status`，以避免与钱包交易状态混淆，取值为 `Completed`、`Failed` 和 `null`，其中 `null` 表示尚无结果。
-
-每个条目包含 `transaction_id`、`amount`、`tx_hash` 和 `result`。交易广播前 `tx_hash` 为空。`result` 为 `Failed` 的条目带自己的 `failed_reason`，见[失败 code](#失败原因)。
-
-经过跨链兑换后，条目的 `amount` 是实际转出时的币种，可能与 `requested_amounts` 中的源币种不同。
 
 ### 失败原因
 
