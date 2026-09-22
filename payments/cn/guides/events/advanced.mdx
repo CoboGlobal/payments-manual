@@ -26,7 +26,6 @@ lang: "zh-hans"
 | `payment.payout.status.updated` | 转出的交易信息，与 `payment.payout.updated` 同时投递。 |
 | `payment.bulk_send.status.updated` | 批次的交易信息，与 `payment.bulk_send.updated` 同时投递。 |
 | `payment.bulk_send.item.status.updated` | 条目的交易信息，与 `payment.bulk_send.item.updated` 同时投递。 |
-| `payment.transaction.settlement_network.*` | 结算网络交易，参见[结算网络](/payments/cn/guides/events/settlement-network)。 |
 
 ## 入金交易
 
@@ -188,15 +187,6 @@ lang: "zh-hans"
 - `updated_timestamp`（必填）—— 最近更新时间，Unix 时间戳（秒）。
 
 要测试投递到您已注册的 Webhook 接收端，请使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设为 `payment.bulk_send.item.status.updated`。
-
-## 结算网络交易
-
-| 事件 | 触发时机 |
-| --- | --- |
-| `payment.transaction.settlement_network.created` | 创建了一笔结算网络交易。 |
-| `payment.transaction.settlement_network.completed` | 该交易完成，结算资金已反映到您的 Payment 账户余额中。 |
-
-参见[结算网络事件](/payments/cn/guides/events/settlement-network)。
 
 ## 交易字段
 

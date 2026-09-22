@@ -90,7 +90,6 @@
                       "payments/en/guides/events/refunds",
                       "payments/en/guides/events/payouts",
                       "payments/en/guides/events/bulk-send",
-                      "payments/en/guides/events/settlement-network",
                       "payments/en/guides/events/balances",
                       "payments/en/guides/events/advanced"
                     ]
@@ -397,7 +396,6 @@
                       "payments/cn/guides/events/refunds",
                       "payments/cn/guides/events/payouts",
                       "payments/cn/guides/events/bulk-send",
-                      "payments/cn/guides/events/settlement-network",
                       "payments/cn/guides/events/balances",
                       "payments/cn/guides/events/advanced"
                     ]
@@ -552,6 +550,14 @@
     {
       "source": "/payments/cn/guides/status-and-events",
       "destination": "/payments/cn/guides/events/overview"
+    },
+    {
+      "source": "/payments/en/guides/events/settlement-network",
+      "destination": "/payments/en/guides/events/balances"
+    },
+    {
+      "source": "/payments/cn/guides/events/settlement-network",
+      "destination": "/payments/cn/guides/events/balances"
     }
   ]
 }

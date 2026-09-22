@@ -16,7 +16,6 @@ Subscribe to the events for the payment businesses you actually use. Each page c
 | Refunds | `payment.refund.updated` | [Refund events](/payments/en/guides/events/refunds) |
 | Single payouts and transfers | `payment.payout.updated` | [Payout events](/payments/en/guides/events/payouts) |
 | Bulk sends | `payment.bulk_send.updated`, `payment.bulk_send.item.updated` | [Bulk send events](/payments/en/guides/events/bulk-send) |
-| Settlement Network | `payment.transaction.settlement_network.*` | [Settlement Network events](/payments/en/guides/events/settlement-network) |
 | Account balances | `payment.account.balance.updated` | [Balance changes](/payments/en/guides/events/balances) |
 
 **Every other payment event is an advanced event.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return detail about the underlying on-chain transaction, and you only need to subscribe when that detail matters to you — confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information.
@@ -40,8 +39,6 @@ Every payment event, whether or not your integration needs it. If you already su
 | [`payment.transaction.external.completed`](/payments/en/guides/events/top-up#paymenttransactionexternal) | **Yes** | That unexpected deposit cleared screening and was credited to your developer balance. |
 | [`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#paymentbank_withdrawalstatusupdated) | **Yes** | A fiat withdrawal from one of your virtual accounts to a bank account changed status. Carries a `timeline` instead of an `updated_timestamp`. |
 | [`payment.account.balance.updated`](/payments/en/guides/events/balances#paymentaccountbalanceupdated) | **Yes** | One account's available balance moved for one token, with the balance before and after and what caused it. This is how you see what each account actually received. |
-| [`payment.transaction.settlement_network.created`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | **Yes** | A Settlement Network transaction was created. |
-| [`payment.transaction.settlement_network.completed`](/payments/en/guides/events/settlement-network#paymenttransactionsettlement_network) | **Yes** | The Settlement Network transaction completed. The amount that landed comes from the matching balance event, not from this one. |
 | [`payment.transaction.created`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit address received a new deposit, with the on-chain detail behind it. Top-up Mode. |
 | [`payment.transaction.completed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit cleared screening and was credited, with confirmation counts, fees and block information. |
 | [`payment.transaction.failed`](/payments/en/guides/events/advanced#pay-in-transactions) | No | A deposit did not clear screening, with the transaction-level detail. |

@@ -55,12 +55,7 @@ To review these balance changes, generate a `BalanceChange` report and filter on
 
 ## Webhook touchpoints
 
-Cobo emits the following webhook events for Settlement Network transactions:
-
-- `payment.transaction.settlement_network.created`: emitted when a Settlement Network transaction is created.
-- `payment.transaction.settlement_network.completed`: emitted when a Settlement Network transaction is completed. On completion, the settled funds are reflected in your Payment account balance with the `SettlementNetwork` `source_type`.
-
-Both events carry transaction-level payload fields. For the shared payload structure and delivery behavior, see [Settlement Network events](/payments/en/guides/events/settlement-network).
+When a Settlement Network transaction completes, the settled funds reach your Payment account balance and Cobo emits [`payment.account.balance.updated`](/payments/en/guides/events/balances) with the `SettlementNetwork` `source_type`. That event carries the amount that landed.
 
 ## Troubleshooting
 
@@ -75,4 +70,3 @@ Both events carry transaction-level payload fields. For the shared payload struc
 - [Crypto payouts](/payments/en/guides/crypto-payouts)
 - [Destinations](/payments/en/guides/destinations)
 - [Reports](/payments/en/guides/reports)
-- [Settlement Network events](/payments/en/guides/events/settlement-network)

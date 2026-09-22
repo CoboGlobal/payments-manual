@@ -16,7 +16,6 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | 退款 | `payment.refund.updated` | [退款事件](/payments/cn/guides/events/refunds) |
 | 单笔资金转出与转账 | `payment.payout.updated` | [资金转出事件](/payments/cn/guides/events/payouts) |
 | 批量下发 | `payment.bulk_send.updated`、`payment.bulk_send.item.updated` | [批量下发事件](/payments/cn/guides/events/bulk-send) |
-| 结算网络 | `payment.transaction.settlement_network.*` | [结算网络事件](/payments/cn/guides/events/settlement-network) |
 | 账户余额 | `payment.account.balance.updated` | [余额变动](/payments/cn/guides/events/balances) |
 
 **其余的支付事件都是高级事件。** 这既包括 `payment.transaction.*` 这一族，也包括 `*.status.updated` 这一族（`payment.order.status.updated`、`payment.refund.status.updated`、`payment.payout.status.updated`、`payment.bulk_send.status.updated`、`payment.bulk_send.item.status.updated`）：它们返回的都是底层链上交易的细节，只在您需要关心这些细节时才需要订阅，例如确认数、手续费明细，或替换（丢弃、重发、加速）情况。
@@ -40,8 +39,6 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | [`payment.transaction.external.completed`](/payments/cn/guides/events/top-up#paymenttransactionexternal) | **是** | 那笔意外入金通过了筛查，已计入您的开发者余额。 |
 | [`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#paymentbank_withdrawalstatusupdated) | **是** | 从您的某个虚拟账户提现法币到银行账户的状态变更。它带的是 `timeline`，没有 `updated_timestamp`。 |
 | [`payment.account.balance.updated`](/payments/cn/guides/events/balances#paymentaccountbalanceupdated) | **是** | 某个账户在某个 token 上的可用余额发生变动，给出变动前后的余额和变动来源。每个账户实际收到多少，看这个事件。 |
-| [`payment.transaction.settlement_network.created`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | **是** | 创建了一笔结算网络交易。 |
-| [`payment.transaction.settlement_network.completed`](/payments/cn/guides/events/settlement-network#paymenttransactionsettlement_network) | **是** | 该结算网络交易完成。到账金额由对应的余额事件给出，不在这个事件里。 |
 | [`payment.transaction.created`](/payments/cn/guides/events/advanced#入金交易) | 否 | 入金地址收到一笔新的入金，并给出背后的链上细节。仅充值模式。 |
 | [`payment.transaction.completed`](/payments/cn/guides/events/advanced#入金交易) | 否 | 一笔入金通过筛查并已入账，附带确认数、手续费和区块信息。 |
 | [`payment.transaction.failed`](/payments/cn/guides/events/advanced#入金交易) | 否 | 一笔入金未通过筛查，附带交易层面的细节。 |
