@@ -239,7 +239,7 @@ Always present: `bulk_send_item_id`, `bulk_send_id`, `status`, `requested_amount
 | Get the batch approved, then send it again | `payment.app_workflow_approval_rejected` | The approval workflow rejected the batch. Ask the approver why. |
 | Get the batch approved, then send it again | `payment.app_workflow_approval_revoked` | The approval workflow was revoked. |
 | Clear it on your side, then send it again | `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. Adjust the policy in Cobo Portal. |
-| Clear it on your side, then send it again | `transaction.rejected_by_approval` | An approver in your organization rejected the transfer. Contact them. |
+| Clear it on your side, then send it again | `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. Contact them. |
 | Clear it on your side, then send it again | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). |
 | Send it again as-is | `payment.sweep_task_failed` | The sweep transaction that prepares the funds failed. |
 | Do not retry — raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
@@ -289,7 +289,7 @@ Funds moved and came back: locked funds were released and the fee was returned. 
   "description": "affiliate 002",
   "failed_reason": {
     "code": "transaction.rejected_by_approval",
-    "message": "An approver in your organization rejected this transaction. Contact them, then resend."
+    "message": "Someone in your organization rejected this transaction — an approver, or a co-signer who declined to sign. Contact them, then resend."
   },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712950

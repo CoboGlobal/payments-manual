@@ -239,7 +239,7 @@ lang: "zh-hans"
 | 让批次通过审批后重发 | `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。请向审批人确认原因。 |
 | 让批次通过审批后重发 | `payment.app_workflow_approval_revoked` | 审批流被撤销。 |
 | 在您这边处理掉，然后重发 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。请在 Cobo Portal 中调整该策略。 |
-| 在您这边处理掉，然后重发 | `transaction.rejected_by_approval` | 您组织内的审批人拒绝了这笔转账。请联系该审批人。 |
+| 在您这边处理掉，然后重发 | `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。请联系对方。 |
 | 在您这边处理掉，然后重发 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 |
 | 直接重发 | `payment.sweep_task_failed` | 准备资金的归集交易失败。 |
 | 不要重试，联系 Cobo | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 |
@@ -289,7 +289,7 @@ lang: "zh-hans"
   "description": "affiliate 002",
   "failed_reason": {
     "code": "transaction.rejected_by_approval",
-    "message": "An approver in your organization rejected this transaction. Contact them, then resend."
+    "message": "Someone in your organization rejected this transaction — an approver, or a co-signer who declined to sign. Contact them, then resend."
   },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712950

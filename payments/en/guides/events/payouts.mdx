@@ -72,7 +72,7 @@ After cross-chain conversion, an entry's `amount` is in the token actually sent,
 | --- | --- | --- |
 | Pay the rest with a new payout | `payment.payout_partially_failed` | Some of the payout could not be completed. `failed_amounts` is the amount to send again. |
 | Clear it on your side, then create the payout again | `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. Adjust the policy in Cobo Portal. |
-| Clear it on your side, then create the payout again | `transaction.rejected_by_approval` | An approver in your organization rejected the transfer. Contact them. |
+| Clear it on your side, then create the payout again | `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. Contact them. |
 | Clear it on your side, then create the payout again | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). |
 | Fix Fee Station, then create the payout again | `payment.payout_fee_charge_failed` | The Fee Station balance is insufficient. Add funds. |
 | Fix Fee Station, then create the payout again | `payment.payout_fee_station_not_configured` | Fee Station is not configured. Configure it. |
@@ -80,7 +80,7 @@ After cross-chain conversion, an entry's `amount` is in the token actually sent,
 | Create the payout again as-is | `payment.payout_sweep_failed` | The sweep transaction that prepares the funds failed. |
 | Check the route, then create the payout again | `payment.payout_bridge_failed` | Every cross-chain transaction failed, so the assets could not be converted. |
 | Read the transaction detail first | `payment.payout_transactions_failed` | Every outgoing transaction failed. The per-transaction reason is in `transactions`. |
-| Check the account details with the recipient first | `transaction.rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. Sending the same details again will most likely be rejected again. |
+| Check the account details with the recipient first | `payment.rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. Sending the same details again will most likely be rejected again. |
 | Do not retry — raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
 | Do not retry — raise it with Cobo, quoting `payout_id` | `transaction.failed` | The reason could not be classified. |
 
@@ -288,7 +288,7 @@ Confirm the account details with the recipient before resending. `requested_targ
   "commission_fees": [],
   "remark": null,
   "failed_reason": {
-    "code": "transaction.rejected_by_bank",
+    "code": "payment.rejected_by_bank",
     "message": "The receiving bank rejected this payout. Check the recipient's bank account details with them before resending — resending unchanged will most likely be rejected again."
   },
   "created_timestamp": 1744703000,

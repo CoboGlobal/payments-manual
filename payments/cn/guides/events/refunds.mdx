@@ -53,7 +53,7 @@ lang: "zh-hans"
 | 怎么处理 | `code` | 发生了什么 |
 | --- | --- | --- |
 | 在您这边处理掉，然后重新创建退款 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。请在 Cobo Portal 中调整该策略。 |
-| 在您这边处理掉，然后重新创建退款 | `transaction.rejected_by_approval` | 您组织内的审批人拒绝了这笔转账。请联系该审批人。 |
+| 在您这边处理掉，然后重新创建退款 | `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。请联系对方。 |
 | 在您这边处理掉，然后重新创建退款 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 |
 | 处理 Fee Station，然后重新创建退款 | `payment.refund_fee_charge_failed` | Fee Station 余额不足。请充值。 |
 | 处理 Fee Station，然后重新创建退款 | `payment.refund_fee_station_not_configured` | 未配置 Fee Station。请先配置。 |
