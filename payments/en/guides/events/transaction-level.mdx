@@ -22,6 +22,21 @@ For the `*.status.updated` events, go to the business page: [Order](/payments/en
   Do not drive an irreversible action from both a business object event and a transaction-level event. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
 </Note>
 
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| `payment.transaction.created` | A deposit address received a new deposit. Top-up Mode. |
+| `payment.transaction.completed` | A deposit cleared screening and was credited. |
+| `payment.transaction.failed` | A deposit did not clear screening. |
+| `payment.transaction.late` | A screened deposit arrived after its order reached a final state. |
+| `payment.order.status.updated` | An order's transaction detail, alongside `payment.order.updated`. |
+| `payment.refund.status.updated` | A refund's transaction detail, alongside `payment.refund.updated`. |
+| `payment.payout.status.updated` | A payout's transaction detail, alongside `payment.payout.updated`. |
+| `payment.bulk_send.status.updated` | A batch's transaction detail, alongside `payment.bulk_send.updated`. |
+| `payment.bulk_send.item.status.updated` | An item's transaction detail, alongside `payment.bulk_send.item.updated`. |
+| `payment.transaction.settlement_network.*` | Settlement Network transactions. See [Settlement Network](/payments/en/guides/events/settlement-network). |
+
 ## Pay-in transactions
 
 | Event | Fires when | Applies to |
@@ -190,7 +205,7 @@ To test delivery to your registered webhook endpoints, use [Trigger test webhook
 | `payment.transaction.settlement_network.created` | A Settlement Network transaction is created. |
 | `payment.transaction.settlement_network.completed` | The transaction completes and the settled funds are reflected in your Payment account balance. |
 
-See [Balance events](/payments/en/guides/events/balances) and the [Settlement Network](/payments/en/guides/settlement-network) guide.
+See [Balance changes](/payments/en/guides/events/balances) and the [Settlement Network](/payments/en/guides/settlement-network) guide.
 
 ## Transaction fields
 

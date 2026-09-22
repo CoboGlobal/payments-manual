@@ -5,6 +5,14 @@ lang: "en"
 
 These events cover Order Mode, where each payment order has its own address, expiry, and expected amount. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| `payment.order.updated` | An order's collection result: waiting for payment, a deposit needs your action, paid in full, underpaid, expired, or money arrived after it ended. |
+| `payment.transaction.external.created` | A deposit arrived that belongs to no order, or is in an unsupported token. |
+| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. |
+
 ## `payment.order.updated`
 
 The primary event for Order Mode, identified by `order_id`.
@@ -77,22 +85,11 @@ Deposits below the dust threshold are excluded from the array entirely. The defa
 | Raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. |
 | Raise a case, quoting the ID below | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. |
 
-## Unexpected deposits
-
-A deposit that does not belong to any order, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as part of an order. It is credited to your developer balance.
-
-| Event | Fires when |
-| --- | --- |
-| `payment.transaction.external.created` | An unexpected deposit is detected. |
-| `payment.transaction.external.completed` | The unexpected deposit passed screening and was credited to your developer balance. |
-
-Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
-
-## Sample events
+### Samples
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
-### The order is created
+#### The order is created
 
 Show the payer what to pay. `transactions` is empty and both amounts that depend on receipts are `0`.
 
@@ -115,7 +112,7 @@ Show the payer what to pay. `transactions` is empty and both amounts that depend
 }
 ```
 
-### The first deposit is detected
+#### The first deposit is detected
 
 Update progress. Do not release goods: the deposit is still in screening, so `credited_amount` is still `0`.
 
@@ -148,7 +145,7 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
 }
 ```
 
-### A deposit needs you to act
+#### A deposit needs you to act
 
 `notice_type` is `PaymentUpdated` and the order `status` has not changed. Act on that entry's `message`; those funds stay held until you do. Other deposits keep accumulating normally.
 
@@ -183,7 +180,7 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
 }
 ```
 
-### The order is paid in full
+#### The order is paid in full
 
 **Release the goods.** Two deposits cleared screening and their total reached the threshold. Use `order_id` as the idempotency key, and do not compare the amounts yourself.
 
@@ -223,7 +220,7 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
 }
 ```
 
-### The order expired underpaid
+#### The order expired underpaid
 
 Handle it as underpaid. `outstanding_amount` is the shortfall, and the second deposit was rejected so it never counted.
 
@@ -267,7 +264,7 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
 }
 ```
 
-### Money arrives after the order ended
+#### Money arrives after the order ended
 
 `notice_type` is `LatePaymentReceived` and `status` keeps its final value. Decide whether to refund or fulfil. **`credited_amount` does not change** — the late entry is `Completed` but does not count towards the order.
 
@@ -308,7 +305,7 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
 }
 ```
 
-### Situations that send no event
+#### Situations that send no event
 
 These change the order's contents but produce no notification, because the order `status` does not change and no action is required from you:
 
@@ -318,6 +315,12 @@ These change the order's contents but produce no notification, because the order
 - A deposit fails.
 - A late payment arrives but has not cleared screening yet.
 
-## Transaction-level detail
+## `payment.transaction.external.*`
 
-For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Transaction-level events](/payments/en/guides/events/transaction-level).
+A deposit that does not belong to any order, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as part of an order. It is credited to your developer balance.
+
+Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Because these deposits never join an order, they do not appear in any order's `transactions` array — subscribe to them if you need to account for every incoming transfer to your addresses.
+
+## Related
+
+- For the on-chain detail behind each deposit, and for the previous `payment.order.status.updated` event, see [Transaction-level events](/payments/en/guides/events/transaction-level).

@@ -5,6 +5,12 @@ lang: "en"
 
 Balance events report the ledger movement behind any flow, whichever business object caused it. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| `payment.account.balance.updated` | One account's available balance moved for one token, and what caused it. |
+
 ## `payment.account.balance.updated`
 
 Fires when the available balance of a Payments account changes for a specific token. This is the event to use for internal accounting, because business object events deliberately do not carry balances.
@@ -27,19 +33,11 @@ It is also how you see **what each account actually received**. An order's `cred
 
 To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business object ID. The response model matches this event's `data`.
 
-## Keeping your own balances current
-
-Webhook messages do not carry real-time balances or fee breakdowns, so that the values you read cannot be stale relative to concurrent activity.
-
-- **To update balances as events arrive:** call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when a webhook lands.
-- **To reconcile fees:** use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
-- **To avoid running out of gas:** poll [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and alert on your own consumption rate. Several failure codes across payouts, refunds, and bulk sends trace back to an empty Fee Station.
-
-## Sample events
+### Samples
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
-### An order credits the merchant and the developer
+#### An order credits the merchant and the developer
 
 One order settlement produces one event per account. The two together add up to the order's `credited_amount`, which is why that field is not the merchant's figure.
 
@@ -79,7 +77,7 @@ One order settlement produces one event per account. The two together add up to 
 }
 ```
 
-### A payout leaves the developer account
+#### A payout leaves the developer account
 
 `flow_direction` is `out` and `source_id` is the payout ID, so you can tie the movement back to the payout event.
 
@@ -100,3 +98,11 @@ One order settlement produces one event per account. The two together add up to 
   "update_time": 1744700600
 }
 ```
+
+## Keeping your own balances current
+
+Webhook messages do not carry real-time balances or fee breakdowns, so that the values you read cannot be stale relative to concurrent activity.
+
+- **To update balances as events arrive:** call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when a webhook lands.
+- **To reconcile fees:** use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
+- **To avoid running out of gas:** poll [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and alert on your own consumption rate. Several failure codes across payouts, refunds, and bulk sends trace back to an empty Fee Station.

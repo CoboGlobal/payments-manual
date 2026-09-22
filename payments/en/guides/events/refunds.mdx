@@ -7,6 +7,12 @@ These events track a refund order from creation to completion. Read [Events over
 
 Refunds currently apply to orders only. To return funds received through Top-up Mode, create a payout instead.
 
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| `payment.refund.updated` | A refund order's result: created, completed, or failed with nothing returned. |
+
 ## `payment.refund.updated`
 
 The primary refund event, identified by `refund_id`.
@@ -57,11 +63,11 @@ Because a refund has no completed or failed amount fields, `requested_amount` is
 | Do not retry — raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. |
 | Do not retry — raise it with Cobo, quoting `refund_id` | `transaction.failed` | The reason could not be classified. |
 
-## Sample events
+### Samples
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
-### The refund order is created
+#### The refund order is created
 
 Record it and wait. Do not create a second refund for the same order.
 
@@ -84,7 +90,7 @@ Record it and wait. Do not create a second refund for the same order.
 }
 ```
 
-### The refund completed
+#### The refund completed
 
 Reconcile and close it, using `refund_id` as the idempotency key. `requested_amount` is also what was returned.
 
@@ -107,7 +113,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
 }
 ```
 
-### The refund failed
+#### The refund failed
 
 **Nothing was returned.** Here the transfer never reached the chain, so `tx_hash` is empty.
 
@@ -134,7 +140,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
 }
 ```
 
-### The refund failed before the transfer
+#### The refund failed before the transfer
 
 The fee could not be charged. Top up Fee Station and create the refund again.
 
@@ -161,6 +167,6 @@ The fee could not be charged. Top up Fee Station and create the refund again.
 }
 ```
 
-## Transaction-level detail
+## Related
 
-`payment.refund.status.updated` returns this refund's underlying transaction detail and is documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).
+- `payment.refund.status.updated` returns this refund's underlying transaction detail and is documented in [Transaction-level events](/payments/en/guides/events/transaction-level#object-transaction-events).

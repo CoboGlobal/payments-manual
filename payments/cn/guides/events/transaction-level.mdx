@@ -22,6 +22,21 @@ lang: "zh-hans"
   不要同时用业务对象事件和交易级事件驱动同一个不可逆动作。入账、发货、关闭付款三件事各自选定一个来源，另一个仅用于对账。
 </Note>
 
+## 本页的事件
+
+| 事件 | 通知什么 |
+| --- | --- |
+| `payment.transaction.created` | 入金地址收到一笔新的入金。仅充值模式。 |
+| `payment.transaction.completed` | 一笔入金通过筛查并已入账。 |
+| `payment.transaction.failed` | 一笔入金未通过筛查。 |
+| `payment.transaction.late` | 订单进入终态后，又收到一笔通过筛查的入金。 |
+| `payment.order.status.updated` | 订单的交易信息，与 `payment.order.updated` 同时投递。 |
+| `payment.refund.status.updated` | 退款的交易信息，与 `payment.refund.updated` 同时投递。 |
+| `payment.payout.status.updated` | 转出的交易信息，与 `payment.payout.updated` 同时投递。 |
+| `payment.bulk_send.status.updated` | 批次的交易信息，与 `payment.bulk_send.updated` 同时投递。 |
+| `payment.bulk_send.item.status.updated` | 条目的交易信息，与 `payment.bulk_send.item.updated` 同时投递。 |
+| `payment.transaction.settlement_network.*` | 结算网络交易，参见[结算网络](/payments/cn/guides/events/settlement-network)。 |
+
 ## 入金交易
 
 | 事件 | 触发时机 | 适用范围 |

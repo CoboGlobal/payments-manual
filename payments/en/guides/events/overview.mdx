@@ -17,7 +17,7 @@ Subscribe to the events for the business objects you actually use. Each page cov
 | Single payouts and transfers | `payment.payout.updated` | [Payout events](/payments/en/guides/events/payouts) |
 | Bulk sends | `payment.bulk_send.updated`, `payment.bulk_send.item.updated` | [Bulk send events](/payments/en/guides/events/bulk-send) |
 | Settlement Network | `payment.transaction.settlement_network.*` | [Settlement Network events](/payments/en/guides/events/settlement-network) |
-| Account balances | `payment.account.balance.updated` | [Balance events](/payments/en/guides/events/balances) |
+| Account balances | `payment.account.balance.updated` | [Balance changes](/payments/en/guides/events/balances) |
 
 **Every other payment event is transaction-level.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return the underlying transaction information rather than telling you what the business object needs next.
 

@@ -5,6 +5,14 @@ lang: "zh-hans"
 
 本页覆盖订单模式：每个收款订单有自己的收款地址、有效期和应收金额。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
+## 本页的事件
+
+| 事件 | 通知什么 |
+| --- | --- |
+| `payment.order.updated` | 一笔订单的收款结果：等待付款、某笔入金需要您处理、已付清、少付、过期，或订单结束后又收到钱。 |
+| `payment.transaction.external.created` | 收到一笔不属于任何订单、或使用了不支持币种的入金。 |
+| `payment.transaction.external.completed` | 那笔意外入金通过了筛查，已计入您的开发者余额。 |
+
 ## `payment.order.updated`
 
 订单模式的主事件，以 `order_id` 标识。
@@ -77,22 +85,11 @@ lang: "zh-hans"
 | 与 Cobo 确认 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 |
 | 提交问题并提供下面这个 ID | `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 |
 
-## 意外入金
-
-不属于任何订单、或使用了不支持币种的入金，不会计入订单，而是作为意外入金上报，并计入您的开发者余额。
-
-| 事件 | 触发时机 |
-| --- | --- |
-| `payment.transaction.external.created` | 检测到一笔意外入金。 |
-| `payment.transaction.external.completed` | 该意外入金通过筛查，并已计入您的开发者余额。 |
-
-两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
-
-## 示例事件
+### 示例
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
-### 订单已创建
+#### 订单已创建
 
 向付款方展示应付金额。`transactions` 为空，两个依赖到账的金额均为 `0`。
 
@@ -115,7 +112,7 @@ lang: "zh-hans"
 }
 ```
 
-### 检测到首笔入金
+#### 检测到首笔入金
 
 更新进度。不要发货：这笔入金还在筛查中，`credited_amount` 仍然是 `0`。
 
@@ -148,7 +145,7 @@ lang: "zh-hans"
 }
 ```
 
-### 某笔入金需要您处理
+#### 某笔入金需要您处理
 
 `notice_type` 为 `PaymentUpdated`，订单 `status` 没有变化。按该条目的 `message` 处理，这笔资金在您处理前一直挂起。其他入金照常累计。
 
@@ -183,7 +180,7 @@ lang: "zh-hans"
 }
 ```
 
-### 订单已付清
+#### 订单已付清
 
 **发货。** 两笔入金通过筛查，合计达到阈值。以 `order_id` 作为幂等键，不要自己比较金额。
 
@@ -223,7 +220,7 @@ lang: "zh-hans"
 }
 ```
 
-### 订单到期且少付
+#### 订单到期且少付
 
 按少付处理。`outstanding_amount` 是差额；第二笔入金被拒绝，因此从未计入。
 
@@ -267,7 +264,7 @@ lang: "zh-hans"
 }
 ```
 
-### 订单结束后又收到资金
+#### 订单结束后又收到资金
 
 `notice_type` 为 `LatePaymentReceived`，`status` 保持终态。人工决定退款还是补发。**`credited_amount` 不变**——晚到款条目是 `Completed`，但不计入订单。
 
@@ -308,7 +305,7 @@ lang: "zh-hans"
 }
 ```
 
-### 不会发事件的情况
+#### 不会发事件的情况
 
 下面这些会改变订单的内容，但不产生通知，因为订单 `status` 没有变化，也不需要您采取任何处理：
 
@@ -318,6 +315,12 @@ lang: "zh-hans"
 - 某笔入金失败。
 - 晚到款已到达但尚未通过筛查。
 
-## 交易级细节
+## `payment.transaction.external.*`
 
-每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[交易级事件](/payments/cn/guides/events/transaction-level)。
+不属于任何订单、或使用了不支持币种的入金，不会计入订单，而是作为意外入金上报，并计入您的开发者余额。
+
+两者携带的字段见[交易级事件](/payments/cn/guides/events/transaction-level#交易字段)。由于这类入金不属于任何订单，它们不会出现在任何订单的 `transactions` 数组中——如果您需要核对流入自己地址的每一笔资金，请订阅它们。
+
+## 相关
+
+- 每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[交易级事件](/payments/cn/guides/events/transaction-level)。

@@ -7,6 +7,13 @@ lang: "zh-hans"
 
 批量转出请参见[批量下发事件](/payments/cn/guides/events/bulk-send)。
 
+## 本页的事件
+
+| 事件 | 通知什么 |
+| --- | --- |
+| `payment.payout.updated` | 一笔资金转出的结果：处理中、已完成、部分完成、失败，或被收款银行拒绝。 |
+| `payment.bank_withdrawal.status.updated` | 从您的某个虚拟账户提现法币到银行账户的状态变更。 |
+
 ## `payment.payout.updated`
 
 资金转出的主事件，以 `payout_id` 标识。
@@ -77,45 +84,11 @@ lang: "zh-hans"
 | 不要重试，联系 Cobo | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 |
 | 不要重试，联系 Cobo 并提供 `payout_id` | `transaction.failed` | 原因无法归类。 |
 
-## `payment.bank_withdrawal.status.updated`
-
-银行提现状态变更时触发。银行提现把法币从您的某个虚拟账户转出到目标银行账户，通过 [Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal) 创建。
-
-| `status` | 含义 |
-| --- | --- |
-| `Pending` | 银行提现已创建，等待处理。 |
-| `Processing` | 银行提现处理中。 |
-| `Completed` | 资金已离开虚拟账户。 |
-| `Failed` | 银行提现失败，原因见 `failed_reason`。 |
-
-**事件内容：** `data` 对象的 `data_type` 为 `PaymentBankWithdrawal`，并包含：
-
-- `bank_withdrawal_id`（必填）—— Cobo 生成的银行提现 ID。
-- `request_id`（必填）—— 您创建银行提现时提供的请求 ID。
-- `source_bank_account_id`（必填）—— 来源银行账户 ID，必须是虚拟账户（标记为 `VA`）。
-- `target_bank_account_id`（必填）—— 接收本次提现的目标银行账户 ID。
-- `source_bank_account`（必填）—— 来源银行账户的完整信息。
-- `target_bank_account`（必填）—— 目标银行账户的完整信息。
-- `currency`（必填）—— 银行提现的法币币种，例如 `USD`。
-- `amount`（必填）—— 银行提现金额，以该币种展示单位的十进制字符串表示，例如 `100.00`。
-- `bank_tx_fee`（选填）—— 本次银行提现收取的银行交易手续费。
-- `status`（必填）—— 当前状态，取值为 `Pending`、`Processing`、`Completed`、`Failed` 之一。
-- `remark`（选填）—— 银行提现备注。
-- `failed_reason`（选填）—— 银行提现失败的原因，仅当 `status` 为 `Failed` 时有值。
-- `timeline`（必填）—— 银行提现的状态时间线。每一项包含一个 `status` 和进入该状态的 `timestamp`，Unix 时间戳（秒）。
-- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
-
-<Note>
-  银行提现的 payload 不携带 `updated_timestamp`。要确定它何时进入当前状态，请读取 `timeline` 的最后一项。
-</Note>
-
-完整说明请参见 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
-
-## 示例事件
+### 示例
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
-### 转出请求已受理
+#### 转出请求已受理
 
 记录本次转出，不要重复提交。`requested_target` 是您自己的指令回显——请与您发出的内容核对。
 
@@ -145,7 +118,7 @@ lang: "zh-hans"
 }
 ```
 
-### 转出完成
+#### 转出完成
 
 关闭本次转出。这表示 Cobo 已完成转账，**不表示**收款方平台已经入账。
 
@@ -189,7 +162,7 @@ lang: "zh-hans"
 }
 ```
 
-### 转出部分完成
+#### 转出部分完成
 
 按 `failed_amounts` 的金额**另建一笔新的转出**，不要重发已成功的部分。
 
@@ -249,7 +222,7 @@ lang: "zh-hans"
 
 ⚠️ A payout item can also fail **before** any outgoing transaction exists — during fund consolidation, cross-chain conversion, or commission collection. In that case `failed_amounts` carries the amount but `transactions` has no matching entry, and the object-level `failed_reason` is the only explanation.
 
-### 转出失败
+#### 转出失败
 
 不要原地重试。本例失败发生在任何转账之前，因此 `transactions` 为空。
 
@@ -285,7 +258,7 @@ lang: "zh-hans"
 }
 ```
 
-### Off-Ramp 转出被银行拒绝
+#### Off-Ramp 转出被银行拒绝
 
 重发前先与收款方核对账户信息。`requested_target` 是银行账户，`actual_payout_amount` 本应为该账户的币种。
 
@@ -323,10 +296,44 @@ lang: "zh-hans"
 }
 ```
 
-### 重发失败的转出
+#### 重发失败的转出
 
 原对象上没有重试。请创建一笔新的转出，并在自己的记录里保留原 `payout_id`，让两者可以关联——事件本身不携带指回原对象的引用。
 
-## 交易级细节
+## `payment.bank_withdrawal.status.updated`
 
-`payment.payout.status.updated` 返回的是这次转出底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。
+银行提现状态变更时触发。银行提现把法币从您的某个虚拟账户转出到目标银行账户，通过 [Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal) 创建。
+
+| `status` | 含义 |
+| --- | --- |
+| `Pending` | 银行提现已创建，等待处理。 |
+| `Processing` | 银行提现处理中。 |
+| `Completed` | 资金已离开虚拟账户。 |
+| `Failed` | 银行提现失败，原因见 `failed_reason`。 |
+
+**事件内容：** `data` 对象的 `data_type` 为 `PaymentBankWithdrawal`，并包含：
+
+- `bank_withdrawal_id`（必填）—— Cobo 生成的银行提现 ID。
+- `request_id`（必填）—— 您创建银行提现时提供的请求 ID。
+- `source_bank_account_id`（必填）—— 来源银行账户 ID，必须是虚拟账户（标记为 `VA`）。
+- `target_bank_account_id`（必填）—— 接收本次提现的目标银行账户 ID。
+- `source_bank_account`（必填）—— 来源银行账户的完整信息。
+- `target_bank_account`（必填）—— 目标银行账户的完整信息。
+- `currency`（必填）—— 银行提现的法币币种，例如 `USD`。
+- `amount`（必填）—— 银行提现金额，以该币种展示单位的十进制字符串表示，例如 `100.00`。
+- `bank_tx_fee`（选填）—— 本次银行提现收取的银行交易手续费。
+- `status`（必填）—— 当前状态，取值为 `Pending`、`Processing`、`Completed`、`Failed` 之一。
+- `remark`（选填）—— 银行提现备注。
+- `failed_reason`（选填）—— 银行提现失败的原因，仅当 `status` 为 `Failed` 时有值。
+- `timeline`（必填）—— 银行提现的状态时间线。每一项包含一个 `status` 和进入该状态的 `timestamp`，Unix 时间戳（秒）。
+- `created_timestamp`（必填）—— 创建时间，Unix 时间戳（秒）。
+
+<Note>
+  银行提现的 payload 不携带 `updated_timestamp`。要确定它何时进入当前状态，请读取 `timeline` 的最后一项。
+</Note>
+
+完整说明请参见 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
+
+## 相关
+
+- `payment.payout.status.updated` 返回的是这次转出底层的交易信息，说明见[交易级事件](/payments/cn/guides/events/transaction-level#对象的交易级事件)。

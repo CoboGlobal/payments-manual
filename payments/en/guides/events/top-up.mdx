@@ -5,6 +5,15 @@ lang: "en"
 
 These events cover Top-up Mode, where each payer has a deposit address and every deposit is tracked on its own. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| `payment.topup.updated` | One deposit's whole life: detected, screened, available to credit, or failed. |
+| `payment.address.updated` | A payer's deposit address was replaced. |
+| `payment.transaction.external.created` | A deposit arrived that belongs to no deposit plan, or is in an unsupported token. |
+| `payment.transaction.external.completed` | That unexpected deposit cleared screening and was credited to your developer balance. |
+
 ## `payment.topup.updated`
 
 The primary event for Top-up Mode. One deposit produces one object, identified by `transaction_id`.
@@ -65,35 +74,11 @@ All three modes can require action from you, so `screening_mode` does not tell y
 | Raise it with Cobo | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. |
 | Raise a case, quoting the ID below | `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. |
 
-## `payment.address.updated`
-
-Fires when a payer's top-up address is replaced. Update the address you show that payer, and keep accepting deposits to the previous address until it stops being funded.
-
-**Event content:**
-
-| Field | Description |
-| --- | --- |
-| `payer_id` / `custom_payer_id` | The payer whose address changed. |
-| `chain` | The chain the address belongs to. Only that chain's address changes. |
-| `previous_address` | The address in use before the replacement. |
-| `updated_address` | The address to use from now on. |
-
-## Unexpected deposits
-
-A deposit that does not belong to any deposit plan, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as a top-up. It is credited to your developer balance, not to a payer.
-
-| Event | Fires when |
-| --- | --- |
-| `payment.transaction.external.created` | An unexpected deposit is detected. |
-| `payment.transaction.external.completed` | The unexpected deposit passed screening and was credited to your developer balance. |
-
-Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#unexpected-deposits).
-
-## Sample events
+### Top-up samples
 
 Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
 
-### A deposit is detected
+#### A deposit is detected
 
 Show the deposit as in progress. Do not credit anything yet.
 
@@ -114,7 +99,7 @@ Show the deposit as in progress. Do not credit anything yet.
 }
 ```
 
-### Compliance screening is in progress
+#### Compliance screening is in progress
 
 Keep waiting. `screening_mode` tells you which system is reviewing it, but does not mean you have anything to do.
 
@@ -136,7 +121,7 @@ Keep waiting. `screening_mode` tells you which system is reviewing it, but does 
 }
 ```
 
-### Screening needs you to act
+#### Screening needs you to act
 
 Put the deposit in a human queue. The three possible actions are distinguished by `message` — see [When `status` is `ActionRequired`](#when-status-is-actionrequired).
 
@@ -159,7 +144,7 @@ Put the deposit in a human queue. The three possible actions are distinguished b
 }
 ```
 
-### The funds are available
+#### The funds are available
 
 **This is the only state you may credit.** Use `transaction_id` as the idempotency key.
 
@@ -180,7 +165,7 @@ Put the deposit in a human queue. The three possible actions are distinguished b
 }
 ```
 
-### The deposit failed
+#### The deposit failed
 
 Stop any automatic crediting and read `failed_reason.code`. Here Cobo's compliance checks rejected it, so do not resend — resolve it with Cobo first.
 
@@ -205,7 +190,24 @@ Stop any automatic crediting and read `failed_reason.code`. Here Cobo's complian
 }
 ```
 
-### A payer's address is replaced
+## `payment.address.updated`
+
+Fires when a payer's top-up address is replaced. Update the address you show that payer, and keep accepting deposits to the previous address until it stops being funded.
+
+**Event content:**
+
+| Field | Description |
+| --- | --- |
+| `payer_id` / `custom_payer_id` | The payer whose address changed. |
+| `chain` | The chain the address belongs to. Only that chain's address changes. |
+| `previous_address` | The address in use before the replacement. |
+| `updated_address` | The address to use from now on. |
+
+### Address replacement sample
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### A payer's address is replaced
 
 Update the address you show that payer. This is a `payment.address.updated` event, not a top-up event.
 
@@ -221,10 +223,13 @@ Update the address you show that payer. This is a `payment.address.updated` even
 }
 ```
 
-## Transaction-level detail
+## `payment.transaction.external.*`
 
-For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Transaction-level events](/payments/en/guides/events/transaction-level).
+A deposit that does not belong to any deposit plan, or that arrives in an unsupported token, is reported as an unexpected deposit rather than as a top-up. It is credited to your developer balance, not to a payer.
 
-## Balance changes
+Both carry the fields listed in [Transaction-level events](/payments/en/guides/events/transaction-level#transaction-fields). Unexpected deposits also occur in Order Mode — see [Order events](/payments/en/guides/events/orders#paymenttransactionexternal).
 
-`payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance events](/payments/en/guides/events/balances).
+## Related
+
+- For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Transaction-level events](/payments/en/guides/events/transaction-level).
+- `payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance changes](/payments/en/guides/events/balances).
