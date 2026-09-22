@@ -34,12 +34,23 @@ A company therefore always provides `company_info`, and its `merchant_type` foll
 
 ### Industry categories (`industry`)
 
-`industry` is an array of strings. Use values from the tables below, chosen by level 1 category. Values are case-sensitive; pass them exactly as written.
+`industry` is an array of level 2 categories and accepts more than one. There are two level 1 categories, `Tangibles Goods` and `Intangible Goods & Service`; they scope which level 2 categories are available and are not themselves values you send. Send the level 2 categories listed in the tabs below.
+
+For example, a merchant selling electronics and computers, both under the `Tangibles Goods` level 1 category:
+
+```json
+"industry": [
+    "Electronics",
+    "Computers"
+]
+```
+
+Values are case-sensitive; pass them exactly as written.
 
 <Tabs>
-  <Tab title="Tangibles Goods">
+  <Tab title="Level 1: Tangibles Goods">
 
-| Value |
+| Level 2 category |
 | --- |
 | `Automotive` |
 | `Baby` |
@@ -60,9 +71,9 @@ A company therefore always provides `company_info`, and its `merchant_type` foll
 | `Food` |
 
   </Tab>
-  <Tab title="Intangible Goods & Service">
+  <Tab title="Level 1: Intangible Goods & Service">
 
-| Value |
+| Level 2 category |
 | --- |
 | `Accounting, Human Resources & Legal` |
 | `Advertising services, advertising publishers, advertising channels and exhibitions` |

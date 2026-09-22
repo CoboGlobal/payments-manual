@@ -34,12 +34,23 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 ### 行业类别（`industry`）
 
-`industry` 是字符串数组，取值必须来自下表，按一级类目选择。取值区分大小写，请原样传入，不要翻译。
+`industry` 是二级类目的数组，可传多个。一级类目只有 `Tangibles Goods` 与 `Intangible Goods & Service` 两个，用于划定可选的二级类目范围，其本身不作为取值传入——实际传入的是下方标签页中的二级类目。
+
+例如某商户经营电子产品与电脑，二者同属一级类目 `Tangibles Goods`：
+
+```json
+"industry": [
+    "Electronics",
+    "Computers"
+]
+```
+
+取值区分大小写，请原样传入，不要翻译。
 
 <Tabs>
-  <Tab title="Tangibles Goods（实物商品）">
+  <Tab title="一级类目：Tangibles Goods">
 
-| 取值 |
+| 二级类目 |
 | --- |
 | `Automotive` |
 | `Baby` |
@@ -60,9 +71,9 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | `Food` |
 
   </Tab>
-  <Tab title="Intangible Goods & Service（虚拟商品与服务）">
+  <Tab title="一级类目：Intangible Goods & Service">
 
-| 取值 |
+| 二级类目 |
 | --- |
 | `Accounting, Human Resources & Legal` |
 | `Advertising services, advertising publishers, advertising channels and exhibitions` |
