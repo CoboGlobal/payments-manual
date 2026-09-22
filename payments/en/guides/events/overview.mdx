@@ -19,7 +19,7 @@ Subscribe to the events for the payment businesses you actually use. Each page c
 | Settlement Network | `payment.transaction.settlement_network.*` | [Settlement Network events](/payments/en/guides/events/settlement-network) |
 | Account balances | `payment.account.balance.updated` | [Balance changes](/payments/en/guides/events/balances) |
 
-**Every other payment event is an advanced event.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return the underlying transaction information, and you only need to subscribe when that information matters to you — confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) detail.
+**Every other payment event is an advanced event.** That covers both the `payment.transaction.*` family and the `*.status.updated` events (`payment.order.status.updated`, `payment.refund.status.updated`, `payment.payout.status.updated`, `payment.bulk_send.status.updated`, `payment.bulk_send.item.status.updated`): all of them return detail about the underlying on-chain transaction, and you only need to subscribe when that detail matters to you — confirmation counts, fee breakdowns, or replacement (drop, resend, speed-up) information.
 
 Each business page lists the advanced events that belong to its flow, and [Advanced events](/payments/en/guides/events/advanced) describes them all and holds the shared field reference.
 

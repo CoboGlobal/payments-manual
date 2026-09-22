@@ -3,7 +3,7 @@ title: "Advanced events"
 lang: "en"
 ---
 
-Advanced events report the underlying transaction itself. You only need to subscribe when that information matters to you — confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) detail, for example to show a payer the progress of their transfer or to reconcile gas spend.
+Advanced events report detail about the underlying on-chain transaction. You only need to subscribe when that detail matters to you — confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) information, for example to show a payer the progress of their transfer or to reconcile gas spend.
 
 The event for that payment business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it.
 
@@ -52,7 +52,7 @@ For an order paid in several instalments, `payment.transaction.completed` fires 
 
 ## Advanced events per payment business
 
-These report the underlying transaction detail for one payment business — the `transactions` array, fee fields, validation status — rather than what that business needs next. Each one is delivered alongside that business's own event, listed in the table below.
+These report detail about the underlying transactions of one payment business — the `transactions` array, fee fields, validation status — rather than what that business needs next. Each one is delivered alongside that business's own event, listed in the table below.
 
 | Advanced event | That business's own event |
 | --- | --- |
@@ -97,7 +97,7 @@ For full details, see [Get pay-in order information](/payments/en/api-references
 
 ### `payment.refund.status.updated`
 
-Reports the refund's underlying transaction detail, including the `transactions` array and the fee fields.
+Reports detail about the refund's underlying transaction, including the `transactions` array and the fee fields.
 
 **Trigger condition:** the refund order status changes. Key points are `Pending` when the order is created through a refund link, `Completed` when all refund transactions complete, and `Failed` when all refund transactions fail.
 
@@ -126,7 +126,7 @@ For full details, see [Get refund order information](/payments/en/api-references
 
 ### `payment.payout.status.updated`
 
-Reports the payout's underlying transaction detail, including the `transactions` array and `payout_items`.
+Reports detail about the payout's underlying transaction, including the `transactions` array and `payout_items`.
 
 **Trigger condition:** the payout or transfer request status changes. `Completed` means all transfers completed, `PartiallyCompleted` means some completed and some failed, `Failed` means all failed, and `RejectedByBank` means the recipient bank rejected the Off-Ramp payout.
 
