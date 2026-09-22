@@ -1,0 +1,82 @@
+---
+title: "Bank account requirements by country"
+lang: "en"
+---
+
+A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; every recipient account is paid over SWIFT, and what differs is what each country requires of fields such as `iban_code`, `routing_value`, and `bank_country`.
+
+This guide lists those differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
+
+## Before you begin
+
+- Create the paying entity and complete KYC before you create a POBO payout. For KYC country differences, see [KYC requirements by country](/payments/en/guides/kyc-requirements-by-country).
+- Upload the bank-account document with [Upload file v2](/payments/en/api-references/payment/upload-file-v2) and use the returned `file_id` as `contract_file_id`.
+- Create the bank-account destination with [Create destination](/payments/en/api-references/payment/create-destination).
+- For destination concepts and review behavior, see [Destinations](/payments/en/guides/destinations).
+
+## Shared destination request structure
+
+Use the following destination type and holder type values for POBO bank-account destinations.
+
+| Business type | `destination_type` | `holder_type` |
+| --- | --- | --- |
+| Company | `Organization` | `Company` |
+| Individual | `Individual` | `Personal` |
+
+The top-level `CreateDestinationRequest` requires the destination name, destination type, bank-account list, merchant ID, beneficiary country, contact email, and contact address.
+
+| Field | Requirement |
+| --- | --- |
+| `destination_name` | Required. Name that identifies the destination. |
+| `destination_type` | Required. Use `Organization` for a company entity or `Individual` for an individual entity. |
+| `bank_accounts` | Required. List of bank-account objects. |
+| `merchant_id` | Required. Merchant ID associated with the destination. |
+| `country` | Required. Beneficiary country in ISO3 format. |
+| `email` | Required. Contact email for the destination. |
+| `contact_address` | Required. Contact address for the destination. |
+
+## Bank-account field requirements
+
+POBO recipient bank accounts support SWIFT only. `payment_method` is always `Swift`; there is no other value.
+
+| Field | Requirement |
+| --- | --- |
+| `account_alias` | Required. Alias used to identify the account. |
+| `account_number` | Required. Bank account number. |
+| `swift_code` | Required. SWIFT code. |
+| `currency` | Required. Use `USD`. |
+| `beneficiary_name` | Required. Beneficiary name. Do not use Chinese characters or digits. |
+| `beneficiary_address` | Required. Beneficiary address. |
+| `bank_name` | Required. Bank name. |
+| `bank_address` | Required. Bank address. |
+| `holder_type` | Required. Use `Company` for a company entity or `Personal` for an individual entity. |
+| `payment_method` | Required. Always `Swift`. |
+| `bank_account_name` | Required. Bank account name. Do not use Chinese characters. |
+| `country` | Required. Beneficiary country in ISO3 format. |
+| `city` | Required. Beneficiary city. |
+| `beneficiary_province` | Required. Beneficiary province or state. |
+| `beneficiary_post_code` | Required. Beneficiary postal code. |
+| `bank_country` | Required. Bank country. |
+| `bank_province` | Required. Bank province or state. |
+| `contract_file_id` | Required. File ID of the uploaded bank-account document. |
+| `iban_code` | Do not provide for the `HKG` baseline. Required for `GBR`. |
+| `routing_value` | Do not provide for the `HKG` baseline. |
+
+## Country-specific requirements
+
+| Country | Field differences from `HKG` | Format or enum requirement | `bank_country` |
+| --- | --- | --- | --- |
+| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code` or `routing_value`. | No additional format requirements. | `HKG` |
+| Taiwan, China (`TWN`) | No field differences. | Same as `HKG`. | `TWN` |
+| Malaysia (`MYS`) | No field differences. | Same as `HKG`. | `MYS` |
+| Philippines (`PHL`) | No field differences. | Same as `HKG`. | `PHL` |
+| Indonesia (`IDN`) | No field differences. | Same as `HKG`. | `IDN` |
+| Vietnam (`VNM`) | No field differences. | Same as `HKG`. | `VNM` |
+| Thailand (`THA`) | No field differences. | Same as `HKG`. | `THA` |
+| Singapore (`SGP`) | No field differences. | Same as `HKG`. | `SGP` |
+| Mexico (`MEX`) | No field differences. | Same as `HKG`. | `MEX` |
+| United Kingdom (`GBR`) | Provide `iban_code`. | `account_number` must contain 8 digits. `iban_code` must start with `GB`. | `GBR` |
+
+## Next steps
+
+After the bank-account destination passes review, create the Off-ramp payout. For the end-to-end POBO sequence, see [Payouts on behalf of (POBO)](/payments/en/guides/pobo).
