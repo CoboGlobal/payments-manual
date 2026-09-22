@@ -23,7 +23,7 @@ The KYC request uses consistent JSON keys for all supported countries. Country-s
 - `merchant_type` describes the business model: `B2B` sells to businesses, `B2C` sells to consumers.
 - Entity type is decided by the object you provide: a company provides `company_info`, an individual provides `individual_info`. Provide only one in a request.
 
-A company selling to consumers is therefore `B2C` with `company_info`, and a company selling to businesses is `B2B` with `company_info`.
+A company therefore always provides `company_info`, and its `merchant_type` follows from who its customers are: `B2C` when they are consumers, `B2B` when they are businesses.
 
 | Scope | Fields |
 | --- | --- |

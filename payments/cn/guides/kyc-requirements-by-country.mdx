@@ -23,7 +23,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 - `merchant_type` 描述经营模式：`B2B` 面向企业，`B2C` 面向消费者。
 - 实体类型由请求中提供的对象决定：企业提供 `company_info`，个人提供 `individual_info`。同一请求中只提供其中一个。
 
-因此面向消费者的企业是 `B2C` + `company_info`，面向企业的企业是 `B2B` + `company_info`。
+因此，企业主体一律提供 `company_info`，`merchant_type` 则取决于其客户类型：客户为消费者取 `B2C`，客户为企业取 `B2B`。
 
 | 范围 | 字段 |
 | --- | --- |
