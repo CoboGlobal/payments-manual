@@ -31,20 +31,24 @@ lang: "zh-hans"
 
 ### 批次的事件内容
 
-| 字段 | 说明 |
-| --- | --- |
-| `bulk_send_id` | 批次身份。 |
-| `source_account` | 批次的付款账户。 |
-| `execution_mode` | 单个条目出问题是否中止整批。`Strict` 模式下会中止。 |
-| `item_count` | 批次包含多少个条目。 |
-| `failed_item_count` | 已提交且失败的条目数，这些条目的资金动过。 |
-| `not_executed_item_count` | 从未提交的条目数，这些条目的资金没有动过。 |
-| `requested_amounts` | 请求总额，按 token 分组。一个批次可以跨多种 token 和多条链。 |
-| `completed_amounts` | 已完成条目的合计，按 token 分组。 |
-| `failed_amounts` | 未成功条目的合计，按 token 分组。 |
-| `description` | 批次备注。 |
-| `commission_fees` | Cobo 收取的佣金，每个 token 一条。 |
-| `failed_reason` | 当 `status` 为 `Failed` 时出现。 |
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendUpdate`，用于反序列化 `data`。 |
+| `bulk_send_id` | `string` | 必填 | 批次身份。 |
+| `request_id` | `string` | 选填 | 您创建批次时提供的请求 ID。 |
+| `source_account` | `string` | 必填 | 批次的付款账户。 |
+| `status` | `string` | 必填 | 批次当前状态，取值与含义见[批次的事件触发条件](#批次的事件触发条件)。 |
+| `execution_mode` | `string` | 必填 | 单个条目出问题是否中止整批。`Strict` 模式下会中止。 |
+| `item_count` | `integer` | 必填 | 批次包含多少个条目。 |
+| `failed_item_count` | `integer` | 必填 | 已提交且失败的条目数，这些条目的资金动过。 |
+| `not_executed_item_count` | `integer` | 必填 | 从未提交的条目数，这些条目的资金没有动过。 |
+| `requested_amounts` | `array` | 必填 | 请求总额，按 token 分组。一个批次可以跨多种 token 和多条链。 |
+| `completed_amounts` | `array` | 必填 | 已完成条目的合计，按 token 分组。 |
+| `failed_amounts` | `array` | 必填 | 未成功条目的合计，按 token 分组。 |
+| `description` | `string` | 必填 | 批次备注。 |
+| `commission_fees` | `array` | 必填 | Cobo 收取的佣金，每个 token 一条。 |
+| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 时出现。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 `failed_amounts` 把两类未成功条目——资金动过的和从未提交的——合并成每个 token 一个数。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
 
@@ -209,15 +213,20 @@ lang: "zh-hans"
 
 ### 条目的事件内容
 
-| 字段 | 说明 |
-| --- | --- |
-| `bulk_send_item_id` | 条目身份，也是您对账时使用的键。 |
-| `bulk_send_id` | 该条目所属的批次。 |
-| `requested_amount` | 请求下发的金额，资产金额结构。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
-| `receiving_address` | 收款方地址。 |
-| `tx_hash` | 链上哈希。条目从未上链时没有该值。 |
-| `description` | 条目备注。 |
-| `failed_reason` | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`，用于反序列化 `data`。 |
+| `bulk_send_item_id` | `string` | 必填 | 条目身份，也是您对账时使用的键。 |
+| `bulk_send_id` | `string` | 必填 | 该条目所属的批次。 |
+| `request_id` | `string` | 选填 | 批次的请求 ID。 |
+| `source_account` | `string` | 必填 | 批次的付款账户。 |
+| `status` | `string` | 必填 | 该条目的当前状态，取值与含义见[条目的事件触发条件](#条目的事件触发条件)。 |
+| `requested_amount` | `object` | 必填 | 请求下发的金额，资产金额结构。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `receiving_address` | `string` | 必填 | 收款方地址。 |
+| `tx_hash` | `string` | 必填 | 链上哈希。条目从未上链时没有该值。 |
+| `description` | `string` | 必填 | 条目备注。 |
+| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 ### 条目的失败原因
 

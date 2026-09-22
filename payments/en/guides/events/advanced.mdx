@@ -33,11 +33,11 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
-| Field | Description |
-| --- | --- |
-| `acquiring_type` (required) | The pay-in mode. Always `TopUp` for this event. |
-| `payer_id` (optional) | The payer ID assigned by Cobo. |
-| `custom_payer_id` (optional) | Your own payer ID. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode. Always `TopUp` for this event. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. |
 
 ## `payment.transaction.completed`
 
@@ -45,13 +45,13 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below. Which of them are populated depends on the pay-in mode.
 
-| Field | Description |
-| --- | --- |
-| `acquiring_type` (required) | The pay-in mode: `Order` or `TopUp`. |
-| `order_id` (optional) | The order ID. Order Mode only. |
-| `psp_order_code` (optional) | The unique reference code you assigned to the order. Order Mode only. |
-| `payer_id` (optional) | The payer ID assigned by Cobo. Top-up Mode only. |
-| `custom_payer_id` (optional) | Your own payer ID. Top-up Mode only. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
+| `order_id` | `string` | Optional | The order ID. Order Mode only. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
 
 ## `payment.transaction.failed`
 
@@ -59,13 +59,13 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
-| Field | Description |
-| --- | --- |
-| `acquiring_type` (required) | The pay-in mode: `Order` or `TopUp`. |
-| `order_id` (optional) | The order ID. Order Mode only. |
-| `psp_order_code` (optional) | The unique reference code you assigned to the order. Order Mode only. |
-| `payer_id` (optional) | The payer ID assigned by Cobo. Top-up Mode only. |
-| `custom_payer_id` (optional) | Your own payer ID. Top-up Mode only. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
+| `order_id` | `string` | Optional | The order ID. Order Mode only. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
 
 For why it failed, read `failed_reason` on that business's own event. The `failed_reason` in the transaction fields is free text and is populated only for approval and signature failures.
 
@@ -75,11 +75,11 @@ For why it failed, read `failed_reason` on that business's own event. The `faile
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
-| Field | Description |
-| --- | --- |
-| `acquiring_type` (required) | The pay-in mode. Always `Order` for this event. |
-| `order_id` (optional) | The ID of the order this late payment belongs to. |
-| `psp_order_code` (optional) | The unique reference code you assigned to the order. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode. Always `Order` for this event. |
+| `order_id` | `string` | Optional | The ID of the order this late payment belongs to. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. |
 
 ## `payment.order.status.updated`
 
@@ -89,27 +89,27 @@ Delivered alongside [`payment.order.updated`](/payments/en/guides/events/orders)
 
 **Event content:**
 
-| Field | Description |
-| --- | --- |
-| `order_id` (required) | The order ID. |
-| `merchant_id` (optional) | The merchant ID. |
-| `merchant_order_code` (optional) | A unique reference code assigned by the merchant. |
-| `psp_order_code` (required) | The unique reference code you use to identify this order. |
-| `pricing_currency` (optional) | The pricing currency of the order. |
-| `pricing_amount` (optional) | The base amount of the order, excluding the developer fee. |
-| `fee_amount` (required) | The developer fee for the order. |
-| `payable_currency` (optional) | The ID of the cryptocurrency used for payment. |
-| `chain_id` (required) | The ID of the blockchain network. |
-| `payable_amount` (required) | The cryptocurrency amount to be paid for this order. |
-| `exchange_rate` (required) | The exchange rate between `payable_currency` and `pricing_currency`. |
-| `amount_tolerance` (optional) | The allowed amount deviation. |
-| `receive_address` (required) | The recipient wallet address. |
-| `status` (required) | The current order status. One of: `Pending`, `Processing`, `Completed`, `Expired`, `Underpaid`. |
-| `received_token_amount` (required) | The total cryptocurrency amount received for this order. |
-| `expired_at` (optional) | The expiration time, in Unix timestamp (seconds). |
-| `created_timestamp` (optional) | The creation time, in Unix timestamp (seconds). |
-| `updated_timestamp` (optional) | The last update time, in Unix timestamp (seconds). |
-| `transactions` (optional) | An array of payment transactions associated with this order, each using the [transaction fields](#transaction-fields). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `order_id` | `string` | Required | The order ID. |
+| `merchant_id` | `string` | Optional | The merchant ID. |
+| `merchant_order_code` | `string` | Optional | A unique reference code assigned by the merchant. |
+| `psp_order_code` | `string` | Required | The unique reference code you use to identify this order. |
+| `pricing_currency` | `string` | Optional | The pricing currency of the order. |
+| `pricing_amount` | `string` | Optional | The base amount of the order, excluding the developer fee. |
+| `fee_amount` | `string` | Required | The developer fee for the order. |
+| `payable_currency` | `string` | Optional | The ID of the cryptocurrency used for payment. |
+| `chain_id` | `string` | Required | The ID of the blockchain network. |
+| `payable_amount` | `string` | Required | The cryptocurrency amount to be paid for this order. |
+| `exchange_rate` | `string` | Required | The exchange rate between `payable_currency` and `pricing_currency`. |
+| `amount_tolerance` | `string` | Optional | The allowed amount deviation. |
+| `receive_address` | `string` | Required | The recipient wallet address. |
+| `status` | `string` | Required | The current order status. One of: `Pending`, `Processing`, `Completed`, `Expired`, `Underpaid`. |
+| `received_token_amount` | `string` | Required | The total cryptocurrency amount received for this order. |
+| `expired_at` | `integer` | Optional | The expiration time, in Unix timestamp (seconds). |
+| `created_timestamp` | `integer` | Optional | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Optional | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this order, each using the [transaction fields](#transaction-fields). |
 
 For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
 
@@ -121,26 +121,26 @@ Delivered alongside [`payment.refund.updated`](/payments/en/guides/events/refund
 
 **Event content:**
 
-| Field | Description |
-| --- | --- |
-| `refund_id` (required) | The refund order ID. |
-| `request_id` (optional) | The request ID you provided when creating the refund. |
-| `order_id` (optional) | The ID of the pay-in order corresponding to this refund. |
-| `merchant_id` (optional) | The merchant ID. |
-| `token_id` (required) | The ID of the cryptocurrency used for the refund. |
-| `chain_id` (required) | The ID of the blockchain network. |
-| `amount` (required) | The cryptocurrency amount to be returned for this refund. |
-| `to_address` (required) | The recipient wallet address. |
-| `status` (required) | The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`. |
-| `refund_type` (optional) | The source of funds. One of: `Merchant`, `Psp`. |
-| `initiator` (optional) | The initiator of the refund request. |
-| `charge_merchant_fee` (optional) | Whether to charge the developer fee to the merchant. |
-| `merchant_fee_amount` (optional) | The developer fee amount to charge the merchant. |
-| `merchant_fee_token_id` (optional) | The ID of the cryptocurrency used for the developer fee. |
-| `commission_fee` (optional) | Commission fee details. |
-| `created_timestamp` (required) | The creation time, in Unix timestamp (seconds). |
-| `updated_timestamp` (required) | The last update time, in Unix timestamp (seconds). |
-| `transactions` (optional) | An array of payment transactions associated with this refund, each using the [transaction fields](#transaction-fields). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `refund_id` | `string` | Required | The refund order ID. |
+| `request_id` | `string` | Optional | The request ID you provided when creating the refund. |
+| `order_id` | `string` | Optional | The ID of the pay-in order corresponding to this refund. |
+| `merchant_id` | `string` | Optional | The merchant ID. |
+| `token_id` | `string` | Required | The ID of the cryptocurrency used for the refund. |
+| `chain_id` | `string` | Required | The ID of the blockchain network. |
+| `amount` | `string` | Required | The cryptocurrency amount to be returned for this refund. |
+| `to_address` | `string` | Required | The recipient wallet address. |
+| `status` | `string` | Required | The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`. |
+| `refund_type` | `string` | Optional | The source of funds. One of: `Merchant`, `Psp`. |
+| `initiator` | `string` | Optional | The initiator of the refund request. |
+| `charge_merchant_fee` | `boolean` | Optional | Whether to charge the developer fee to the merchant. |
+| `merchant_fee_amount` | `string` | Optional | The developer fee amount to charge the merchant. |
+| `merchant_fee_token_id` | `string` | Optional | The ID of the cryptocurrency used for the developer fee. |
+| `commission_fee` | `object` | Optional | Commission fee details. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this refund, each using the [transaction fields](#transaction-fields). |
 
 For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
 
@@ -152,22 +152,22 @@ Delivered alongside [`payment.payout.updated`](/payments/en/guides/events/payout
 
 **Event content:**
 
-| Field | Description |
-| --- | --- |
-| `payout_id` (required) | The payout ID. |
-| `request_id` (required) | The request ID you provided when creating the payout. |
-| `payout_channel` (required) | The payout channel. One of: `Crypto`, `OffRamp`. |
-| `source_account` (optional) | The source account from which the payout is made. |
-| `payout_items` (optional) | An array of payout items. |
-| `recipient_info` (optional) | The recipient information. |
-| `initiator` (optional) | The initiator of the payout request. |
-| `actual_payout_amount` (optional) | The actual amount delivered to the recipient. |
-| `commission_fees` (optional) | An array of commission fees for this payout. |
-| `remark` (optional) | A note or comment about the payout. |
-| `status` (required) | The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`. |
-| `created_timestamp` (required) | The creation time, in Unix timestamp (seconds). |
-| `updated_timestamp` (required) | The last update time, in Unix timestamp (seconds). |
-| `transactions` (optional) | An array of payment transactions associated with this payout, each using the [transaction fields](#transaction-fields). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `payout_id` | `string` | Required | The payout ID. |
+| `request_id` | `string` | Required | The request ID you provided when creating the payout. |
+| `payout_channel` | `string` | Required | The payout channel. One of: `Crypto`, `OffRamp`. |
+| `source_account` | `string` | Optional | The source account from which the payout is made. |
+| `payout_items` | `array` | Optional | An array of payout items. |
+| `recipient_info` | `object` | Optional | The recipient information. |
+| `initiator` | `string` | Optional | The initiator of the payout request. |
+| `actual_payout_amount` | `string` | Optional | The actual amount delivered to the recipient. |
+| `commission_fees` | `array` | Optional | An array of commission fees for this payout. |
+| `remark` | `string` | Optional | A note or comment about the payout. |
+| `status` | `string` | Required | The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this payout, each using the [transaction fields](#transaction-fields). |
 
 For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
 
@@ -179,16 +179,16 @@ Delivered alongside [`payment.bulk_send.updated`](/payments/en/guides/events/bul
 
 **Event content:**
 
-| Field | Description |
-| --- | --- |
-| `bulk_send_id` (required) | The bulk send ID. |
-| `request_id` (optional) | The request ID you provided when creating the bulk send. |
-| `source_account` (required) | The source account from which the bulk send is made. |
-| `description` (optional) | The description for the entire bulk send batch. |
-| `execution_mode` (required) | The execution mode. |
-| `status` (required) | The current bulk send status. |
-| `created_timestamp` (required) | The creation time, in Unix timestamp (seconds). |
-| `updated_timestamp` (required) | The last update time, in Unix timestamp (seconds). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `bulk_send_id` | `string` | Required | The bulk send ID. |
+| `request_id` | `string` | Optional | The request ID you provided when creating the bulk send. |
+| `source_account` | `string` | Required | The source account from which the bulk send is made. |
+| `description` | `string` | Optional | The description for the entire bulk send batch. |
+| `execution_mode` | `string` | Required | The execution mode. |
+| `status` | `string` | Required | The current bulk send status. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
 
 For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
 
@@ -200,22 +200,22 @@ Delivered alongside [`payment.bulk_send.item.updated`](/payments/en/guides/event
 
 **Event content:**
 
-| Field | Description |
-| --- | --- |
-| `bulk_send_item_id` (required) | The bulk send item ID. |
-| `bulk_send_id` (required) | The bulk send ID that this item belongs to. |
-| `request_id` (optional) | The request ID of the bulk send batch. |
-| `source_account` (required) | The source account ID of the bulk send batch. |
-| `token_id` (required) | The token ID of the cryptocurrency sent to the recipient. |
-| `receiving_address` (required) | The recipient's cryptocurrency address. |
-| `amount` (required) | The cryptocurrency amount sent to the recipient. |
-| `description` (optional) | A note or comment about the bulk send item. |
-| `tx_hash` (optional) | The transaction hash of the bulk send item. |
-| `status` (required) | The item execution status. One of: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`. |
-| `validation_status` (required) | The item validation status. One of: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`. |
-| `failed_reason` (optional) | The reason why the bulk send item failed. |
-| `created_timestamp` (required) | The creation time, in Unix timestamp (seconds). |
-| `updated_timestamp` (required) | The last update time, in Unix timestamp (seconds). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `bulk_send_item_id` | `string` | Required | The bulk send item ID. |
+| `bulk_send_id` | `string` | Required | The bulk send ID that this item belongs to. |
+| `request_id` | `string` | Optional | The request ID of the bulk send batch. |
+| `source_account` | `string` | Required | The source account ID of the bulk send batch. |
+| `token_id` | `string` | Required | The token ID of the cryptocurrency sent to the recipient. |
+| `receiving_address` | `string` | Required | The recipient's cryptocurrency address. |
+| `amount` | `string` | Required | The cryptocurrency amount sent to the recipient. |
+| `description` | `string` | Optional | A note or comment about the bulk send item. |
+| `tx_hash` | `string` | Optional | The transaction hash of the bulk send item. |
+| `status` | `string` | Required | The item execution status. One of: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`. |
+| `validation_status` | `string` | Required | The item validation status. One of: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`. |
+| `failed_reason` | `string` | Optional | The reason why the bulk send item failed. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
 
 To test delivery to your registered webhook endpoints, use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) with `event_type` set to `payment.bulk_send.item.status.updated`.
 

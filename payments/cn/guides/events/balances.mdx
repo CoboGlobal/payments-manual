@@ -19,17 +19,18 @@ lang: "zh-hans"
 
 ### 事件内容
 
-| 字段 | 说明 |
-| --- | --- |
-| `source_account` | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
-| `source_id` | 引起本次变动的业务单据 ID，例如订单 ID。 |
-| `source_type` | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
-| `token_id` | 发生变动的 token。 |
-| `amount` / `amount_raw` | 变动金额，分别为截断至两位小数和按该 token 自身精度表示。 |
-| `balance_before` / `balance_before_raw` | 变动前余额，两种精度。 |
-| `balance_after` / `balance_after_raw` | 变动后余额，两种精度。 |
-| `flow_direction` | 变动方向，取 `in` 或 `out`。 |
-| `update_time` | 余额更新时间，Unix 时间戳（秒）。 |
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentAccountBalanceUpdate`，用于反序列化 `data`。 |
+| `source_account` | `string` | 必填 | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
+| `source_id` | `string` | 必填 | 引起本次变动的业务单据 ID，例如订单 ID。 |
+| `source_type` | `string` | 必填 | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
+| `token_id` | `string` | 必填 | 发生变动的 token。 |
+| `amount` / `amount_raw` | `string` | 必填 | 变动金额，分别为截断至两位小数和按该 token 自身精度表示。 |
+| `balance_before` / `balance_before_raw` | `string` | 必填 | 变动前余额，两种精度。 |
+| `balance_after` / `balance_after_raw` | `string` | 必填 | 变动后余额，两种精度。 |
+| `flow_direction` | `string` | 必填 | 变动方向，取 `in` 或 `out`。 |
+| `update_time` | `integer` | 必填 | 余额更新时间，Unix 时间戳（秒）。 |
 
 如果您希望主动查询而不是等待事件，可以调用 `GET /payments/balance_changes` 并把 `source_id` 设为业务单据 ID，响应模型与本事件的 `data` 一致。
 

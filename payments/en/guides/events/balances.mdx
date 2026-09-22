@@ -19,17 +19,18 @@ It is also how you see **what each account actually received**. An order's `cred
 
 ### Event content
 
-| Field | Description |
-| --- | --- |
-| `source_account` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
-| `source_id` | The ID of the business record that caused the change, such as the order ID. |
-| `source_type` | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
-| `token_id` | The token whose balance changed. |
-| `amount` / `amount_raw` | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
-| `balance_before` / `balance_before_raw` | The balance before the change, in the same two precisions. |
-| `balance_after` / `balance_after_raw` | The balance after the change, in the same two precisions. |
-| `flow_direction` | The direction of the change. Either `in` or `out`. |
-| `update_time` | When the balance was updated, in Unix timestamp (seconds). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
+| `source_account` | `string` | Required | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
+| `source_id` | `string` | Required | The ID of the business record that caused the change, such as the order ID. |
+| `source_type` | `string` | Required | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
+| `token_id` | `string` | Required | The token whose balance changed. |
+| `amount` / `amount_raw` | `string` | Required | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
+| `balance_before` / `balance_before_raw` | `string` | Required | The balance before the change, in the same two precisions. |
+| `balance_after` / `balance_after_raw` | `string` | Required | The balance after the change, in the same two precisions. |
+| `flow_direction` | `string` | Required | The direction of the change. Either `in` or `out`. |
+| `update_time` | `integer` | Required | When the balance was updated, in Unix timestamp (seconds). |
 
 To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business record ID. The response model matches this event's `data`.
 

@@ -25,16 +25,17 @@ Neither event appears in any order's `transactions` array, and neither produces 
 
 ### Event content
 
-| Field | Description |
-| --- | --- |
-| `transaction_id` | The deposit's transaction ID. Quote it when you raise a case. |
-| `status` | The transaction status. In progress on `created`, `Completed` on `completed`. |
-| `chain_id` / `token_id` | The chain and token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
-| `transaction_hash` | The on-chain hash. It can be empty before the transaction is broadcast. |
-| `source` | Where the funds came from, typically an external wallet address. Use it if you return them. |
-| `destination` | Where they went: the receiving `address`, the `amount` received, and on some chains a `memo`. |
-| `confirmed_num` / `confirming_threshold` | Confirmations received, and the number that chain needs before a transaction is considered secure. |
-| `created_timestamp` / `updated_timestamp` | Creation and last update time, in Unix timestamp (milliseconds). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentTransaction`. Use it to deserialize `data`. |
+| `transaction_id` | `string` | Required | The deposit's transaction ID. Quote it when you raise a case. |
+| `status` | `string` | Required | The transaction status. In progress on `created`, `Completed` on `completed`. |
+| `chain_id` / `token_id` | `string` | Optional | The chain and token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
+| `transaction_hash` | `string` | Optional | The on-chain hash. It can be empty before the transaction is broadcast. |
+| `source` | `object` | Required | Where the funds came from, typically an external wallet address. Use it if you return them. |
+| `destination` | `object` | Required | Where they went: the receiving `address`, the `amount` received, and on some chains a `memo`. |
+| `confirmed_num` / `confirming_threshold` | `integer` | Optional | Confirmations received, and the number that chain needs before a transaction is considered secure. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (milliseconds). |
 
 For the complete transaction field list see [Advanced events](/payments/en/guides/events/advanced#transaction-fields) — the table above is the subset that matters for handling an unexpected deposit.
 

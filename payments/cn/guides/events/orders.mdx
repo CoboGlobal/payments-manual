@@ -33,18 +33,22 @@ lang: "zh-hans"
 
 ### 事件内容
 
-| 字段 | 说明 |
-| --- | --- |
-| `order_id` | 订单身份，也是您做发货幂等时使用的键。 |
-| `psp_order_code` | 您自己为该订单分配的参考编号。 |
-| `merchant_order_code` | 订单归属商户时，商户自己的参考编号。 |
-| `receive_address` | 付款方转账的目标地址。 |
-| `expired_at` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
-| `notice_type` | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
-| `requested_amount` | 订单应收总额，**含您的手续费**。展示给付款方用。⚠️ **它不是发货阈值**——足额判定带容差，能否发货以 `status=Completed` 为准。 |
-| `credited_amount` | 已收到并计入订单的总额，用于对账。⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**——两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
-| `outstanding_amount` | 还差多少未收到，用于告知付款方还需支付多少。下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。⚠️ 它把四种情况合并成一个数：付款方没打钱、打了在筛查、打了待补件、打了被拒——这四种处理方式完全不同，要知道钱卡在哪，请遍历 `transactions` 按条目 `status` 分组。 |
-| `transactions` | 该订单**至今的全部入金**，不是自上条事件以来的增量：请整体替换本地副本，按 `transaction_id` upsert。每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）；处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentOrderUpdate`，用于反序列化 `data`。 |
+| `order_id` | `string` | 必填 | 订单身份，也是您做发货幂等时使用的键。 |
+| `psp_order_code` | `string` | 必填 | 您自己为该订单分配的参考编号。 |
+| `merchant_order_code` | `string` | 条件必填 | 订单归属商户时，商户自己的参考编号。 |
+| `merchant_id` | `string` | 条件必填 | 订单归属商户时，该商户的 ID。 |
+| `receive_address` | `string` | 必填 | 付款方转账的目标地址。 |
+| `expired_at` | `integer` | 必填 | 付款窗口关闭时间，Unix 时间戳（秒）。 |
+| `status` | `string` | 必填 | 订单当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
+| `notice_type` | `string` | 必填 | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
+| `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**。展示给付款方用。⚠️ **它不是发货阈值**——足额判定带容差，能否发货以 `status=Completed` 为准。 |
+| `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，用于对账。⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**——两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
+| `outstanding_amount` | `object` | 必填 | 还差多少未收到，用于告知付款方还需支付多少。下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。⚠️ 它把四种情况合并成一个数：付款方没打钱、打了在筛查、打了待补件、打了被拒——这四种处理方式完全不同，要知道钱卡在哪，请遍历 `transactions` 按条目 `status` 分组。 |
+| `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是自上条事件以来的增量：请整体替换本地副本，按 `transaction_id` upsert。每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）；处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
 

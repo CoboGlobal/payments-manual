@@ -34,20 +34,23 @@ The primary payout event, identified by `payout_id`.
 
 ### Event content
 
-| Field | Description |
-| --- | --- |
-| `payout_id` | The payout's identity, and the key you use when closing it and when raising a case. |
-| `request_id` | The request ID you supplied when creating the payout. |
-| `source_account` | The account the funds are paid from. |
-| `requested_target` | Where the money is going, in business terms. Carries `target_type`, either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
-| `initiator` | Who initiated the payout. |
-| `remark` | The note attached to the payout. |
-| `requested_amounts` | **Source side**: what you asked to pay out, grouped by source token. |
-| `failed_amounts` | **Source side**: the part that was not paid out, grouped by source token. At a final status, the amount that succeeded is the difference between the two. ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction is created, during fund consolidation, cross-chain conversion, or commission collection, and then no entry exists in the array at all. |
-| `actual_payout_amount` | **Delivery side**: what the recipient actually received. For crypto this is the destination token; for Off-Ramp it is the bank account's currency. Absent until the payout finishes. ⚠️ **Do not subtract it from the source-side amounts** — cross-chain conversion and fiat settlement mean the two sides are not the same asset. |
-| `commission_fees` | **Source side**: the commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
-| `transactions` | The outgoing transactions. Entries use **`result`**, not `status`, to avoid confusion with wallet transaction states: `Completed`, `Failed`, or `null` when there is no result yet. Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`; `tx_hash` is empty until the transaction is broadcast, and an entry with `result` `Failed` carries its own `failed_reason`. ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
-| `failed_reason` | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentPayoutUpdate`. Use it to deserialize `data`. |
+| `payout_id` | `string` | Required | The payout's identity, and the key you use when closing it and when raising a case. |
+| `request_id` | `string` | Required | The request ID you supplied when creating the payout. |
+| `source_account` | `string` | Conditional | The account the funds are paid from. |
+| `status` | `string` | Required | The current payout status. See [Trigger conditions](#trigger-conditions) for the values. |
+| `requested_target` | `object` | Required | Where the money is going, in business terms. Carries `target_type`, either `Address` — with `address` and `chain_id` — or `BankAccount` — with `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never exposes on-chain execution detail such as contract addresses. |
+| `initiator` | `string` | Required | Who initiated the payout. |
+| `remark` | `string` | Required | The note attached to the payout. |
+| `requested_amounts` | `array` | Required | **Source side**: what you asked to pay out, grouped by source token. |
+| `failed_amounts` | `array` | Required | **Source side**: the part that was not paid out, grouped by source token. At a final status, the amount that succeeded is the difference between the two. ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction is created, during fund consolidation, cross-chain conversion, or commission collection, and then no entry exists in the array at all. |
+| `actual_payout_amount` | `object` | Required | **Delivery side**: what the recipient actually received. For crypto this is the destination token; for Off-Ramp it is the bank account's currency. Absent until the payout finishes. ⚠️ **Do not subtract it from the source-side amounts** — cross-chain conversion and fiat settlement mean the two sides are not the same asset. |
+| `commission_fees` | `array` | Required | **Source side**: the commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
+| `transactions` | `array` | Required | The outgoing transactions. Entries use **`result`**, not `status`, to avoid confusion with wallet transaction states: `Completed`, `Failed`, or `null` when there is no result yet. Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`; `tx_hash` is empty until the transaction is broadcast, and an entry with `result` `Failed` carries its own `failed_reason`. ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
+| `failed_reason` | `object` | Conditional | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 ### Failure reasons
 

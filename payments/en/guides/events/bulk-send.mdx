@@ -31,20 +31,24 @@ The batch-level event, identified by `bulk_send_id`.
 
 ### Batch event content
 
-| Field | Description |
-| --- | --- |
-| `bulk_send_id` | The batch's identity. |
-| `source_account` | The account the batch pays from. |
-| `execution_mode` | Whether a single bad item stops the whole batch. In `Strict` mode it does. |
-| `item_count` | How many items the batch contains. |
-| `failed_item_count` | Items that were submitted and failed. Funds moved for these. |
-| `not_executed_item_count` | Items that were never submitted. No funds moved. |
-| `requested_amounts` | The total requested, grouped by token. One batch can span several tokens and chains. |
-| `completed_amounts` | The total for items that completed, grouped by token. |
-| `failed_amounts` | The total for items that did not succeed, grouped by token. |
-| `description` | The note attached to the batch. |
-| `commission_fees` | The commission Cobo charged, one entry per token. |
-| `failed_reason` | Present when `status` is `Failed`. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentBulkSendUpdate`. Use it to deserialize `data`. |
+| `bulk_send_id` | `string` | Required | The batch's identity. |
+| `request_id` | `string` | Optional | The request ID you provided when creating the batch. |
+| `source_account` | `string` | Required | The account the batch pays from. |
+| `status` | `string` | Required | The current batch status. See [Batch trigger conditions](#batch-trigger-conditions) for the values. |
+| `execution_mode` | `string` | Required | Whether a single bad item stops the whole batch. In `Strict` mode it does. |
+| `item_count` | `integer` | Required | How many items the batch contains. |
+| `failed_item_count` | `integer` | Required | Items that were submitted and failed. Funds moved for these. |
+| `not_executed_item_count` | `integer` | Required | Items that were never submitted. No funds moved. |
+| `requested_amounts` | `array` | Required | The total requested, grouped by token. One batch can span several tokens and chains. |
+| `completed_amounts` | `array` | Required | The total for items that completed, grouped by token. |
+| `failed_amounts` | `array` | Required | The total for items that did not succeed, grouped by token. |
+| `description` | `string` | Required | The note attached to the batch. |
+| `commission_fees` | `array` | Required | The commission Cobo charged, one entry per token. |
+| `failed_reason` | `object` | Conditional | Present when `status` is `Failed`. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 `failed_amounts` merges both kinds of unsuccessful item — those whose funds moved and those never submitted — into one figure per token. Use `failed_item_count` and `not_executed_item_count`, or the item events, to tell them apart.
 
@@ -209,15 +213,20 @@ The item-level event, identified by `bulk_send_item_id`.
 
 ### Item event content
 
-| Field | Description |
-| --- | --- |
-| `bulk_send_item_id` | The item's identity, and the key you use to reconcile. |
-| `bulk_send_id` | The batch this item belongs to. |
-| `requested_amount` | The amount to send, as an asset amount. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
-| `receiving_address` | The recipient's address. |
-| `tx_hash` | The on-chain hash. Absent when the item never reached the chain. |
-| `description` | The note attached to the item. |
-| `failed_reason` | Present when `status` is `Failed` or `NotExecuted`. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentBulkSendItemUpdate`. Use it to deserialize `data`. |
+| `bulk_send_item_id` | `string` | Required | The item's identity, and the key you use to reconcile. |
+| `bulk_send_id` | `string` | Required | The batch this item belongs to. |
+| `request_id` | `string` | Optional | The request ID of the batch. |
+| `source_account` | `string` | Required | The account the batch pays from. |
+| `status` | `string` | Required | The current item status. See [Item trigger conditions](#item-trigger-conditions) for the values. |
+| `requested_amount` | `object` | Required | The amount to send, as an asset amount. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
+| `receiving_address` | `string` | Required | The recipient's address. |
+| `tx_hash` | `string` | Required | The on-chain hash. Absent when the item never reached the chain. |
+| `description` | `string` | Required | The note attached to the item. |
+| `failed_reason` | `object` | Conditional | Present when `status` is `Failed` or `NotExecuted`. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). See [Item trigger conditions](#item-trigger-conditions). |
 
 ### Item failure reasons
 

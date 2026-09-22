@@ -29,18 +29,22 @@ The primary refund event, identified by `refund_id`.
 
 ### Event content
 
-| Field | Description |
-| --- | --- |
-| `refund_id` | The refund order's identity, and the key you use for reconciliation idempotency. |
-| `order_id` | The pay-in order this refund returns funds for. |
-| `request_id` | The request ID you supplied when creating the refund. |
-| `to_address` | The address receiving the refund. |
-| `requested_amount` | The amount to return, as an asset amount. It corresponds to the `payable_amount` you passed when creating the refund. |
-| `tx_hash` | The on-chain hash of the refund transfer. Absent when the refund failed before being broadcast. |
-| `refund_type` | Which balance funds the refund: `Merchant` or `Psp`. |
-| `initiator` | Who initiated the refund. |
-| `commission_fee` | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
-| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`. |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
+| `refund_id` | `string` | Required | The refund order's identity, and the key you use for reconciliation idempotency. |
+| `order_id` | `string` | Required | The pay-in order this refund returns funds for. |
+| `merchant_id` | `string` | Conditional | The merchant ID, when the refund belongs to a merchant. |
+| `status` | `string` | Required | The current refund status. See [Trigger conditions](#trigger-conditions) for the values. |
+| `request_id` | `string` | Required | The request ID you supplied when creating the refund. |
+| `to_address` | `string` | Required | The address receiving the refund. |
+| `requested_amount` | `object` | Required | The amount to return, as an asset amount. It corresponds to the `payable_amount` you passed when creating the refund. |
+| `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. Absent when the refund failed before being broadcast. |
+| `refund_type` | `string` | Required | Which balance funds the refund: `Merchant` or `Psp`. |
+| `initiator` | `string` | Required | Who initiated the refund. |
+| `commission_fee` | `object` | Required | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
+| `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
 

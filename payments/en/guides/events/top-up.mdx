@@ -32,17 +32,21 @@ The primary event for Top-up Mode. One deposit produces one object, identified b
 
 ### Event content
 
-| Field | Description |
-| --- | --- |
-| `transaction_id` | The deposit's transaction ID, and the object's identity. Also the parameter you pass to Cobo's compliance operations. |
-| `payer_id` / `custom_payer_id` | The payer identifier assigned by Cobo, and the one you assigned. |
-| `amount` | An asset amount carrying `amount`, `token_id`, and `chain_id`. Present from the first event and retained even when the deposit fails, so it tells you the size of the deposit, not whether it is usable. |
-| `tx_hash` | The on-chain transaction hash. Absent for internal transfers that never touch a chain. |
-| `topup_address` | The deposit address that received the funds. |
-| `source_address` | The on-chain sender. `null` when the chain does not expose it. |
-| `screening_mode` | Which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation. **All three modes can require action from you, so it does not tell you whether it is your turn** — `status` does. It can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
-| `message` | Present only when `status` is `ActionRequired`. Written for human operators. Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue. The three fixed strings:<br/>1. `Additional information is required…Please check the email…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>2. `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>3. `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
-| `failed_reason` | Present only when `status` is `Failed`. Carries `code` and `message`; values under [Failure reasons](#failure-reasons). |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentTopUpUpdate`. Use it to deserialize `data`. |
+| `transaction_id` | `string` | Required | The deposit's transaction ID, and the object's identity. Also the parameter you pass to Cobo's compliance operations. |
+| `merchant_id` | `string` | Required | Which merchant this deposit belongs to, resolved through `payer_id`. |
+| `status` | `string` | Required | The current status of this deposit. See [Trigger conditions](#trigger-conditions) for the values. |
+| `payer_id` / `custom_payer_id` | `string` | Required | The payer identifier assigned by Cobo, and the one you assigned. |
+| `amount` | `object` | Required | An asset amount carrying `amount`, `token_id`, and `chain_id`. Present from the first event and retained even when the deposit fails, so it tells you the size of the deposit, not whether it is usable. |
+| `tx_hash` | `string` | Required | The on-chain transaction hash. Absent for internal transfers that never touch a chain. |
+| `topup_address` | `string` | Required | The deposit address that received the funds. |
+| `source_address` | `string` | Required | The on-chain sender. `null` when the chain does not expose it. |
+| `screening_mode` | `string` | Conditional | Which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation. **All three modes can require action from you, so it does not tell you whether it is your turn** — `status` does. It can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `message` | `string` | Conditional | Present only when `status` is `ActionRequired`. Written for human operators. Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue. The three fixed strings:<br/>1. `Additional information is required…Please check the email…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>2. `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>3. `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`; values under [Failure reasons](#failure-reasons). |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 To submit a screening decision, call [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) with the `transaction_id` from this event. Returning, quarantining, and unfreezing funds are also keyed on `transaction_id`. None of these operations accept `tx_hash`.
 
