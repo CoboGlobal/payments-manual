@@ -1,0 +1,213 @@
+---
+title: "Top-up"
+lang: "en"
+---
+
+These events cover Top-up Mode, where each payer has a deposit address and every deposit is tracked on its own. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| [`payment.topup.updated`](#payment-topup-updated) | One deposit's whole life: detected, screened, available to credit, or failed. | Always — this is the event for top-up deposits. |
+| [`payment.address.updated`](#payment-address-updated) | A payer's deposit address was replaced. | Required. Besides replacements you request yourself, **Cobo also replaces addresses on its own**, and there is no other way to learn about those. |
+
+## `payment.topup.updated`
+
+The primary event for Top-up Mode. One deposit produces one object, identified by `transaction_id`.
+
+**Credit the funds only when `status` is `Completed`.** There is no second condition.
+
+### Trigger conditions
+
+**One event per change of this deposit's `status`.** Every deposit goes through screening, so there is no direct path from `Detected` to `Completed`; `ActionRequired` returning to `PendingScreening` is the only backward edge. `Completed` and `Failed` are terminal.
+
+| When you receive it | `status` | Creditable | What to do |
+| --- | --- | --- | --- |
+| The funds are detected on a deposit address | `Detected` | ❌ | Record the incoming deposit. |
+| The deposit enters compliance screening | `PendingScreening` | ❌ | Wait. |
+| Screening needs you to act — supply information, submit your own KYT result, or complete a manual review | `ActionRequired` | ❌ | Act on `message`. |
+| Screening passed and the transaction has at least one on-chain confirmation | `Completed` | ✅ | Credit `amount`, using `transaction_id` as the idempotency key. |
+| The deposit was rejected or failed | `Failed` | ❌ | Read `failed_reason.code` to decide what happens next. |
+
+### Event content
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentTopUpUpdate`. Use it to deserialize `data`. |
+| `transaction_id` | `string` | Required | The deposit's transaction ID, and the object's identity. Also the parameter you pass to Cobo's compliance operations. |
+| `merchant_id` | `string` | Required | Which merchant this deposit belongs to, resolved through `payer_id`. |
+| `status` | `string` | Required | The current status of this deposit. See [Trigger conditions](#trigger-conditions) for the values. |
+| `payer_id` / `custom_payer_id` | `string` | Required | The payer identifier assigned by Cobo, and the one you assigned. |
+| `amount` | `object` | Required | An asset amount carrying `amount`, `token_id`, and `chain_id`.<br/>• Present from the first event and retained even when the deposit fails.<br/>• So it tells you the size of the deposit, not whether it is usable. |
+| `tx_hash` | `string` | Required | The on-chain transaction hash. Absent for internal transfers that never touch a chain. |
+| `topup_address` | `string` | Required | The deposit address that received the funds. |
+| `source_address` | `string` | Required | The on-chain sender. `null` when the chain does not expose it. |
+| `screening_mode` | `string` | Conditional | Which screening system is handling the deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.<br/>• **All three modes can require action from you, so it does not tell you whether it is your turn** — `status` does.<br/>• It can also be absent while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `message` | `string` | Conditional | Present only when `status` is `ActionRequired`. Written for human operators.<br/>• Three situations share that status and this field is what distinguishes them, but it is **not safe to match on**, so the three cannot be routed apart automatically and need a human queue.<br/>• `Additional information is required…Please check the email…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`; values under [Failure reasons](#failure-reasons). |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+
+</div>
+
+To submit a screening decision, call [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) with the `transaction_id` from this event. Returning, quarantining, and unfreezing funds are also keyed on `transaction_id`. None of these operations accept `tx_hash`.
+
+### Failure reasons
+
+`failed_reason.code` is what you branch on. A deposit can carry these three. The ID to quote when you raise a case is `transaction_id`.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
+| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case, quoting the ID below. |
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### A deposit is detected
+
+Show the deposit as in progress. Do not credit anything yet.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Detected",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+#### Compliance screening is in progress
+
+Keep waiting. `screening_mode` tells you which system is reviewing it, but does not mean you have anything to do.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "PendingScreening",
+  "screening_mode": "IntegratedVendor",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689060
+}
+```
+
+#### Screening needs you to act
+
+Put the deposit in a human queue. The three possible actions are distinguished by `message` — see [When `status` is `ActionRequired`](#event-content).
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "ActionRequired",
+  "screening_mode": "CoboKyt",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+#### The funds are available
+
+**This is the only state you may credit.** Use `transaction_id` as the idempotency key.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Completed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689300
+}
+```
+
+#### The deposit failed
+
+Stop any automatic crediting and read `failed_reason.code`. Here Cobo's compliance checks rejected it, so do not resend — resolve it with Cobo first.
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Failed",
+  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "failed_reason": {
+    "code": "transaction.rejected_by_compliance",
+    "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
+  },
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689400
+}
+```
+
+## `payment.address.updated`
+
+Fires when a payer's top-up address is replaced. Update the address you show that payer, and keep accepting deposits to the previous address until it stops being funded.
+
+**Event content:**
+
+| Field | Description |
+| --- | --- |
+| `payer_id` / `custom_payer_id` | The payer whose address changed. |
+| `chain` | The chain the address belongs to. Only that chain's address changes. |
+| `previous_address` | The address in use before the replacement. |
+| `updated_address` | The address to use from now on. |
+
+Update the address you show that payer. This is a `payment.address.updated` event, not a top-up event.
+
+```json
+{
+  "data_type": "PaymentAddressUpdate",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "chain": "ETH",
+  "previous_address": "0xtopup_addr_M1001_user_abc",
+  "updated_address": "0xtopup_addr_M1001_user_abc_new"
+}
+```
+
+## Related
+
+- For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Advanced events](/payments/en/guides/events/advanced).
+- `payment.account.balance.updated` reports the resulting balance movement for a token. See [Balance changes](/payments/en/guides/events/balances).

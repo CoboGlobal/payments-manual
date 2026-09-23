@@ -1,0 +1,113 @@
+---
+title: "余额变动"
+lang: "zh-hans"
+---
+
+余额变动汇报任意链路背后的账目变化，无论由哪笔支付业务引起。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## 本页的事件
+
+| 事件 | 通知什么 | 什么时候需要订阅 |
+| --- | --- | --- |
+| [`payment.account.balance.updated`](#payment-account-balance-updated) | 某个账户在某个 token 上的可用余额发生了变动，以及变动的来源。 | 必选。业务事件刻意不带余额，每个账户实际收到多少只有这里有。 |
+
+## `payment.account.balance.updated`
+
+某个 Payments 账户在某个 token 上的可用余额发生变化时触发。内部记账应当使用这个事件，因为事件刻意不携带余额。
+
+它也是您了解**每个账户实际收到多少**的途径。例如订单的 `credited_amount` 包含将要分给您的开发者手续费，因此它不是商户的入账金额。一笔订单结算会为涉及的每个账户各产生一条余额事件。
+
+### 事件内容
+
+<div className="field-table">
+
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentAccountBalanceUpdate`，用于反序列化 `data`。 |
+| `source_account` | `string` | 必填 | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
+| `source_id` | `string` | 必填 | 引起本次变动的业务单据 ID，例如订单 ID。 |
+| `source_type` | `string` | 必填 | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
+| `token_id` | `string` | 必填 | 发生变动的 token。 |
+| `amount` / `amount_raw` | `string` | 必填 | 变动金额，分别为截断至两位小数和按该 token 自身精度表示。 |
+| `balance_before` / `balance_before_raw` | `string` | 必填 | 变动前余额，两种精度。 |
+| `balance_after` / `balance_after_raw` | `string` | 必填 | 变动后余额，两种精度。 |
+| `flow_direction` | `string` | 必填 | 变动方向，取 `in` 或 `out`。 |
+| `update_time` | `integer` | 必填 | 余额更新时间，Unix 时间戳（秒）。 |
+
+</div>
+
+如果您希望主动查询而不是等待事件，可以调用 `GET /payments/balance_changes` 并把 `source_id` 设为业务单据 ID，响应模型与本事件的 `data` 一致。
+
+### 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+#### 一笔订单同时给商户和开发者入账
+
+一笔订单结算会为每个账户各产生一条事件。两条相加等于订单的 `credited_amount`，这也是该字段不等于商户入账金额的原因。
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "M1001",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "100.00",
+  "amount_raw": "100.000000",
+  "balance_before": "1250.00",
+  "balance_before_raw": "1250.000000",
+  "balance_after": "1350.00",
+  "balance_after_raw": "1350.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "2.00",
+  "amount_raw": "2.000000",
+  "balance_before": "830.00",
+  "balance_before_raw": "830.000000",
+  "balance_after": "832.00",
+  "balance_after_raw": "832.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+#### 一笔转出从开发者账户扣出
+
+`flow_direction` 为 `out`，`source_id` 是 payout ID，因此可以把这笔变动关联回转出事件。
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "payout_001",
+  "source_type": "Payout",
+  "token_id": "ETH_USDC",
+  "amount": "500.00",
+  "amount_raw": "500.000000",
+  "balance_before": "832.00",
+  "balance_before_raw": "832.000000",
+  "balance_after": "332.00",
+  "balance_after_raw": "332.000000",
+  "flow_direction": "out",
+  "update_time": 1744700600
+}
+```
+
+## 保持自己账本的实时性
+
+Webhook 消息不携带实时余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。
+
+- **随事件更新余额：** 收到 Webhook 时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。
+- **核对手续费：** 使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。
+- **避免手续费耗尽导致业务中断：** 定期调用 [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances)，并按自己的消耗速率设置告警。资金转出、退款和批量下发中的多个失败 code 都源于 Fee Station 余额不足。

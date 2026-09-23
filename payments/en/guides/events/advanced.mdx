@@ -1,0 +1,332 @@
+---
+title: "Advanced events"
+lang: "en"
+---
+
+Advanced events report detail about the underlying on-chain transaction. You only need to subscribe when that detail matters to you — confirmation counts, fee breakdowns, block information, or replacement (drop, resend, speed-up) information, for example to show a payer the progress of their transfer or to reconcile gas spend.
+
+The event for that payment business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it. **Drive the decision from that business's own event and use the advanced one for reconciliation only.**
+
+Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+<Note>
+  Do not let one irreversible action be triggered by two events. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
+</Note>
+
+## Events on this page
+
+| Event | What it notifies you of |
+| --- | --- |
+| [`payment.transaction.created`](#payment-transaction-created) | A deposit address received a new deposit. Top-up Mode. |
+| [`payment.transaction.completed`](#payment-transaction-completed) | A deposit cleared screening and was credited. |
+| [`payment.transaction.failed`](#payment-transaction-failed) | A deposit did not clear screening. |
+| [`payment.transaction.late`](#payment-transaction-late) | A screened deposit arrived after its order reached a final state. |
+| [`payment.order.status.updated`](#payment-order-status-updated) | An order's transaction detail, alongside `payment.order.updated`. |
+| [`payment.refund.status.updated`](#payment-refund-status-updated) | A refund's transaction detail, alongside `payment.refund.updated`. |
+| [`payment.payout.status.updated`](#payment-payout-status-updated) | A payout's transaction detail, alongside `payment.payout.updated`. |
+| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | A batch's transaction detail, alongside `payment.bulk_send.updated`. |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | An item's transaction detail, alongside `payment.bulk_send.item.updated`. |
+
+## `payment.transaction.created`
+
+**Trigger condition:** a deposit address receives a new deposit. Top-up Mode only. The same fact also reaches you through [`payment.topup.updated`](/payments/en/guides/events/top-up) with `status` `Detected`.
+
+**Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode. Always `TopUp` for this event. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. |
+
+</div>
+
+## `payment.transaction.completed`
+
+**Trigger condition:** a deposit passes compliance screening and is credited. Both pay-in modes. For an order paid in several instalments it fires once per receipt as funds are credited, while the order event reports the cumulative outcome — see [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
+
+**Event content:** the shared [transaction fields](#transaction-fields), plus the fields below. Which of them are populated depends on the pay-in mode.
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
+| `order_id` | `string` | Optional | The order ID. Order Mode only. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
+
+</div>
+
+## `payment.transaction.failed`
+
+**Trigger condition:** a deposit fails compliance screening. Both pay-in modes.
+
+**Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
+| `order_id` | `string` | Optional | The order ID. Order Mode only. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
+| `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
+| `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
+
+</div>
+
+For why it failed, read `failed_reason` on that business's own event. The `failed_reason` in the transaction fields is free text and is populated only for approval and signature failures.
+
+## `payment.transaction.late`
+
+**Trigger condition:** a deposit that passed screening arrives after its order reached a final state. Order Mode only. It does not reopen the order or change its final status. The same fact also reaches you through [`payment.order.updated`](/payments/en/guides/events/orders) as `notice_type` `LatePaymentReceived` — see [Underpayment, overpayment, partial payments, and late payment](/payments/en/guides/create-orders#underpayment-overpayment-partial-payments-and-late-payment).
+
+**Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `acquiring_type` | `string` | Required | The pay-in mode. Always `Order` for this event. |
+| `order_id` | `string` | Optional | The ID of the order this late payment belongs to. |
+| `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. |
+
+</div>
+
+## `payment.order.status.updated`
+
+Delivered alongside [`payment.order.updated`](/payments/en/guides/events/orders). Reports detail about the order's underlying transactions, including the `transactions` array and the fee fields.
+
+**Trigger condition:** a payment order's status changes, Order Mode only. The points that fire are `Pending` (the order is created through a payment link), `Completed` (full payment received within the validity period), `Underpaid` (completed deposits exist but fall short), and `Expired` (no completed deposit within the validity period, or the order was canceled).
+
+**Event content:**
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `order_id` | `string` | Required | The order ID. |
+| `merchant_id` | `string` | Optional | The merchant ID. |
+| `merchant_order_code` | `string` | Optional | A unique reference code assigned by the merchant. |
+| `psp_order_code` | `string` | Required | The unique reference code you use to identify this order. |
+| `pricing_currency` | `string` | Optional | The pricing currency of the order. |
+| `pricing_amount` | `string` | Optional | The base amount of the order, excluding the developer fee. |
+| `fee_amount` | `string` | Required | The developer fee for the order. |
+| `payable_currency` | `string` | Optional | The ID of the cryptocurrency used for payment. |
+| `chain_id` | `string` | Required | The ID of the blockchain network. |
+| `payable_amount` | `string` | Required | The cryptocurrency amount to be paid for this order. |
+| `exchange_rate` | `string` | Required | The exchange rate between `payable_currency` and `pricing_currency`. |
+| `amount_tolerance` | `string` | Optional | The allowed amount deviation. |
+| `receive_address` | `string` | Required | The recipient wallet address. |
+| `status` | `string` | Required | The current order status. One of: `Pending`, `Processing`, `Completed`, `Expired`, `Underpaid`. |
+| `received_token_amount` | `string` | Required | The total cryptocurrency amount received for this order. |
+| `expired_at` | `integer` | Optional | The expiration time, in Unix timestamp (seconds). |
+| `created_timestamp` | `integer` | Optional | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Optional | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this order, each using the [transaction fields](#transaction-fields). |
+
+</div>
+
+For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
+
+## `payment.refund.status.updated`
+
+Delivered alongside [`payment.refund.updated`](/payments/en/guides/events/refunds). Reports detail about the refund's underlying transactions, including the `transactions` array and the fee fields.
+
+**Trigger condition:** the refund order's status changes. Key points are `Pending` when the order is created through a refund link, `Completed` when all refund transactions complete, and `Failed` when all refund transactions fail.
+
+**Event content:**
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `refund_id` | `string` | Required | The refund order ID. |
+| `request_id` | `string` | Optional | The request ID you provided when creating the refund. |
+| `order_id` | `string` | Optional | The ID of the pay-in order corresponding to this refund. |
+| `merchant_id` | `string` | Optional | The merchant ID. |
+| `token_id` | `string` | Required | The ID of the cryptocurrency used for the refund. |
+| `chain_id` | `string` | Required | The ID of the blockchain network. |
+| `amount` | `string` | Required | The cryptocurrency amount to be returned for this refund. |
+| `to_address` | `string` | Required | The recipient wallet address. |
+| `status` | `string` | Required | The current refund status. One of: `AddressPending`, `AddressSubmitted`, `Pending`, `Processing`, `Completed`, `Failed`, `PendingConfirmation`. |
+| `refund_type` | `string` | Optional | The source of funds. One of: `Merchant`, `Psp`. |
+| `initiator` | `string` | Optional | The initiator of the refund request. |
+| `charge_merchant_fee` | `boolean` | Optional | Whether to charge the developer fee to the merchant. |
+| `merchant_fee_amount` | `string` | Optional | The developer fee amount to charge the merchant. |
+| `merchant_fee_token_id` | `string` | Optional | The ID of the cryptocurrency used for the developer fee. |
+| `commission_fee` | `object` | Optional | Commission fee details. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this refund, each using the [transaction fields](#transaction-fields). |
+
+</div>
+
+For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
+
+## `payment.payout.status.updated`
+
+Delivered alongside [`payment.payout.updated`](/payments/en/guides/events/payouts). Reports detail about the payout's underlying transactions, including the `transactions` array and `payout_items`.
+
+**Trigger condition:** the payout or transfer request's status changes. `Completed` means all transfers completed, `PartiallyCompleted` means some completed and some failed, `Failed` means all failed, and `RejectedByBank` means the recipient bank rejected the Off-Ramp payout.
+
+**Event content:**
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `payout_id` | `string` | Required | The payout ID. |
+| `request_id` | `string` | Required | The request ID you provided when creating the payout. |
+| `payout_channel` | `string` | Required | The payout channel. One of: `Crypto`, `OffRamp`. |
+| `source_account` | `string` | Optional | The source account from which the payout is made. |
+| `payout_items` | `array` | Optional | An array of payout items. |
+| `recipient_info` | `object` | Optional | The recipient information. |
+| `initiator` | `string` | Optional | The initiator of the payout request. |
+| `actual_payout_amount` | `string` | Optional | The actual amount delivered to the recipient. |
+| `commission_fees` | `array` | Optional | An array of commission fees for this payout. |
+| `remark` | `string` | Optional | A note or comment about the payout. |
+| `status` | `string` | Required | The current payout status. One of: `Pending`, `Preparing`, `Transferring`, `Completed`, `PartiallyCompleted`, `Failed`, `RejectedByBank`. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+| `transactions` | `array` | Optional | An array of payment transactions associated with this payout, each using the [transaction fields](#transaction-fields). |
+
+</div>
+
+For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
+
+## `payment.bulk_send.status.updated`
+
+Delivered alongside [`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send). Reports detail about the batch's underlying transactions.
+
+**Trigger condition:** the bulk send request's status changes. `Completed` means all sends completed, `PartiallyCompleted` means some completed and some failed, and `Failed` means all failed.
+
+**Event content:**
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `bulk_send_id` | `string` | Required | The bulk send ID. |
+| `request_id` | `string` | Optional | The request ID you provided when creating the bulk send. |
+| `source_account` | `string` | Required | The source account from which the bulk send is made. |
+| `description` | `string` | Optional | The description for the entire bulk send batch. |
+| `execution_mode` | `string` | Required | The execution mode. |
+| `status` | `string` | Required | The current bulk send status. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+
+</div>
+
+For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
+
+## `payment.bulk_send.item.status.updated`
+
+Delivered alongside [`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send). Reports detail about the item's underlying transaction, including `validation_status` and `tx_hash`.
+
+**Trigger condition:** the status of a single bulk send item changes. Use it to track item-level execution results, especially when a batch completes partially or individual items fail validation or transfer.
+
+**Event content:**
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `bulk_send_item_id` | `string` | Required | The bulk send item ID. |
+| `bulk_send_id` | `string` | Required | The bulk send ID that this item belongs to. |
+| `request_id` | `string` | Optional | The request ID of the bulk send batch. |
+| `source_account` | `string` | Required | The source account ID of the bulk send batch. |
+| `token_id` | `string` | Required | The token ID of the cryptocurrency sent to the recipient. |
+| `receiving_address` | `string` | Required | The recipient's cryptocurrency address. |
+| `amount` | `string` | Required | The cryptocurrency amount sent to the recipient. |
+| `description` | `string` | Optional | A note or comment about the bulk send item. |
+| `tx_hash` | `string` | Optional | The transaction hash of the bulk send item. |
+| `status` | `string` | Required | The item execution status. One of: `Pending`, `Processing`, `Completed`, `Failed`, `NotExecuted`. |
+| `validation_status` | `string` | Required | The item validation status. One of: `Pending`, `Validated`, `ValidationFailed`, `NotExecuted`. |
+| `failed_reason` | `string` | Optional | The reason why the bulk send item failed. |
+| `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+
+</div>
+
+To test delivery to your registered webhook endpoints, use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) with `event_type` set to `payment.bulk_send.item.status.updated`.
+
+## Transaction fields
+
+These fields appear in all `payment.transaction.*` events. Not every field is populated in every scenario.
+
+<Note>
+  This section covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
+</Note>
+
+- `transaction_id` (string, UUID, required) — The transaction ID.
+- `cobo_id` (string, optional) — The Cobo ID used to track a transaction.
+- `request_id` (string, optional) — The request ID used to track the transaction request.
+- `type` (string, optional) — The transaction type.
+- `status` (string, required) — The transaction status (e.g. `Submitted`, `PendingScreening`, `Confirming`, `Completed`, `Failed`, `Rejected`). See [Transaction statuses and sub-statuses](https://www.cobo.com/developers/v2/guides/transactions/status) for the full lifecycle. The `PendingAuthorization` status covers both manual approval steps and internal automated risk-control/KYT/compliance checks — it does not necessarily require a human action.
+- `sub_status` (string, optional) — A more granular status alongside `status` (e.g. `PendingApproverCheck`, `RejectedKYT`, `FailedOnChain`). See the same [statuses and sub-statuses guide](https://www.cobo.com/developers/v2/guides/transactions/status) for the full list.
+- `failed_reason` (string, optional) — Why the transaction failed. Populated only for approval failures and signature failures. This is a free-text string, unlike the `{ code, message }` object that the events for each payment business carry.
+- `initiator` (string, optional) — The transaction initiator.
+- `chain_id` (string, optional) — The chain ID.
+- `token_id` (string, optional) — The token ID.
+- `transaction_hash` (string, optional) — The on-chain transaction hash (`txid`). Populated only after the transaction is broadcast on-chain, so it may be `null` or absent before then — unlike `transaction_id`, which is assigned at creation and always present.
+- `source` (object, required) — Where the deposit came from, typically an external wallet address (`source_type: DepositFromAddress`).
+- `destination` (object, required) — Where the deposit went, typically a deposit address (`destination_type: DepositToAddress`). Key sub-fields:
+  - `address` — The receiving address.
+  - `amount` — The received amount. For example, if 1.5 USDT was deposited, the value is `1.5`.
+  - `memo` — The memo identifying which account to credit (only on certain chains).
+- `result` (object, optional) — The transaction result.
+- `fee` (object, optional) — The transaction fee. Its shape depends on the chain's fee model (e.g. EIP-1559, UTXO).
+- `confirmed_num` (integer, optional) — The number of confirmations this transaction has received.
+- `confirming_threshold` (integer, optional) — The minimum number of confirmations required to deem a transaction secure (e.g. commonly 6 for a Bitcoin transaction).
+- `block_info` (object, optional) — Details of the block the transaction was included in:
+  - `block_number` — The block number.
+  - `block_timestamp` — When the block was created, in Unix timestamp (milliseconds).
+  - `block_hash` — The block hash.
+- `raw_tx_info` (object, optional) — Details of the raw transaction:
+  - `used_nonce` — The transaction nonce.
+  - `selected_utxos` — The UTXOs consumed in the transaction.
+  - `raw_tx` — The raw transaction data.
+  - `unsigned_raw_tx` — The unsigned raw transaction data.
+  - `utxo_changes` — The UTXO change outputs in the transaction.
+- `replacement` (object, optional) — Populated when this transaction replaced, or was replaced by, another (drop/resend/speed-up):
+  - `replaced_by_type` / `replaced_type` — The replacement type: `Drop`, `Resend`, or `SpeedUp`.
+  - `replaced_by_transaction_id` / `replaced_by_transaction_hash` — The ID/hash of the transaction that replaced this one.
+  - `replaced_transaction_id` / `replaced_transaction_hash` — The ID/hash of the transaction this one replaced.
+- `created_timestamp` (integer, int64, required) — The creation time, in Unix timestamp format (milliseconds).
+- `updated_timestamp` (integer, int64, required) — The last update time, in Unix timestamp format (milliseconds).
+
+## Example
+
+```json
+{
+  "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",
+  "url": "https://example.com/webhook",
+  "created_timestamp": 1701396866000,
+  "type": "payment.transaction.created",
+  "data": {
+    "data_type": "PaymentTransaction",
+    "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+    "status": "Submitted",
+    "chain_id": "ETH",
+    "token_id": "ETH_USDT",
+    "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
+    "source": { "source_type": "DepositFromAddress" },
+    "destination": { "destination_type": "DepositToAddress" },
+    "created_timestamp": 1701396866000,
+    "updated_timestamp": 1701396866000,
+    "acquiring_type": "TopUp",
+    "payer_id": "P20250619T0310056d7aa",
+    "custom_payer_id": "user_abc_10001"
+  },
+  "status": "Success"
+}
+```
+
+<Note>
+  This example is illustrative and constructed from the field definitions in the Payment spec; optional fields may be absent in actual webhook deliveries.
+</Note>

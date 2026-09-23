@@ -1,0 +1,113 @@
+---
+title: "Balance changes"
+lang: "en"
+---
+
+Balance changes report the ledger movement behind any flow, whichever payment business caused it. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| [`payment.account.balance.updated`](#payment-account-balance-updated) | One account's available balance moved for one token, and what caused it. | Required. The business events deliberately carry no balances, so what each account actually received is only here. |
+
+## `payment.account.balance.updated`
+
+Fires when the available balance of a Payments account changes for a specific token. This is the event to use for internal accounting, because the events for each payment business deliberately do not carry balances.
+
+It is also how you see **what each account actually received**. An order's `credited_amount`, for example, includes the portion split out as your developer fee, so it is not the merchant's credited amount. One order settlement produces one balance event per account involved.
+
+### Event content
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
+| `source_account` | `string` | Required | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
+| `source_id` | `string` | Required | The ID of the business record that caused the change, such as the order ID. |
+| `source_type` | `string` | Required | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
+| `token_id` | `string` | Required | The token whose balance changed. |
+| `amount` / `amount_raw` | `string` | Required | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
+| `balance_before` / `balance_before_raw` | `string` | Required | The balance before the change, in the same two precisions. |
+| `balance_after` / `balance_after_raw` | `string` | Required | The balance after the change, in the same two precisions. |
+| `flow_direction` | `string` | Required | The direction of the change. Either `in` or `out`. |
+| `update_time` | `integer` | Required | When the balance was updated, in Unix timestamp (seconds). |
+
+</div>
+
+To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business record ID. The response model matches this event's `data`.
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### An order credits the merchant and the developer
+
+One order settlement produces one event per account. The two together add up to the order's `credited_amount`, which is why that field is not the merchant's figure.
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "M1001",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "100.00",
+  "amount_raw": "100.000000",
+  "balance_before": "1250.00",
+  "balance_before_raw": "1250.000000",
+  "balance_after": "1350.00",
+  "balance_after_raw": "1350.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "order_001",
+  "source_type": "OrderIn",
+  "token_id": "ETH_USDC",
+  "amount": "2.00",
+  "amount_raw": "2.000000",
+  "balance_before": "830.00",
+  "balance_before_raw": "830.000000",
+  "balance_after": "832.00",
+  "balance_after_raw": "832.000000",
+  "flow_direction": "in",
+  "update_time": 1744690100
+}
+```
+
+#### A payout leaves the developer account
+
+`flow_direction` is `out` and `source_id` is the payout ID, so you can tie the movement back to the payout event.
+
+```json
+{
+  "data_type": "PaymentAccountBalanceUpdate",
+  "source_account": "developer",
+  "source_id": "payout_001",
+  "source_type": "Payout",
+  "token_id": "ETH_USDC",
+  "amount": "500.00",
+  "amount_raw": "500.000000",
+  "balance_before": "832.00",
+  "balance_before_raw": "832.000000",
+  "balance_after": "332.00",
+  "balance_after_raw": "332.000000",
+  "flow_direction": "out",
+  "update_time": 1744700600
+}
+```
+
+## Keeping your own balances current
+
+Webhook messages do not carry real-time balances or fee breakdowns, so that the values you read cannot be stale relative to concurrent activity.
+
+- **To update balances as events arrive:** call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when a webhook lands.
+- **To reconcile fees:** use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
+- **To avoid running out of gas:** poll [List Fee Station token balance](https://www.cobo.com/developers/v2/api-references/feestation/list-fee-station-token-balances) and alert on your own consumption rate. Several failure codes across payouts, refunds, and bulk sends trace back to an empty Fee Station.

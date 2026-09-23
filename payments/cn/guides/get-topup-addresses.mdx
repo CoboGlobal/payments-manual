@@ -89,13 +89,13 @@ sequenceDiagram
 
        若指定的付款方和链已存在充值地址，该操作会返回该已有地址，而不会创建新地址，因此您可以为同一付款方和链安全地重复调用。
     2. 若需要同时为多个付款方批量创建充值地址，可调用 [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses) 。
-    2. **配置充值事件监听**：通过 Webhook 接收充值相关的事件通知，详情可参考[事件与状态](/payments/cn/guides/status-and-events)。
+    2. **配置充值事件监听**：通过 Webhook 接收充值相关的事件通知，详情可参考[事件与状态](/payments/cn/guides/events/top-up)。
   </Tab>
 </Tabs>
 
 ## 获取充值模式相关事件
 
-您可以订阅以下 Webhook 事件，以获取充值地址以及充值交易的实时更新通知。请参考 [Webhook reference](/payments/cn/guides/status-and-events) 了解每个事件的触发时间和返回的数据结构。
+您可以订阅以下 Webhook 事件，以获取充值地址以及充值交易的实时更新通知。请参考 [Webhook reference](/payments/cn/guides/events/top-up) 了解每个事件的触发时间和返回的数据结构。
 
 - `payment.transaction.created`
 - `payment.transaction.completed`

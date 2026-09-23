@@ -1,0 +1,345 @@
+---
+title: "批量下发"
+lang: "zh-hans"
+---
+
+批量下发有两级事件：一级是批次，一级是批次里的每个条目。只需要批次结论就订阅批次事件，需要逐条对账就订阅条目事件。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## 本页的事件
+
+| 事件 | 通知什么 | 什么时候需要订阅 |
+| --- | --- | --- |
+| [`payment.bulk_send.updated`](#payment-bulk_send-updated) | 一个批次的结果，以及金额和数量汇总。 | 必选——这是批次的事件。 |
+| [`payment.bulk_send.item.updated`](#payment-bulk_send-item-updated) | 单个条目的结果，用于与您自己的收款人记录对账。 | 需要逐条对账、而不只要批次结论时。 |
+
+## `payment.bulk_send.updated`
+
+批次级事件，以 `bulk_send_id` 标识。
+
+### 批次的事件触发条件
+
+**批次 `status` 每变化一次发一条事件。** 逐条进度不在这里，在条目事件里。
+
+| 什么时候会收到 | `status` | 您该做什么 |
+| --- | --- | --- |
+| 批次创建成功 | `Pending` | 建立批次记录并等待。⚠️ 停在这里不一定是在校验，见下。 |
+| 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
+| 校验通过，开始逐项执行 | `Transferring` | 等待。 |
+| 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
+| 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 是资金动过的，`not_executed_item_count` 是从未提交的。 |
+| 批次整体失败，**只发生在执行开始之前** | `Failed` | 读取 `failed_reason`。没有资金动过。 |
+
+### 批次的事件内容
+
+<div className="field-table">
+
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendUpdate`，用于反序列化 `data`。 |
+| `bulk_send_id` | `string` | 必填 | 批次身份。 |
+| `request_id` | `string` | 选填 | 您创建批次时提供的请求 ID。 |
+| `source_account` | `string` | 必填 | 批次的付款账户。 |
+| `status` | `string` | 必填 | 批次当前状态，取值与含义见[批次的事件触发条件](#批次的事件触发条件)。 |
+| `execution_mode` | `string` | 必填 | 单个条目出问题是否中止整批。`Strict` 模式下会中止。 |
+| `item_count` | `integer` | 必填 | 批次包含多少个条目。 |
+| `failed_item_count` | `integer` | 必填 | 已提交且失败的条目数，这些条目的资金动过。 |
+| `not_executed_item_count` | `integer` | 必填 | 从未提交的条目数，这些条目的资金没有动过。 |
+| `requested_amounts` | `array` | 必填 | 请求总额，按 token 分组。一个批次可以跨多种 token 和多条链。 |
+| `completed_amounts` | `array` | 必填 | 已完成条目的合计，按 token 分组。 |
+| `failed_amounts` | `array` | 必填 | 未成功条目的合计，按 token 分组。 |
+| `description` | `string` | 必填 | 批次备注。 |
+| `commission_fees` | `array` | 必填 | Cobo 收取的佣金，每个 token 一条。 |
+| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 时出现。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
+
+`failed_amounts` 把两类未成功条目——资金动过的和从未提交的——合并成每个 token 一个数。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
+
+批次事件**不携带条目列表**。逐条信息只通过条目事件送达，且两者的到达顺序不作保证。
+
+### 批次的失败原因
+
+`failed_reason.code` 是您分支的依据。整批失败只发生在执行开始之前，因此下面这些都意味着没有资金动过。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
+
+| `code` | 发生了什么 | 怎么处理 |
+| --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 修正条目后创建新批次。 |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 修正那些条目后创建新批次。 |
+| `payment.bulk_send_all_items_failed` | 所有条目都失败或从未执行。逐条原因在条目事件中。 | 看完条目事件后创建新批次。 |
+| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 创建新批次。 |
+
+### 批次的示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+#### 批次已受理
+
+记录批次，不要重复提交。注意 `Pending` 也可能表示批次在等审批。
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Pending",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fees": [],
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744710000
+}
+```
+
+#### 批次完成
+
+关闭批次汇总。各条目仍以自己的事件为准。
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Completed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "0.60" }
+  ],
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744711200
+}
+```
+
+#### 批次部分完成
+
+按两个计数分流处理。本例有一个条目资金动过并失败，另一个从未提交——`failed_amounts` 把两者合并成一个数，所以只能靠计数区分。
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "PartiallyCompleted",
+  "item_count": 3,
+  "failed_item_count": 1,
+  "not_executed_item_count": 1,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "200.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fees": [
+    { "token_id": "ETH_USDC", "fee_amount": "0.20" }
+  ],
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744713000
+}
+```
+
+#### Strict 模式在执行前中止了批次
+
+没有资金动过。修正被指出的条目后创建新批次。具体是哪些条目有问题，来自条目事件。
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "execution_mode": "Strict",
+  "status": "Failed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 3,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fees": [],
+  "failed_reason": {
+    "code": "payment.bulk_send_strict_validation_failed",
+    "message": "Cannot complete bulk send: one or more items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+## `payment.bulk_send.item.updated`
+
+条目级事件，以 `bulk_send_item_id` 标识。
+
+### 条目的事件触发条件
+
+**条目 `status` 每变化一次发一条事件。**
+
+| 什么时候会收到 | `status` | 您该做什么 |
+| --- | --- | --- |
+| 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停在这里不等于卡在校验。 |
+| 该条目的转出已提交 | `Processing` | 等待结果，不要标记完成。 |
+| 转出成功 | `Completed` | 保存金额和 `tx_hash`，关闭该条目。 |
+| 转出已提交但失败 | `Failed` | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
+| 该条目从未提交执行 | `NotExecuted` | **资金完全没有动过。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
+
+### 条目的事件内容
+
+<div className="field-table">
+
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`，用于反序列化 `data`。 |
+| `bulk_send_item_id` | `string` | 必填 | 条目身份，也是您对账时使用的键。 |
+| `bulk_send_id` | `string` | 必填 | 该条目所属的批次。 |
+| `request_id` | `string` | 选填 | 批次的请求 ID。 |
+| `source_account` | `string` | 必填 | 批次的付款账户。 |
+| `status` | `string` | 必填 | 该条目的当前状态，取值与含义见[条目的事件触发条件](#条目的事件触发条件)。 |
+| `requested_amount` | `object` | 必填 | 请求下发的金额，资产金额结构。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `receiving_address` | `string` | 必填 | 收款方地址。 |
+| `tx_hash` | `string` | 必填 | 链上哈希。条目从未上链时没有该值。 |
+| `description` | `string` | 必填 | 条目备注。 |
+| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
+
+### 条目的失败原因
+
+`failed_reason.code` 是您分支的依据。下面是条目可能携带的 code。
+
+| `code` | 发生了什么 | 怎么处理 |
+| --- | --- | --- |
+| `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 | 修正后在新批次中重发该条目。 |
+| `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 | 修正后在新批次中重发该条目。 |
+| `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
+| `payment.strict_mode_other_items_validation_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目未通过校验。 | 修正那个条目后重发本条目。 |
+| `payment.strict_mode_other_sweep_tasks_failed` | 该条目本身没有问题。`Strict` 模式下有别的归集失败。 | 在新批次中重发。 |
+| `payment.strict_mode_other_items_commission_fee_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目佣金扣收失败。 | 处理 Fee Station 后重发。 |
+| `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足。 | 充值后重发。 |
+| `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。 | 配置后重发。 |
+| `payment.bulk_send_commission_fee_charge_failed_unknown` | 佣金因其他原因扣收失败。 | 检查 Fee Station 的配置与余额，然后重发。 |
+| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后重发。 |
+| `payment.app_workflow_approval_revoked` | 审批流被撤销。 | 让批次通过审批，然后重发。 |
+| `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重发。 |
+| `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。 | 联系对方，然后重发。 |
+| `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重发。 |
+| `payment.sweep_task_failed` | 准备资金的归集交易失败。 | 重发。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
+| `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 不要重试，联系 Cobo。 |
+| `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `bulk_send_item_id`。 |
+
+### 条目的示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+#### 某个条目完成
+
+保存金额和 `tx_hash`，并用 `bulk_send_item_id` 关联回您自己的收款人记录后关闭该条目。
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0001",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate001",
+  "tx_hash": "0xbulkitem001",
+  "description": "affiliate 001",
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712900
+}
+```
+
+#### 某个条目在提交转账后失败
+
+资金动过又退回：锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0002",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate002",
+  "tx_hash": null,
+  "description": "affiliate 002",
+  "failed_reason": {
+    "code": "transaction.rejected_by_approval",
+    "message": "Someone in your organization rejected this transaction — an approver, or a co-signer who declined to sign. Contact them, then resend."
+  },
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712950
+}
+```
+
+#### 某个条目从未执行
+
+**没有资金动过。** 修正原因后再重发，否则会以同样的方式失败。本例条目自身没有问题，是 `Strict` 模式下同批的其他条目出错导致它没有执行。
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0003",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "status": "NotExecuted",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate003",
+  "tx_hash": null,
+  "description": "affiliate 003",
+  "failed_reason": {
+    "code": "payment.strict_mode_other_items_validation_failed",
+    "message": "Cannot execute bulk send item: one or more other items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+#### 重发失败的条目
+
+原批次和原条目上都没有重试。请创建新的批次，或为单个收款人创建一笔转出，并在自己的记录里保留原 `bulk_send_id` 与 `bulk_send_item_id`——新事件不携带指回它们的引用。
+
+## 相关
+
+- `payment.bulk_send.status.updated` 与 `payment.bulk_send.item.status.updated` 返回的是批次和条目底层交易的细节，说明见[高级事件](/payments/cn/guides/events/advanced#payment-bulk_send-status-updated)。

@@ -1,0 +1,178 @@
+---
+title: "Refunds"
+lang: "en"
+---
+
+These events track a refund order from creation to completion. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+Refunds currently apply to orders only. To return funds received through Top-up Mode, create a payout instead.
+
+## Events on this page
+
+| Event | What it notifies you of | When you need it |
+| --- | --- | --- |
+| [`payment.refund.updated`](#payment-refund-updated) | A refund order's result: created, completed, or failed with nothing returned. | Always — this is the event for refunds. |
+
+## `payment.refund.updated`
+
+The primary refund event, identified by `refund_id`.
+
+### Trigger conditions
+
+**One event per change of this refund order's `status`.** Only these three values occur.
+
+| When you receive it | `status` | What to do |
+| --- | --- | --- |
+| The refund order is created through a refund link | `Pending` | Record the refund and wait. |
+| The refund completes | `Completed` | Reconcile and close it, using `refund_id` as the idempotency key. |
+| The refund fails and **nothing was returned** | `Failed` | Read `failed_reason` and handle it. |
+
+### Event content
+
+<div className="field-table">
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
+| `refund_id` | `string` | Required | The refund order's identity, and the key you use for reconciliation idempotency. |
+| `order_id` | `string` | Required | The pay-in order this refund returns funds for. |
+| `merchant_id` | `string` | Conditional | The merchant ID, when the refund belongs to a merchant. |
+| `status` | `string` | Required | The current refund status. See [Trigger conditions](#trigger-conditions) for the values. |
+| `request_id` | `string` | Required | The request ID you supplied when creating the refund. |
+| `to_address` | `string` | Required | The address receiving the refund. |
+| `requested_amount` | `object` | Required | The amount to return, as an asset amount. It corresponds to the `payable_amount` you passed when creating the refund. |
+| `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. Absent when the refund failed before being broadcast. |
+| `refund_type` | `string` | Required | Which balance funds the refund: `Merchant` or `Psp`. |
+| `initiator` | `string` | Required | Who initiated the refund. |
+| `commission_fee` | `object` | Required | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
+| `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+
+</div>
+
+Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
+
+### Failure reasons
+
+`failed_reason.code` is what you branch on.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Adjust the policy in Cobo Portal, then create the refund again. |
+| `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. | Contact them, then create the refund again. |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then create the refund again. |
+| `payment.refund_fee_charge_failed` | The Fee Station balance is insufficient. | Add funds, then create the refund again. |
+| `payment.refund_fee_station_not_configured` | Fee Station is not configured. | Configure it, then create the refund again. |
+| `payment.refund_fee_charge_failed_unknown` | The fee could not be charged for another reason. | Check the Fee Station configuration and balance, then create the refund again. |
+| `payment.refund_sweep_failed` | The sweep transaction that prepares the funds failed. | Create the refund again. |
+| `payment.refund_transactions_failed` | Every refund transaction failed. The per-transaction reason is in `payment.refund.status.updated`. | Read that detail before retrying. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
+| `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `refund_id`. |
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### The refund order is created
+
+Record it and wait. Do not create a second refund for the same order.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Pending",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690400
+}
+```
+
+#### The refund completed
+
+Reconcile and close it, using `refund_id` as the idempotency key. `requested_amount` is also what was returned.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_001",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_001",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xrefund001",
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+  "created_timestamp": 1744690400,
+  "updated_timestamp": 1744690500
+}
+```
+
+#### The refund failed
+
+**Nothing was returned.** Here the transfer never reached the chain, so `tx_hash` is empty.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_002",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_002",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_policy",
+    "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+  },
+  "created_timestamp": 1744690600,
+  "updated_timestamp": 1744690700
+}
+```
+
+#### The refund failed before the transfer
+
+The fee could not be charged. Top up Fee Station and create the refund again.
+
+```json
+{
+  "data_type": "PaymentRefundUpdate",
+  "refund_id": "refund_003",
+  "order_id": "order_001",
+  "merchant_id": "M1001",
+  "request_id": "request_refund_003",
+  "to_address": "0x9876543210abcdef1234567890abcdef12345678",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": null,
+  "refund_type": "Merchant",
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "payment.refund_fee_charge_failed",
+    "message": "Cannot charge refund fee: Fee Station balance is insufficient. Please add funds to Fee Station and try again."
+  },
+  "created_timestamp": 1744690800,
+  "updated_timestamp": 1744690900
+}
+```
+
+## Related
+
+- `payment.refund.status.updated` returns detail about this refund's underlying transaction and is documented in [Advanced events](/payments/en/guides/events/advanced#payment-refund-status-updated).

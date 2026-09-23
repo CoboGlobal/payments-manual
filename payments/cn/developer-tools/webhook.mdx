@@ -28,7 +28,7 @@ Webhook 是 Cobo 支付服务与您的 App 进行通信的重要机制。在您�
 
 要注册 Endpoint，请参阅 [注册 Webhook Endpoint](https://manuals.cobo.com/cn/portal/developer-console/webhooks-create)。
 
-要了解事件类型和事件数据类型的信息，请参阅[事件与状态](/payments/cn/guides/status-and-events)。
+要了解事件类型和事件数据类型的信息，请参阅[事件与状态](/payments/cn/guides/events/overview)。
 
 ## Webhook 请求体
 
@@ -41,8 +41,8 @@ Webhook 是 Cobo 支付服务与您的 App 进行通信的重要机制。在您�
 | `event_id` | string (UUID) | 事件唯一标识符。使用 `event_id` 对重试推送进行去重。 |
 | `url` | string | 已注册的 Webhook Endpoint URL。 |
 | `created_timestamp` | integer (int64) | 事件触发时间，Unix 时间戳格式（毫秒）。重试时该值保持不变。 |
-| `type` | string | 事件类型。所有事件类型及触发条件请参阅[事件与状态](/payments/cn/guides/status-and-events)。 |
-| `data` | object | 事件专属负载。结构取决于 `type` 字段——各事件的字段结构请参阅[事件与状态](/payments/cn/guides/status-and-events)。 |
+| `type` | string | 事件类型。所有事件类型及触发条件请参阅[事件与状态](/payments/cn/guides/events/overview)。 |
+| `data` | object | 事件专属负载。结构取决于 `type` 字段——各事件的字段结构请参阅[事件与状态](/payments/cn/guides/events/overview)。 |
 
 ### 选填字段
 
