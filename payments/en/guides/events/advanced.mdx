@@ -33,11 +33,15 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | Required | The pay-in mode. Always `TopUp` for this event. |
 | `payer_id` | `string` | Optional | The payer ID assigned by Cobo. |
 | `custom_payer_id` | `string` | Optional | Your own payer ID. |
+
+</div>
 
 ## `payment.transaction.completed`
 
@@ -45,6 +49,8 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below. Which of them are populated depends on the pay-in mode.
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
@@ -52,6 +58,8 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 | `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
 | `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
 | `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
+
+</div>
 
 ## `payment.transaction.failed`
 
@@ -59,6 +67,8 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | Required | The pay-in mode: `Order` or `TopUp`. |
@@ -66,6 +76,8 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 | `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. Order Mode only. |
 | `payer_id` | `string` | Optional | The payer ID assigned by Cobo. Top-up Mode only. |
 | `custom_payer_id` | `string` | Optional | Your own payer ID. Top-up Mode only. |
+
+</div>
 
 For why it failed, read `failed_reason` on that business's own event. The `failed_reason` in the transaction fields is free text and is populated only for approval and signature failures.
 
@@ -75,11 +87,15 @@ For why it failed, read `failed_reason` on that business's own event. The `faile
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | Required | The pay-in mode. Always `Order` for this event. |
 | `order_id` | `string` | Optional | The ID of the order this late payment belongs to. |
 | `psp_order_code` | `string` | Optional | The unique reference code you assigned to the order. |
+
+</div>
 
 ## `payment.order.status.updated`
 
@@ -88,6 +104,8 @@ Delivered alongside [`payment.order.updated`](/payments/en/guides/events/orders)
 **Trigger condition:** a payment order's status changes, Order Mode only. The points that fire are `Pending` (the order is created through a payment link), `Completed` (full payment received within the validity period), `Underpaid` (completed deposits exist but fall short), and `Expired` (no completed deposit within the validity period, or the order was canceled).
 
 **Event content:**
+
+<div className="field-table">
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -111,6 +129,8 @@ Delivered alongside [`payment.order.updated`](/payments/en/guides/events/orders)
 | `updated_timestamp` | `integer` | Optional | The last update time, in Unix timestamp (seconds). |
 | `transactions` | `array` | Optional | An array of payment transactions associated with this order, each using the [transaction fields](#transaction-fields). |
 
+</div>
+
 For full details, see [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information).
 
 ## `payment.refund.status.updated`
@@ -120,6 +140,8 @@ Delivered alongside [`payment.refund.updated`](/payments/en/guides/events/refund
 **Trigger condition:** the refund order's status changes. Key points are `Pending` when the order is created through a refund link, `Completed` when all refund transactions complete, and `Failed` when all refund transactions fail.
 
 **Event content:**
+
+<div className="field-table">
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -142,6 +164,8 @@ Delivered alongside [`payment.refund.updated`](/payments/en/guides/events/refund
 | `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
 | `transactions` | `array` | Optional | An array of payment transactions associated with this refund, each using the [transaction fields](#transaction-fields). |
 
+</div>
+
 For full details, see [Get refund order information](/payments/en/api-references/payment/get-refund-order-information).
 
 ## `payment.payout.status.updated`
@@ -151,6 +175,8 @@ Delivered alongside [`payment.payout.updated`](/payments/en/guides/events/payout
 **Trigger condition:** the payout or transfer request's status changes. `Completed` means all transfers completed, `PartiallyCompleted` means some completed and some failed, `Failed` means all failed, and `RejectedByBank` means the recipient bank rejected the Off-Ramp payout.
 
 **Event content:**
+
+<div className="field-table">
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -169,6 +195,8 @@ Delivered alongside [`payment.payout.updated`](/payments/en/guides/events/payout
 | `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
 | `transactions` | `array` | Optional | An array of payment transactions associated with this payout, each using the [transaction fields](#transaction-fields). |
 
+</div>
+
 For full details, see [Get payout information](/payments/en/api-references/payment/get-payout-information).
 
 ## `payment.bulk_send.status.updated`
@@ -178,6 +206,8 @@ Delivered alongside [`payment.bulk_send.updated`](/payments/en/guides/events/bul
 **Trigger condition:** the bulk send request's status changes. `Completed` means all sends completed, `PartiallyCompleted` means some completed and some failed, and `Failed` means all failed.
 
 **Event content:**
+
+<div className="field-table">
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -190,6 +220,8 @@ Delivered alongside [`payment.bulk_send.updated`](/payments/en/guides/events/bul
 | `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
 
+</div>
+
 For full details, see [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
 
 ## `payment.bulk_send.item.status.updated`
@@ -199,6 +231,8 @@ Delivered alongside [`payment.bulk_send.item.updated`](/payments/en/guides/event
 **Trigger condition:** the status of a single bulk send item changes. Use it to track item-level execution results, especially when a batch completes partially or individual items fail validation or transfer.
 
 **Event content:**
+
+<div className="field-table">
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -216,6 +250,8 @@ Delivered alongside [`payment.bulk_send.item.updated`](/payments/en/guides/event
 | `failed_reason` | `string` | Optional | The reason why the bulk send item failed. |
 | `created_timestamp` | `integer` | Required | The creation time, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | The last update time, in Unix timestamp (seconds). |
+
+</div>
 
 To test delivery to your registered webhook endpoints, use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) with `event_type` set to `payment.bulk_send.item.status.updated`.
 

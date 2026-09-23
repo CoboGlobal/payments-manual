@@ -29,6 +29,8 @@ The primary refund event, identified by `refund_id`.
 
 ### Event content
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
@@ -45,6 +47,8 @@ The primary refund event, identified by `refund_id`.
 | `commission_fee` | `object` | Required | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
 | `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+
+</div>
 
 Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
 

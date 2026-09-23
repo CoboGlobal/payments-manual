@@ -25,6 +25,8 @@ Neither event appears in any order's `transactions` array, and neither produces 
 
 ### Event content
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentTransaction`. Use it to deserialize `data`. |
@@ -36,6 +38,8 @@ Neither event appears in any order's `transactions` array, and neither produces 
 | `destination` | `object` | Required | Where they went: the receiving `address`, the `amount` received, and on some chains a `memo`. |
 | `confirmed_num` / `confirming_threshold` | `integer` | Optional | Confirmations received, and the number that chain needs before a transaction is considered secure. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (milliseconds). |
+
+</div>
 
 For the complete transaction field list see [Advanced events](/payments/en/guides/events/advanced#transaction-fields) — the table above is the subset that matters for handling an unexpected deposit.
 

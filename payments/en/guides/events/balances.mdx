@@ -19,6 +19,8 @@ It is also how you see **what each account actually received**. An order's `cred
 
 ### Event content
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
@@ -31,6 +33,8 @@ It is also how you see **what each account actually received**. An order's `cred
 | `balance_after` / `balance_after_raw` | `string` | Required | The balance after the change, in the same two precisions. |
 | `flow_direction` | `string` | Required | The direction of the change. Either `in` or `out`. |
 | `update_time` | `integer` | Required | When the balance was updated, in Unix timestamp (seconds). |
+
+</div>
 
 To query the same information rather than wait for an event, call `GET /payments/balance_changes` with `source_id` set to the business record ID. The response model matches this event's `data`.
 

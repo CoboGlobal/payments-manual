@@ -29,6 +29,8 @@ lang: "zh-hans"
 
 ### 事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentRefundUpdate`，用于反序列化 `data`。 |
@@ -45,6 +47,8 @@ lang: "zh-hans"
 | `commission_fee` | `object` | 必填 | Cobo 收取的佣金，单个对象，包含 `token_id` 与 `fee_amount`。一笔退款只涉及一个 token，因此这里不是数组。收取后被全额冲回时该值可能为 `0`，冲回大于收取时可能为负数。 |
 | `failed_reason` | `object` | 条件必填 | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
 
 退款没有单独的已完成金额和失败金额字段，因此 `requested_amount` 既是请求退还的金额，也是 `status` 为 `Completed` 后实际退还的金额。
 

@@ -31,6 +31,8 @@ The batch-level event, identified by `bulk_send_id`.
 
 ### Batch event content
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentBulkSendUpdate`. Use it to deserialize `data`. |
@@ -49,6 +51,8 @@ The batch-level event, identified by `bulk_send_id`.
 | `commission_fees` | `array` | Required | The commission Cobo charged, one entry per token. |
 | `failed_reason` | `object` | Conditional | Present when `status` is `Failed`. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+
+</div>
 
 `failed_amounts` merges both kinds of unsuccessful item — those whose funds moved and those never submitted — into one figure per token. Use `failed_item_count` and `not_executed_item_count`, or the item events, to tell them apart.
 
@@ -213,6 +217,8 @@ The item-level event, identified by `bulk_send_item_id`.
 
 ### Item event content
 
+<div className="field-table">
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentBulkSendItemUpdate`. Use it to deserialize `data`. |
@@ -227,6 +233,8 @@ The item-level event, identified by `bulk_send_item_id`.
 | `description` | `string` | Required | The note attached to the item. |
 | `failed_reason` | `object` | Conditional | Present when `status` is `Failed` or `NotExecuted`. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). See [Item trigger conditions](#item-trigger-conditions). |
+
+</div>
 
 ### Item failure reasons
 

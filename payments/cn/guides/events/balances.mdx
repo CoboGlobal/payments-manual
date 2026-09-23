@@ -19,6 +19,8 @@ lang: "zh-hans"
 
 ### 事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentAccountBalanceUpdate`，用于反序列化 `data`。 |
@@ -31,6 +33,8 @@ lang: "zh-hans"
 | `balance_after` / `balance_after_raw` | `string` | 必填 | 变动后余额，两种精度。 |
 | `flow_direction` | `string` | 必填 | 变动方向，取 `in` 或 `out`。 |
 | `update_time` | `integer` | 必填 | 余额更新时间，Unix 时间戳（秒）。 |
+
+</div>
 
 如果您希望主动查询而不是等待事件，可以调用 `GET /payments/balance_changes` 并把 `source_id` 设为业务单据 ID，响应模型与本事件的 `data` 一致。
 

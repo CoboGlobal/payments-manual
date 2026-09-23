@@ -33,11 +33,15 @@ lang: "zh-hans"
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | 必填 | 收款模式，此事件恒为 `TopUp`。 |
 | `payer_id` | `string` | 选填 | Cobo 分配的付款方 ID。 |
 | `custom_payer_id` | `string` | 选填 | 您自己的付款方 ID。 |
+
+</div>
 
 ## `payment.transaction.completed`
 
@@ -45,6 +49,8 @@ lang: "zh-hans"
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。哪几个字段有值取决于收款模式。
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | 必填 | 收款模式，`Order` 或 `TopUp`。 |
@@ -52,6 +58,8 @@ lang: "zh-hans"
 | `psp_order_code` | `string` | 选填 | 您为该订单指定的唯一参考编码。仅订单模式。 |
 | `payer_id` | `string` | 选填 | Cobo 分配的付款方 ID。仅充值模式。 |
 | `custom_payer_id` | `string` | 选填 | 您自己的付款方 ID。仅充值模式。 |
+
+</div>
 
 ## `payment.transaction.failed`
 
@@ -59,6 +67,8 @@ lang: "zh-hans"
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | 必填 | 收款模式，`Order` 或 `TopUp`。 |
@@ -66,6 +76,8 @@ lang: "zh-hans"
 | `psp_order_code` | `string` | 选填 | 您为该订单指定的唯一参考编码。仅订单模式。 |
 | `payer_id` | `string` | 选填 | Cobo 分配的付款方 ID。仅充值模式。 |
 | `custom_payer_id` | `string` | 选填 | 您自己的付款方 ID。仅充值模式。 |
+
+</div>
 
 失败的具体原因请读该笔业务自己的事件里的 `failed_reason`；交易字段里的 `failed_reason` 是自由文本，且仅在审批失败和签名失败时有值。
 
@@ -75,11 +87,15 @@ lang: "zh-hans"
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `acquiring_type` | `string` | 必填 | 收款模式，此事件恒为 `Order`。 |
 | `order_id` | `string` | 选填 | 这笔晚付所属的订单 ID。 |
 | `psp_order_code` | `string` | 选填 | 您为该订单指定的唯一参考编码。 |
+
+</div>
 
 ## `payment.order.status.updated`
 
@@ -88,6 +104,8 @@ lang: "zh-hans"
 **触发条件：** 支付订单状态变更，仅订单模式。会触发的节点包括 `Pending`（通过支付链接成功创建订单）、`Completed`（有效期内收到全额付款）、`Underpaid`（有效期内有已完成的入金但不足额）、`Expired`（有效期内没有已完成的入金，或订单已被取消）。
 
 **事件内容：**
+
+<div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
@@ -111,6 +129,8 @@ lang: "zh-hans"
 | `updated_timestamp` | `integer` | 选填 | 最后更新时间，Unix 时间戳（秒）。 |
 | `transactions` | `array` | 选填 | 与该订单关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
+</div>
+
 完整字段说明请参考 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)。
 
 ## `payment.refund.status.updated`
@@ -120,6 +140,8 @@ lang: "zh-hans"
 **触发条件：** 退款单状态变更。关键节点为 `Pending`（通过退款链接成功创建退款单）、`Completed`（全部退款交易完成）、`Failed`（全部退款交易失败）。
 
 **事件内容：**
+
+<div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
@@ -142,6 +164,8 @@ lang: "zh-hans"
 | `updated_timestamp` | `integer` | 必填 | 最近更新时间，Unix 时间戳（秒）。 |
 | `transactions` | `array` | 选填 | 与该退款关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
+</div>
+
 完整说明请参见 [Get refund order information](/payments/en/api-references/payment/get-refund-order-information)。
 
 ## `payment.payout.status.updated`
@@ -151,6 +175,8 @@ lang: "zh-hans"
 **触发条件：** 资金转出或转账请求状态变更。`Completed` 表示全部转账完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败，`RejectedByBank` 表示收款银行拒绝了 Off-Ramp 转出。
 
 **事件内容：**
+
+<div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
@@ -169,6 +195,8 @@ lang: "zh-hans"
 | `updated_timestamp` | `integer` | 必填 | 最近更新时间，Unix 时间戳（秒）。 |
 | `transactions` | `array` | 选填 | 与该次转出关联的支付交易数组，元素为[交易字段](#交易字段)。 |
 
+</div>
+
 完整说明请参见 [Get payout information](/payments/en/api-references/payment/get-payout-information)。
 
 ## `payment.bulk_send.status.updated`
@@ -178,6 +206,8 @@ lang: "zh-hans"
 **触发条件：** 批量下发请求状态变更。`Completed` 表示全部下发完成，`PartiallyCompleted` 表示部分完成、部分失败，`Failed` 表示全部失败。
 
 **事件内容：**
+
+<div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
@@ -190,6 +220,8 @@ lang: "zh-hans"
 | `created_timestamp` | `integer` | 必填 | 创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 最近更新时间，Unix 时间戳（秒）。 |
 
+</div>
+
 完整说明请参见 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
 
 ## `payment.bulk_send.item.status.updated`
@@ -199,6 +231,8 @@ lang: "zh-hans"
 **触发条件：** 单个批量下发条目的状态变更。可用于跟踪条目级执行结果，尤其是批次部分完成、或个别条目校验失败或转账失败时。
 
 **事件内容：**
+
+<div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
@@ -216,6 +250,8 @@ lang: "zh-hans"
 | `failed_reason` | `string` | 选填 | 该条目失败的原因。 |
 | `created_timestamp` | `integer` | 必填 | 创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 最近更新时间，Unix 时间戳（秒）。 |
+
+</div>
 
 要测试投递到您已注册的 Webhook 接收端，请使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)，并将 `event_type` 设为 `payment.bulk_send.item.status.updated`。
 

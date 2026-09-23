@@ -25,6 +25,8 @@ lang: "zh-hans"
 
 ### 事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentTransaction`，用于反序列化 `data`。 |
@@ -36,6 +38,8 @@ lang: "zh-hans"
 | `destination` | `object` | 必填 | 资金去向，包含收款地址 `address`、到账金额 `amount`，部分链还有 `memo`。 |
 | `confirmed_num` / `confirming_threshold` | `integer` | 选填 | 已获得的确认数，以及该链认定安全所需的确认数。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（毫秒）。 |
+
+</div>
 
 完整的交易字段清单见[高级事件](/payments/cn/guides/events/advanced#交易字段)——上表是与意外入金处理有关的那些。
 

@@ -33,6 +33,8 @@ lang: "zh-hans"
 
 ### 事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentOrderUpdate`，用于反序列化 `data`。 |
@@ -44,11 +46,13 @@ lang: "zh-hans"
 | `expired_at` | `integer` | 必填 | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 必填 | 订单当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
 | `notice_type` | `string` | 必填 | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
-| `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**。展示给付款方用。⚠️ **它不是发货阈值**——足额判定带容差，能否发货以 `status=Completed` 为准。 |
-| `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，用于对账。⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**——两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
-| `outstanding_amount` | `object` | 必填 | **付款方还需再付多少**＝`requested_amount` − `credited_amount`（`requested_amount` 在查询接口里叫 `payable_amount`，所以也可以记成「应付 − 已收」）。**`status` 为 `Underpaid` 时用它告诉付款方还差多少。** ⚠️ **不要用它判断是否少付**——`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单是足额的，按它催款会催一笔不该催的钱；是否少付只看 `status`。下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。⚠️ 它把四种情况合并成一个数：付款方没打钱、打了在筛查、打了待补件、打了被拒——这四种处理方式完全不同，要知道钱卡在哪，请遍历 `transactions` 按条目 `status` 分组。 |
-| `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是自上条事件以来的增量：请整体替换本地副本，按 `transaction_id` upsert。每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）；处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
+| `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**。<br/>• 展示给付款方用。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status=Completed` 为准。 |
+| `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，用于对账。<br/>• **它不包含这几类钱**：还在筛查中的入金、等您补材料的入金、被拒绝的入金，以及订单结束后才到的晚付。某笔钱属于哪一类，看 `transactions` 里该条目的 `status`。<br/>• ⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。<br/>• ⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**。两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
+| `outstanding_amount` | `object` | 必填 | **付款方还需再付多少**＝`requested_amount` − `credited_amount`。<br/>• `requested_amount` 在查询接口里叫 `payable_amount`，所以也可以记成「应付 − 已收」。<br/>• **怎么用：`status` 为 `Underpaid` 时用它告诉付款方还差多少。**<br/>• ⚠️ **不要用它判断是否少付**：`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单是足额的，按它催款会催一笔不该催的钱。是否少付只看 `status`。<br/>• 下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。 |
+| `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是自上条事件以来的增量。<br/>• 请整体替换本地副本，按 `transaction_id` upsert。<br/>• 每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）。<br/>• 处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。<br/>• ⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
 
 订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
 

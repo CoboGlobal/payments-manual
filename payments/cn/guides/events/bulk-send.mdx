@@ -31,6 +31,8 @@ lang: "zh-hans"
 
 ### 批次的事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendUpdate`，用于反序列化 `data`。 |
@@ -49,6 +51,8 @@ lang: "zh-hans"
 | `commission_fees` | `array` | 必填 | Cobo 收取的佣金，每个 token 一条。 |
 | `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 时出现。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
 
 `failed_amounts` 把两类未成功条目——资金动过的和从未提交的——合并成每个 token 一个数。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
 
@@ -213,6 +217,8 @@ lang: "zh-hans"
 
 ### 条目的事件内容
 
+<div className="field-table">
+
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`，用于反序列化 `data`。 |
@@ -227,6 +233,8 @@ lang: "zh-hans"
 | `description` | `string` | 必填 | 条目备注。 |
 | `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+
+</div>
 
 ### 条目的失败原因
 
