@@ -49,7 +49,7 @@ Subscribe by the business you actually run. **Required means this event is your 
       <td rowSpan={5}>**Orders**</td>
       <td>[`payment.order.updated`](/payments/en/guides/events/orders#payment-order-updated)</td>
       <td>**Required**</td>
-      <td>An order's collection result: paid in full, underpaid, expired, a deposit needing your action, or money arriving after it ended.</td>
+      <td>An order's collection result: paid in full, underpaid, expired, plus a deposit needing your action, a deposit failing, or money arriving after it ended.</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/en/guides/events/advanced#payment-order-status-updated)</td>
@@ -216,17 +216,19 @@ All amounts are decimal strings, not numbers. Parse them with a decimal type.
 | Shape | Fields | Where it is used |
 | --- | --- | --- |
 | Asset amount | `amount`, `token_id`, `chain_id` | Most amount fields. |
-| Asset or fiat amount | `amount_type`, then `amount` with either `token_id` and `chain_id`, or `currency` | Fields that can be either crypto or fiat, such as `actual_payout_amount`. Read `amount_type` first rather than inferring from the presence of `token_id`. |
-| Commission fee | `token_id`, `fee_amount` | Commission charged by Cobo. |
+| Asset or fiat amount | `amount_type`, then `amount` with either `token_id` and `chain_id`, or `currency` | Fields that can be either crypto or fiat, such as the entries of `actual_payout_amounts`. Read `amount_type` first rather than inferring from the presence of `token_id`. |
+| Commission fee | `fee_amount` | Commission charged by Cobo, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. |
 
 ```json
-{ "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
-{ "amount_type": "Crypto", "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
-{ "amount_type": "Fiat", "amount": "497.50", "currency": "USD" }
-{ "token_id": "ETH_USDC", "fee_amount": "2.50" }
+{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }
+{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
+{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }
+{ "fee_amount": "2.5" }
 ```
 
-A field whose name is plural, such as `requested_amounts`, is an array and can span several tokens. A singular field is a single object covering one asset. Never add amounts across assets.
+A field whose name is plural, such as `requested_amounts`, is an array and can span several tokens. A singular field is a single object covering one asset. Never add amounts across assets. Arrays group by `token_id`, so the same token symbol on two chains is two entries.
+
+**Amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`). Expected amounts never exceed two places to begin with; on-chain receipts are truncated with `ROUND_DOWN` and can therefore show fewer places than the chain does.
 
 Webhook messages do not carry balances or fee breakdowns, so that the values you read are never stale relative to concurrent activity. To keep your own ledger current, call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when an event arrives. For fee detail, use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
 

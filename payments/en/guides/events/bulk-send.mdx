@@ -27,7 +27,7 @@ The batch-level event, identified by `bulk_send_id`.
 | Validation passed and execution starts | `Transferring` | Wait. |
 | Every item succeeded | `Completed` | Close the batch summary. Item completion is still reported by the item event. |
 | The batch result is settled and some items did not succeed | `PartiallyCompleted` | Split by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items never submitted. |
-| The whole batch fails, which **only happens before execution starts** | `Failed` | Read `failed_reason`. No funds moved. |
+| The whole batch fails | `Failed` | Read `failed_reason.code` — **a batch can fail before or after execution starts**, and only the code tells you whether funds moved. See [Batch failure reasons](#batch-failure-reasons). |
 
 ### Batch event content
 
@@ -40,16 +40,16 @@ The batch-level event, identified by `bulk_send_id`.
 | `request_id` | `string` | Optional | The request ID you provided when creating the batch. |
 | `source_account` | `string` | Required | The account the batch pays from. |
 | `status` | `string` | Required | The current batch status. See [Batch trigger conditions](#batch-trigger-conditions) for the values. |
-| `execution_mode` | `string` | Required | Whether a single bad item stops the whole batch. In `Strict` mode it does. |
+| `execution_mode` | `string` | Required | `Strict` or `Partial`. `Strict` stops the whole batch when any item fails **validation**. It governs that gate only and **does not make the batch all-or-nothing on-chain** — if every item passes validation and one fails after submission, the batch ends `PartiallyCompleted`. |
 | `item_count` | `integer` | Required | How many items the batch contains. |
-| `failed_item_count` | `integer` | Required | Items that were submitted and failed. Funds moved for these. |
-| `not_executed_item_count` | `integer` | Required | Items that were never submitted. No funds moved. |
-| `requested_amounts` | `array` | Required | The total requested, grouped by token. One batch can span several tokens and chains. |
+| `failed_item_count` | `integer` | Required | Items that were submitted for execution and failed. Their funds were locked and their fees charged, then released and refunded. Whether you can resend one as is depends on that item's `failed_reason.code`. |
+| `not_executed_item_count` | `integer` | Required | Items never submitted for execution; their funds never moved. Resending without fixing the cause fails the same way. |
+| `requested_amounts` | `array` | Required | The requested total across all items, grouped by `token_id`. The key is `token_id`, not the token symbol — the same USDT on two chains is two entries and cannot be merged. |
 | `completed_amounts` | `array` | Required | The total for items that completed, grouped by token. |
 | `failed_amounts` | `array` | Required | The total for items that did not succeed, grouped by token. |
-| `description` | `string` | Required | The note attached to the batch. |
-| `commission_fees` | `array` | Required | The commission Cobo charged, one entry per token. |
-| `failed_reason` | `object` | Conditional | Present when `status` is `Failed`. |
+| `description` | `string` | Required | The note you wrote for the whole batch, `null` if you wrote none. |
+| `commission_fee` | `object` | Required | The commission Cobo charged for the batch, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It stays a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |
+| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
@@ -60,16 +60,16 @@ The batch event carries **no item list**. Per-item information only arrives thro
 
 ### Batch failure reasons
 
-`failed_reason.code` is what you branch on. A whole batch only fails before execution starts, so all of these mean no funds moved. A batch can also fail because the approval workflow rejected or revoked it; that reason is reported on the items.
+`failed_reason.code` is what you branch on, and the only way to tell whether funds moved — `status` alone does not distinguish it. A batch can also fail because the approval workflow rejected or revoked it; that reason is reported on the items.
 
-| `code` | What happened | What to do |
-| --- | --- | --- |
-| `payment.bulk_send_no_valid_items` | No item passed validation. | Fix the items, then create a new batch. |
-| `payment.bulk_send_strict_validation_failed` | `execution_mode` is `Strict` and one or more items failed validation, so the batch stopped. | Fix those items, then create a new batch. |
-| `payment.bulk_send_all_items_failed` | Every item failed or was never executed. The per-item reason is in the item events. | Read those, then create a new batch. |
-| `payment.bulk_send_commission_fee_all_failed` | The commission fee could not be charged for any item. | Fix Fee Station, then create a new batch. |
-| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. | Fix Fee Station, then create a new batch. |
-| `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. | Create a new batch. |
+| `code` | What happened | Did funds move | What to do |
+| --- | --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | No item passed validation. | No | Fix the items, then create a new batch. |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` is `Strict` and one or more items failed validation, so the batch stopped. | No | Fix those items, then create a new batch. |
+| `payment.bulk_send_commission_fee_all_failed` | The commission fee could not be charged for any item. | Nothing was paid out | Fix Fee Station, then create a new batch. |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. | Nothing was paid out | Fix Fee Station, then create a new batch. |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. | Consolidation ran; nothing was paid out | Create a new batch. |
+| `payment.bulk_send_all_items_failed` | Not a single item succeeded — either all were submitted and failed, or none was ever submitted. | Check the two counts: `failed_item_count` above `0` means items were submitted and failed; `not_executed_item_count` equal to `item_count` means none was submitted | Read the per-item reasons in the item events, fix them, then create a new batch. |
 
 ### Batch sample events
 
@@ -96,7 +96,7 @@ Record the batch and do not submit it again. Remember that `Pending` may also me
   "completed_amounts": [],
   "failed_amounts": [],
   "description": "September affiliate payouts",
-  "commission_fees": [],
+  "commission_fee": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744710000
 }
@@ -125,9 +125,7 @@ Close the batch summary. Individual items are still confirmed by their own event
   ],
   "failed_amounts": [],
   "description": "September affiliate payouts",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "0.60" }
-  ],
+  "commission_fee": { "fee_amount": "0.6" },
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744711200
 }
@@ -158,9 +156,7 @@ Split your handling by the two counts. Here one item's funds moved and failed, a
     { "amount": "200.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "description": "September affiliate payouts",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "0.20" }
-  ],
+  "commission_fee": { "fee_amount": "0.2" },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744713000
 }
@@ -189,7 +185,7 @@ No funds moved. Fix the reported items and create a new batch. Which items were 
     { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "description": "September affiliate payouts",
-  "commission_fees": [],
+  "commission_fee": null,
   "failed_reason": {
     "code": "payment.bulk_send_strict_validation_failed",
     "message": "Cannot complete bulk send: one or more items failed validation when 'execution_mode' is 'Strict'."
@@ -224,14 +220,14 @@ The item-level event, identified by `bulk_send_item_id`.
 | `data_type` | `string` | Required | Always `PaymentBulkSendItemUpdate`. Use it to deserialize `data`. |
 | `bulk_send_item_id` | `string` | Required | The item's identity, and the key you use to reconcile. |
 | `bulk_send_id` | `string` | Required | The batch this item belongs to. |
-| `request_id` | `string` | Optional | The request ID of the batch. |
+| `request_id` | `string` | Optional | The batch's request ID, identical for every item in it. Use `bulk_send_item_id` for per-item idempotency. |
 | `source_account` | `string` | Required | The account the batch pays from. |
 | `status` | `string` | Required | The current item status. See [Item trigger conditions](#item-trigger-conditions) for the values. |
-| `requested_amount` | `object` | Required | The amount to send, as an asset amount. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
+| `requested_amount` | `object` | Required | The amount this item sends. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
 | `receiving_address` | `string` | Required | The recipient's address. |
-| `tx_hash` | `string` | Required | The on-chain hash. Absent when the item never reached the chain. |
-| `description` | `string` | Required | The note attached to the item. |
-| `failed_reason` | `object` | Conditional | Present when `status` is `Failed` or `NotExecuted`. |
+| `tx_hash` | `string` | Required | The on-chain hash of this item's transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
+| `description` | `string` | Required | The note you wrote for this item, `null` if you wrote none. |
+| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed` or `NotExecuted`; `null` otherwise. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). See [Item trigger conditions](#item-trigger-conditions). |
 
 </div>

@@ -20,7 +20,7 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-**这笔充值的 `status` 每变化一次发一条事件。** 所有入金都要过筛查，没有 `Detected` 直达 `Completed` 的路径；`ActionRequired` 回到 `PendingScreening` 是唯一的回边。`Completed` 与 `Failed` 是终态。
+**这笔充值的 `status` 每变化一次发一条事件。** `Completed` 与 `Failed` 是终态。
 
 | 什么时候会收到 | `status` | 可否入账 | 您该做什么 |
 | --- | --- | --- | --- |
@@ -30,25 +30,29 @@ lang: "zh-hans"
 | 筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
 | 该笔入金被拒绝或失败 | `Failed` | ❌ | 读取 `failed_reason.code` 决定下一步。 |
 
+<Warning>
+  **中间状态可能不出现。** 一笔入金可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过筛查。请用每条事件里的 `status` 覆盖本地状态，不要校验状态迁移是否合法，也不要等 `PendingScreening` 再做什么。需要您动手的 `ActionRequired` 会一直停在那里，不会被跳过。
+</Warning>
+
 ### 事件内容
 
 <div className="field-table">
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
-| `data_type` | `string` | 必填 | 固定为 `PaymentTopUpUpdate`，用于反序列化 `data`。 |
-| `transaction_id` | `string` | 必填 | 这笔入金的交易 ID，也是对象身份。调用 Cobo 合规相关接口时传的就是它。 |
-| `merchant_id` | `string` | 必填 | 这笔入金记在哪个商户名下，通过 `payer_id` 关联。 |
-| `status` | `string` | 必填 | 这笔充值的当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
-| `payer_id` / `custom_payer_id` | `string` | 必填 | Cobo 分配的付款方标识，以及您自己分配的标识。 |
-| `amount` | `object` | 必填 | 资产金额，包含 `amount`、`token_id`、`chain_id`。<br/>• 从首条事件起即有值，失败时也保留。<br/>• 因此它说明的是这笔入金有多少钱，不是这笔钱能不能用。 |
-| `tx_hash` | `string` | 必填 | 链上交易哈希。Cobo 内部划转不上链，此时没有该值。 |
-| `topup_address` | `string` | 必填 | 收到这笔资金的入金地址。 |
-| `source_address` | `string` | 必填 | 链上发送方。链上无法识别时为 `null`。 |
-| `screening_mode` | `string` | 条件必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。<br/>• **三种模式下都可能需要您动手，所以它不能用来判断是不是轮到您处理**，那件事由 `status` 表达。<br/>• 筛查进行中时该字段也可能没有值，那表示 Cobo 此次没有查到供应商，不表示没有配置供应商。 |
-| `message` | `string` | 条件必填 | 仅当 `status` 为 `ActionRequired` 时出现，面向运营人员。<br/>• 三种需要您处理的情况共用这一个状态，靠它区分，但它**不能用于程序匹配**，因此这三类目前无法自动分流，需要进入人工队列。<br/>• `Additional information is required…Please check the email…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A screening result from your own KYT provider is required…`：在 Screening App 中提交您自有 KYT 供应商的扫描结论。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
-| `failed_reason` | `object` | 条件必填 | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`，取值见[失败原因](#失败原因)。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+| `data_type` | `string` | 必填 | 固定为 `PaymentTopUpUpdate`。 |
+| `transaction_id` | `string` | 必填 | 这笔入金的 ID。入账幂等用它，调用 Cobo 合规接口时也传它。 |
+| `merchant_id` | `string` | 必填 | 这笔入金记在哪个商户名下。 |
+| `payer_id` / `custom_payer_id` | `string` | 必填 | Cobo 分配的付款方 ID，以及您登记入金地址时提供的 ID。后者未提供时为 `null`。 |
+| `status` | `string` | 必填 | 当前状态，取值见[事件触发条件](#事件触发条件)。 |
+| `amount` | `object` | 必填 | 这笔入金的金额、币种和链。全程不变，失败时也保留。 |
+| `tx_hash` | `string` | 必填 | 链上交易哈希。Cobo 内部划转不上链，此时为 `null`，且不会后补。不要用它做幂等键。 |
+| `topup_address` | `string` | 必填 | 收到这笔资金的入金地址，用它反查付款方和链。 |
+| `source_address` | `string` | 必填 | 链上发送方，原路退回时作为转出目标。链上无法识别时为 `null`。 |
+| `screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。<br/>• 三种模式都可能需要您动手，**判断是不是轮到您处理请看 `status`**。<br/>• 筛查进行中也可能为 `null`，表示 Cobo 这次没查到供应商，不表示没有配置供应商。 |
+| `message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明该做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。三段固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A screening result from your own KYT provider is required…`：在 Screening App 中提交您自有 KYT 供应商的结论。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
 
 </div>
 
@@ -62,7 +66,7 @@ lang: "zh-hans"
 | --- | --- | --- |
 | `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。 | 到该应用查看原因。 |
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 | 与 Cobo 确认。 |
-| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供下面这个 ID。 |
+| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供 `transaction_id`。 |
 
 ### 示例事件
 
@@ -80,10 +84,13 @@ lang: "zh-hans"
   "payer_id": "P20250619T0310056d7aa",
   "custom_payer_id": "user_abc_10001",
   "status": "Detected",
-  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xabc123",
   "topup_address": "0xtopup_addr_M1001_user_abc",
   "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
+  "failed_reason": null,
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689000
 }
@@ -101,11 +108,13 @@ lang: "zh-hans"
   "payer_id": "P20250619T0310056d7aa",
   "custom_payer_id": "user_abc_10001",
   "status": "PendingScreening",
-  "screening_mode": "IntegratedVendor",
-  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xabc123",
   "topup_address": "0xtopup_addr_M1001_user_abc",
   "source_address": "0xsender001",
+  "screening_mode": "IntegratedVendor",
+  "message": null,
+  "failed_reason": null,
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689060
 }
@@ -113,7 +122,7 @@ lang: "zh-hans"
 
 #### 筛查需要您处理
 
-把这笔入金放进人工队列。三种可能的动作靠 `message` 区分，参见 [`status` 为 `ActionRequired` 时](#事件内容)。
+把这笔入金放进人工队列，按 `message` 决定做哪件事。
 
 ```json
 {
@@ -123,12 +132,13 @@ lang: "zh-hans"
   "payer_id": "P20250619T0310056d7aa",
   "custom_payer_id": "user_abc_10001",
   "status": "ActionRequired",
-  "screening_mode": "CoboKyt",
-  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xabc123",
   "topup_address": "0xtopup_addr_M1001_user_abc",
   "source_address": "0xsender001",
+  "screening_mode": "CoboKyt",
   "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
+  "failed_reason": null,
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689100
 }
@@ -146,10 +156,13 @@ lang: "zh-hans"
   "payer_id": "P20250619T0310056d7aa",
   "custom_payer_id": "user_abc_10001",
   "status": "Completed",
-  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xabc123",
   "topup_address": "0xtopup_addr_M1001_user_abc",
   "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
+  "failed_reason": null,
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689300
 }
@@ -167,10 +180,12 @@ lang: "zh-hans"
   "payer_id": "P20250619T0310056d7aa",
   "custom_payer_id": "user_abc_10001",
   "status": "Failed",
-  "amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xabc123",
   "topup_address": "0xtopup_addr_M1001_user_abc",
   "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
   "failed_reason": {
     "code": "transaction.rejected_by_compliance",
     "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
@@ -184,16 +199,20 @@ lang: "zh-hans"
 
 付款方的入金地址被替换时触发。请更新展示给该付款方的地址，并在旧地址仍可能收款期间继续接受其入金。
 
-**事件内容：**
+### 地址事件内容
 
-| 字段 | 说明 |
-| --- | --- |
-| `payer_id` / `custom_payer_id` | 地址发生变更的付款方。 |
-| `chain` | 该地址所属的链。只有这条链上的地址发生变更。 |
-| `previous_address` | 替换前的地址。 |
-| `updated_address` | 从现在起应使用的地址。 |
+<div className="field-table">
 
-更新展示给该付款方的地址。这是 `payment.address.updated` 事件，不是充值事件。
+| 字段 | 类型 | 必填性 | 说明 |
+| --- | --- | --- | --- |
+| `data_type` | `string` | 必填 | 固定为 `PaymentAddressUpdate`。 |
+| `merchant_id` | `string` | 必填 | 该付款方属于哪个商户。 |
+| `payer_id` / `custom_payer_id` | `string` | 必填 | 地址发生变更的付款方。 |
+| `chain` | `string` | 必填 | 该地址所属的链。只有这条链上的地址发生变更。 |
+| `previous_address` | `string` | 必填 | 替换前的地址。 |
+| `updated_address` | `string` | 必填 | 从现在起应展示给付款方的地址。 |
+
+</div>
 
 ```json
 {

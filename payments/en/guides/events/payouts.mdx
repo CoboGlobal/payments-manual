@@ -20,17 +20,23 @@ The primary payout event, identified by `payout_id`.
 
 ### Trigger conditions
 
-**One event per change of this payout's `status`.** The last four are terminal; **do not close the payout before a terminal status**, even if some outgoing transactions have already completed.
+**One event per change of this payout's `status`.** Progress inside the outgoing transactions — one completing, failing, or getting its `tx_hash` — is not notified separately.
 
-| When you receive it | `status` | What to do |
-| --- | --- | --- |
-| The payout request is accepted | `Pending` | Record it and do not submit it again. |
-| Fund preparation starts — consolidation, cross-chain conversion, commission | `Preparing` | Wait. |
-| The outgoing transactions start executing | `Transferring` | Wait. |
-| Everything was paid out | `Completed` | Close the payout. This means Cobo completed the transfer, not that the recipient's platform has credited it. |
-| Part of it did not go through | `PartiallyCompleted` | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
-| None of it went through | `Failed` | Read `failed_reason` and handle it. Do not retry in place. |
-| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Confirm the account details with the recipient first; resending unchanged is likely to be rejected again. |
+| When you receive it | `status` | Final | What to do |
+| --- | --- | --- | --- |
+| The payout request is accepted | `Pending` | No | Record it and do not submit it again. |
+| Fund preparation starts — consolidation, cross-chain conversion, commission | `Preparing` | No | Wait. |
+| The outgoing transactions start executing | `Transferring` | No | Wait. Do not close the payment even if some outgoing transactions have completed. |
+| Everything was paid out | `Completed` | Yes | Close the payout. This means Cobo completed the transfer, not that the recipient's platform has credited it. |
+| Part of it did not go through | `PartiallyCompleted` | Yes | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
+| None of it went through | `Failed` | Yes | Read `failed_reason.code` and handle it. Do not retry in place. |
+| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | No | Record the rejection, have your team check the recipient's bank details, and keep waiting for further events on this `payout_id`. |
+
+<Warning>
+  **`RejectedByBank` is not final.** After a rejection the payout can be retried against another bank account, returning to `Transferring` and possibly reaching `Completed`. Until it reaches `Completed`, `PartiallyCompleted`, or `Failed`: do not close the payment or mark it failed, do not create another payout to resend it (that double-pays), and do not treat the current `failed_reason` as the outcome.
+
+  On recovery the same `status` appears again (a second `Transferring`, for example). **Deduplicate on `event_id`** — keying on `payout_id` plus `status` drops the recovery events.
+</Warning>
 
 ### Event content
 
@@ -41,17 +47,17 @@ The primary payout event, identified by `payout_id`.
 | `data_type` | `string` | Required | Always `PaymentPayoutUpdate`. Use it to deserialize `data`. |
 | `payout_id` | `string` | Required | The payout's identity, and the key you use when closing it and when raising a case. |
 | `request_id` | `string` | Required | The request ID you supplied when creating the payout. |
-| `source_account` | `string` | Conditional | The account the funds are paid from. |
+| `source_account` | `string` | Required | Which account the money comes from: a merchant ID for a merchant account, or `developer`. |
 | `status` | `string` | Required | The current payout status. See [Trigger conditions](#trigger-conditions) for the values. |
-| `requested_target` | `object` | Required | Where the money is going, in business terms.<br/>• When `target_type` is `Address`, it carries `address` and `chain_id`.<br/>• When `target_type` is `BankAccount`, it carries `bank_account_id`, `account_alias`, `bank_name`, and `currency`.<br/>• It never exposes on-chain execution detail such as contract addresses. |
-| `initiator` | `string` | Required | Who initiated the payout. |
-| `remark` | `string` | Required | The note attached to the payout. |
-| `requested_amounts` | `array` | Required | **Source side**: what you asked to pay out, grouped by source token. |
-| `failed_amounts` | `array` | Required | **Source side**: the part that was not paid out, grouped by source token.<br/>• At a final status, the amount that succeeded is the difference between this and `requested_amounts`.<br/>• ⚠️ **Do not reconcile it against `transactions`**: a payout item can fail before any outgoing transaction is created — during fund consolidation, cross-chain conversion, or commission collection — and then no entry exists in the array at all. |
-| `actual_payout_amount` | `object` | Required | **Delivery side**: what the recipient actually received.<br/>• For crypto this is the destination token; for Off-Ramp it is the bank account's currency.<br/>• Absent until the payout finishes.<br/>• ⚠️ **Do not subtract it from the source-side amounts**: cross-chain conversion and fiat settlement mean the two sides are not the same asset. |
-| `commission_fees` | `array` | Required | **Source side**: the commission Cobo charged, one entry per token. An entry can be `0` or negative when charges and reversals offset. |
-| `transactions` | `array` | Required | The outgoing transactions.<br/>• Entries use **`result`**, not `status`, to avoid confusion with wallet transaction states: `Completed`, `Failed`, or `null` when there is no result yet.<br/>• Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`; `tx_hash` is empty until the transaction is broadcast, and an entry with `result` `Failed` carries its own `failed_reason`.<br/>• ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
-| `failed_reason` | `object` | Conditional | Present when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`. |
+| `requested_target` | `object` | Required | Where the money is going, keyed by `target_type`: `Address` carries `address` and `chain_id`; `BankAccount` carries `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never carries full account details — look those up by `bank_account_id`. |
+| `initiator` | `string` | Required | Who started the payout, usually an API key. |
+| `remark` | `string` | Required | The note you wrote when creating the payout, returned as is. |
+| `requested_amounts` | `array` | Required | **Source side**: what you asked to pay out, grouped by token and fixed at creation. |
+| `failed_amounts` | `array` | Required | **Source side**: the part that was not paid out, in the same terms as `requested_amounts`; at a final status the amount that succeeded is the difference.<br/>• ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction exists (consolidation, cross-chain conversion, commission), leaving no matching entry. |
+| `actual_payout_amounts` | `array` | Required | **Delivery side**: what the recipient actually received, one entry per asset; `[]` until the payout finishes.<br/>• Read `amount_type` first: `Crypto` carries `token_id` and `chain_id`, `Fiat` (Off-Ramp to a bank account) carries `currency`.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
+| `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token and stays a single total even across tokens. Reversals net off, so it can be `0` or negative. |
+| `transactions` | `array` | Required | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. Upsert by `transaction_id`, and **do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart.<br/>• Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`, where `result` is `Completed`, `Failed`, or `null` when there is no result yet.<br/>• An entry with `result` `Failed` carries its own `failed_reason`.<br/>• ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
+| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
@@ -72,7 +78,7 @@ The primary payout event, identified by `payout_id`.
 | `payment.payout_sweep_failed` | The sweep transaction that prepares the funds failed. | Create the payout again. |
 | `payment.payout_bridge_failed` | Every cross-chain transaction failed, so the assets could not be converted. | Check that a route exists for the token pair, then create the payout again. |
 | `payment.payout_transactions_failed` | Every outgoing transaction failed. The per-transaction reason is in `transactions`. | Read that detail before retrying. |
-| `payment.payout_rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. | Confirm the account details with the recipient before resending — the same details will most likely be rejected again. |
+| `payment.payout_rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. **This status is not final.** | Confirm the account details with the recipient and keep waiting for further events. Do not create another payout to resend it. |
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
 | `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `payout_id`. |
 
@@ -92,7 +98,7 @@ Record it and do not submit the request again. `requested_target` is your own in
   "source_account": "developer",
   "status": "Pending",
   "requested_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "failed_amounts": [],
   "requested_target": {
@@ -101,9 +107,9 @@ Record it and do not submit the request again. `requested_target` is your own in
     "chain_id": "ETH"
   },
   "transactions": [],
-  "actual_payout_amount": null,
+  "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fees": [],
+  "commission_fee": null,
   "remark": "September vendor settlement",
   "created_timestamp": 1744700000,
   "updated_timestamp": 1744700000
@@ -122,7 +128,7 @@ Close the payout. This means Cobo finished the transfer, **not** that the recipi
   "source_account": "developer",
   "status": "Completed",
   "requested_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "failed_amounts": [],
   "requested_target": {
@@ -133,21 +139,16 @@ Close the payout. This means Cobo finished the transfer, **not** that the recipi
   "transactions": [
     {
       "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
-      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout001",
       "result": "Completed"
     }
   ],
-  "actual_payout_amount": {
-    "amount_type": "Crypto",
-    "amount": "500.00",
-    "token_id": "ETH_USDC",
-    "chain_id": "ETH"
-  },
-  "initiator": "api_key_abc123",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
+  "actual_payout_amounts": [
+    { "amount_type": "Crypto", "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
+  "initiator": "api_key_abc123",
+  "commission_fee": { "fee_amount": "1" },
   "remark": "September vendor settlement",
   "created_timestamp": 1744700000,
   "updated_timestamp": 1744700600
@@ -168,11 +169,11 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
   "source_account": "developer",
   "status": "PartiallyCompleted",
   "requested_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    { "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
   ],
   "failed_amounts": [
-    { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
+    { "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
   ],
   "requested_target": {
     "target_type": "Address",
@@ -182,13 +183,13 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
   "transactions": [
     {
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
-      "amount": { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout002a",
       "result": "Completed"
     },
     {
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
-      "amount": { "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" },
+      "amount": { "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" },
       "tx_hash": null,
       "result": "Failed",
       "failed_reason": {
@@ -197,11 +198,9 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
       }
     }
   ],
-  "actual_payout_amount": null,
+  "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "1.00" }
-  ],
+  "commission_fee": { "fee_amount": "1" },
   "remark": "September vendor settlement",
   "failed_reason": {
     "code": "payment.payout_partially_failed",
@@ -226,10 +225,10 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
   "source_account": "developer",
   "status": "Failed",
   "requested_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "failed_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "requested_target": {
     "target_type": "Address",
@@ -237,9 +236,9 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
     "chain_id": "ETH"
   },
   "transactions": [],
-  "actual_payout_amount": null,
+  "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fees": [],
+  "commission_fee": null,
   "remark": null,
   "failed_reason": {
     "code": "payment.payout_sweep_failed",
@@ -252,7 +251,7 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
 
 #### An Off-Ramp payout is rejected by the bank
 
-Confirm the account details with the recipient before resending. `requested_target` is a bank account, and `actual_payout_amount` would have been in the account's currency.
+**This is not a final status.** Record the rejection, have your team confirm the account details with the recipient, and keep waiting for events on this `payout_id`: if the retry against another account succeeds, you receive a second `Transferring` and then `Completed`. Do not close the payment here, and do not create another payout.
 
 ```json
 {
@@ -262,10 +261,10 @@ Confirm the account details with the recipient before resending. `requested_targ
   "source_account": "developer",
   "status": "RejectedByBank",
   "requested_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "failed_amounts": [
-    { "amount": "500.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "requested_target": {
     "target_type": "BankAccount",
@@ -275,9 +274,9 @@ Confirm the account details with the recipient before resending. `requested_targ
     "currency": "USD"
   },
   "transactions": [],
-  "actual_payout_amount": null,
+  "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fees": [],
+  "commission_fee": null,
   "remark": null,
   "failed_reason": {
     "code": "payment.payout_rejected_by_bank",

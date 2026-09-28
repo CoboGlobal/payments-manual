@@ -5,7 +5,7 @@ lang: "zh-hans"
 
 本页的事件跟踪一笔退款单从创建到完成的全过程。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
-退款目前只支持订单。要退回通过充值模式收到的资金，请改为创建 Payout。
+退款目前只支持订单。要退回通过充值模式收到的资金，请改为创建转出。
 
 ## 本页的事件
 
@@ -19,13 +19,13 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-**这笔退款单的 `status` 每变化一次发一条事件。** 只会出现下面三个值。
+**这笔退款单的 `status` 每变化一次发一条事件。** 事件里只会出现下面三个值。
 
 | 什么时候会收到 | `status` | 您该做什么 |
 | --- | --- | --- |
-| 通过退款链接成功创建退款单 | `Pending` | 记录该退款单并等待。 |
+| 退款单进入待执行——通过退款链接创建，或您直接调用创建退款接口 | `Pending` | 记录该退款单并等待。 |
 | 退款完成 | `Completed` | 对账并关闭退款，以 `refund_id` 作为幂等键。 |
-| 退款失败，**一分未退** | `Failed` | 读取 `failed_reason` 并处理。 |
+| 退款失败，**一分未退** | `Failed` | 读取 `failed_reason.code` 并处理。 |
 
 ### 事件内容
 
@@ -36,21 +36,19 @@ lang: "zh-hans"
 | `data_type` | `string` | 必填 | 固定为 `PaymentRefundUpdate`，用于反序列化 `data`。 |
 | `refund_id` | `string` | 必填 | 退款单身份，也是您做对账幂等时使用的键。 |
 | `order_id` | `string` | 必填 | 本次退款所对应的收款订单。 |
-| `merchant_id` | `string` | 条件必填 | 退款归属商户时，该商户的 ID。 |
-| `status` | `string` | 必填 | 退款单当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
-| `request_id` | `string` | 必填 | 您创建退款时提供的请求 ID。 |
-| `to_address` | `string` | 必填 | 接收退款的地址。 |
-| `requested_amount` | `object` | 必填 | 请求退还的金额，资产金额结构。对应您创建退款时传入的 `payable_amount`。 |
-| `tx_hash` | `string` | 必填 | 退款转账的链上哈希。退款在广播前就失败时没有该值。 |
-| `refund_type` | `string` | 必填 | 退款资金来自哪个余额，取 `Merchant` 或 `Psp`。 |
-| `initiator` | `string` | 必填 | 退款发起人。 |
-| `commission_fee` | `object` | 必填 | Cobo 收取的佣金，单个对象，包含 `token_id` 与 `fee_amount`。一笔退款只涉及一个 token，因此这里不是数组。收取后被全额冲回时该值可能为 `0`，冲回大于收取时可能为负数。 |
-| `failed_reason` | `object` | 条件必填 | 仅当 `status` 为 `Failed` 时出现，包含 `code` 与 `message`。 |
+| `merchant_id` | `string` | 必填 | 退款归属商户时，该商户的 ID，否则为 `null`。 |
+| `status` | `string` | 必填 | 退款单当前状态，事件里只会是 `Pending`、`Completed` 或 `Failed`。查询接口的状态枚举还有其他取值，请让您的反序列化能容纳它们，但业务分支只需覆盖这三个。 |
+| `request_id` | `string` | 必填 | 您创建退款时提供的请求 ID。付款方通过退款链接发起时为 `null`。 |
+| `to_address` | `string` | 必填 | 钱退到了哪个地址。通过退款链接产生的地址由付款方自己填写。 |
+| `requested_amount` | `object` | 必填 | 请求退还的金额，对应创建退款时传的 `payable_amount`。一笔退款只有全成功或全失败，因此 `Completed` 时它也是实际退还的金额。 |
+| `tx_hash` | `string` | 必填 | 退款转账的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
+| `refund_type` | `string` | 必填 | 退款资金从哪出，取 `Merchant`（商户余额）或 `Psp`（开发者余额）。 |
+| `initiator` | `string` | 必填 | 谁发起了这笔退款，通常是 API key。付款方通过退款链接发起时为 `null`。 |
+| `commission_fee` | `object` | 必填 | Cobo 收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。佣金从 Fee Station 扣，余额是美元口径，所以不带币种。退费冲抵后可能为 `0` 或负数。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 </div>
-
-退款没有单独的已完成金额和失败金额字段，因此 `requested_amount` 既是请求退还的金额，也是 `status` 为 `Completed` 后实际退还的金额。
 
 ### 失败原因
 
@@ -86,11 +84,12 @@ lang: "zh-hans"
   "request_id": "request_refund_001",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Pending",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
   "commission_fee": null,
+  "failed_reason": null,
   "created_timestamp": 1744690400,
   "updated_timestamp": 1744690400
 }
@@ -109,11 +108,12 @@ lang: "zh-hans"
   "request_id": "request_refund_001",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Completed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xrefund001",
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
-  "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+  "commission_fee": { "fee_amount": "0.5" },
+  "failed_reason": null,
   "created_timestamp": 1744690400,
   "updated_timestamp": 1744690500
 }
@@ -132,7 +132,7 @@ lang: "zh-hans"
   "request_id": "request_refund_002",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Failed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
@@ -159,7 +159,7 @@ lang: "zh-hans"
   "request_id": "request_refund_003",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Failed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",

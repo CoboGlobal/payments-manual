@@ -27,7 +27,7 @@ lang: "zh-hans"
 | 校验通过，开始逐项执行 | `Transferring` | 等待。 |
 | 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
 | 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 是资金动过的，`not_executed_item_count` 是从未提交的。 |
-| 批次整体失败，**只发生在执行开始之前** | `Failed` | 读取 `failed_reason`。没有资金动过。 |
+| 批次整体失败 | `Failed` | 读取 `failed_reason.code`——**执行前后都可能失败**，资金动没动要看它，见[批次的失败原因](#批次的失败原因)。 |
 
 ### 批次的事件内容
 
@@ -40,16 +40,16 @@ lang: "zh-hans"
 | `request_id` | `string` | 选填 | 您创建批次时提供的请求 ID。 |
 | `source_account` | `string` | 必填 | 批次的付款账户。 |
 | `status` | `string` | 必填 | 批次当前状态，取值与含义见[批次的事件触发条件](#批次的事件触发条件)。 |
-| `execution_mode` | `string` | 必填 | 单个条目出问题是否中止整批。`Strict` 模式下会中止。 |
+| `execution_mode` | `string` | 必填 | 取 `Strict` 或 `Partial`。`Strict` 下只要有条目**校验**不通过就整批不执行；它管的是校验这道闸，**不保证上链后要么全成要么全败**——全部条目通过校验、提交转出后个别失败时，批次是 `PartiallyCompleted`。 |
 | `item_count` | `integer` | 必填 | 批次包含多少个条目。 |
-| `failed_item_count` | `integer` | 必填 | 已提交且失败的条目数，这些条目的资金动过。 |
-| `not_executed_item_count` | `integer` | 必填 | 从未提交的条目数，这些条目的资金没有动过。 |
-| `requested_amounts` | `array` | 必填 | 请求总额，按 token 分组。一个批次可以跨多种 token 和多条链。 |
+| `failed_item_count` | `integer` | 必填 | 已提交执行但失败的条目数。这些条目锁过资金、扣过手续费，事后已释放已退回。能否直接重发看条目的 `failed_reason.code`。 |
+| `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，资金完全没动。不修正原因就重发会以同样方式再失败。 |
+| `requested_amounts` | `array` | 必填 | 全部条目的请求金额合计，按 `token_id` 分组。分组键是 `token_id` 不是币种符号——同一种 USDT 在两条链上是两项，不能合并。 |
 | `completed_amounts` | `array` | 必填 | 已完成条目的合计，按 token 分组。 |
 | `failed_amounts` | `array` | 必填 | 未成功条目的合计，按 token 分组。 |
-| `description` | `string` | 必填 | 批次备注。 |
-| `commission_fees` | `array` | 必填 | Cobo 收取的佣金，每个 token 一条。 |
-| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 时出现。 |
+| `description` | `string` | 必填 | 您创建批次时写的整批备注，未填时为 `null`。 |
+| `commission_fee` | `object` | 必填 | Cobo 为该批次收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。批次跨多少种 token 都只给一个总额。退费冲抵后可能为 `0` 或负数。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 </div>
@@ -60,16 +60,16 @@ lang: "zh-hans"
 
 ### 批次的失败原因
 
-`failed_reason.code` 是您分支的依据。整批失败只发生在执行开始之前，因此下面这些都意味着没有资金动过。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
+`failed_reason.code` 是您分支的依据，也是判断资金动没动的唯一办法——`status` 本身区分不出来。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
 
-| `code` | 发生了什么 | 怎么处理 |
-| --- | --- | --- |
-| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 修正条目后创建新批次。 |
-| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 修正那些条目后创建新批次。 |
-| `payment.bulk_send_all_items_failed` | 所有条目都失败或从未执行。逐条原因在条目事件中。 | 看完条目事件后创建新批次。 |
-| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 处理 Fee Station 后创建新批次。 |
-| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 处理 Fee Station 后创建新批次。 |
-| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 创建新批次。 |
+| `code` | 发生了什么 | 资金动过吗 | 怎么处理 |
+| --- | --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 没有 | 修正条目后创建新批次。 |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 没有 | 修正那些条目后创建新批次。 |
+| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 归集动过，没有付款 | 创建新批次。 |
+| `payment.bulk_send_all_items_failed` | 一个成功的条目都没有——可能全部提交后失败，也可能一笔都没提交。 | 看两个计数：`failed_item_count` 大于 `0` 表示有条目提交过并失败；`not_executed_item_count` 等于 `item_count` 表示一笔都没提交 | 逐条读条目事件的原因，修正后创建新批次。 |
 
 ### 批次的示例事件
 
@@ -96,7 +96,7 @@ lang: "zh-hans"
   "completed_amounts": [],
   "failed_amounts": [],
   "description": "September affiliate payouts",
-  "commission_fees": [],
+  "commission_fee": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744710000
 }
@@ -125,9 +125,7 @@ lang: "zh-hans"
   ],
   "failed_amounts": [],
   "description": "September affiliate payouts",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "0.60" }
-  ],
+  "commission_fee": { "fee_amount": "0.6" },
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744711200
 }
@@ -158,9 +156,7 @@ lang: "zh-hans"
     { "amount": "200.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "description": "September affiliate payouts",
-  "commission_fees": [
-    { "token_id": "ETH_USDC", "fee_amount": "0.20" }
-  ],
+  "commission_fee": { "fee_amount": "0.2" },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744713000
 }
@@ -189,7 +185,7 @@ lang: "zh-hans"
     { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
   "description": "September affiliate payouts",
-  "commission_fees": [],
+  "commission_fee": null,
   "failed_reason": {
     "code": "payment.bulk_send_strict_validation_failed",
     "message": "Cannot complete bulk send: one or more items failed validation when 'execution_mode' is 'Strict'."
@@ -224,14 +220,14 @@ lang: "zh-hans"
 | `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`，用于反序列化 `data`。 |
 | `bulk_send_item_id` | `string` | 必填 | 条目身份，也是您对账时使用的键。 |
 | `bulk_send_id` | `string` | 必填 | 该条目所属的批次。 |
-| `request_id` | `string` | 选填 | 批次的请求 ID。 |
+| `request_id` | `string` | 选填 | 批次的请求 ID，同一批次下所有条目相同。逐条幂等请用 `bulk_send_item_id`。 |
 | `source_account` | `string` | 必填 | 批次的付款账户。 |
 | `status` | `string` | 必填 | 该条目的当前状态，取值与含义见[条目的事件触发条件](#条目的事件触发条件)。 |
-| `requested_amount` | `object` | 必填 | 请求下发的金额，资产金额结构。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `requested_amount` | `object` | 必填 | 该条目的请求下发金额。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
 | `receiving_address` | `string` | 必填 | 收款方地址。 |
-| `tx_hash` | `string` | 必填 | 链上哈希。条目从未上链时没有该值。 |
-| `description` | `string` | 必填 | 条目备注。 |
-| `failed_reason` | `object` | 条件必填 | 当 `status` 为 `Failed` 或 `NotExecuted` 时出现。 |
+| `tx_hash` | `string` | 必填 | 该条目转出交易的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
+| `description` | `string` | 必填 | 您创建该条目时写的备注，未填时为 `null`。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 或 `NotExecuted` 时给出 `{ code, message }`，其余情况为 `null`。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 </div>

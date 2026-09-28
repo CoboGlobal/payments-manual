@@ -19,13 +19,13 @@ The primary refund event, identified by `refund_id`.
 
 ### Trigger conditions
 
-**One event per change of this refund order's `status`.** Only these three values occur.
+**One event per change of this refund order's `status`.** Only the three values below appear in events.
 
 | When you receive it | `status` | What to do |
 | --- | --- | --- |
-| The refund order is created through a refund link | `Pending` | Record the refund and wait. |
+| The refund order is ready to execute — created through a refund link, or by your own call to the create-refund API | `Pending` | Record the refund and wait. |
 | The refund completes | `Completed` | Reconcile and close it, using `refund_id` as the idempotency key. |
-| The refund fails and **nothing was returned** | `Failed` | Read `failed_reason` and handle it. |
+| The refund fails and **nothing was returned** | `Failed` | Read `failed_reason.code` and handle it. |
 
 ### Event content
 
@@ -36,21 +36,19 @@ The primary refund event, identified by `refund_id`.
 | `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
 | `refund_id` | `string` | Required | The refund order's identity, and the key you use for reconciliation idempotency. |
 | `order_id` | `string` | Required | The pay-in order this refund returns funds for. |
-| `merchant_id` | `string` | Conditional | The merchant ID, when the refund belongs to a merchant. |
-| `status` | `string` | Required | The current refund status. See [Trigger conditions](#trigger-conditions) for the values. |
-| `request_id` | `string` | Required | The request ID you supplied when creating the refund. |
-| `to_address` | `string` | Required | The address receiving the refund. |
-| `requested_amount` | `object` | Required | The amount to return, as an asset amount. It corresponds to the `payable_amount` you passed when creating the refund. |
-| `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. Absent when the refund failed before being broadcast. |
+| `merchant_id` | `string` | Required | The merchant this refund belongs to, `null` if none. |
+| `status` | `string` | Required | The current status. Only `Pending`, `Completed`, and `Failed` appear in events. The query APIs expose more values, so keep your deserialization tolerant, but branch on these three. |
+| `request_id` | `string` | Required | The request ID you provided when creating the refund. `null` when the payer started it from a refund link. |
+| `to_address` | `string` | Required | Where the money was returned. For a refund link, the payer entered this address themselves. |
+| `requested_amount` | `object` | Required | The amount to return, matching the `payable_amount` you passed when creating the refund. A refund either fully succeeds or fully fails, so on `Completed` this is also the amount actually returned. |
+| `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
 | `refund_type` | `string` | Required | Which balance funds the refund: `Merchant` or `Psp`. |
-| `initiator` | `string` | Required | Who initiated the refund. |
-| `commission_fee` | `object` | Required | The commission Cobo charged, as a single object carrying `token_id` and `fee_amount`. A refund involves exactly one token, so this is not an array. The value can be `0` when a fee was charged and then fully reversed, or negative when a reversal outweighs the charge. |
-| `failed_reason` | `object` | Conditional | Present only when `status` is `Failed`. Carries `code` and `message`. |
+| `initiator` | `string` | Required | Who started the refund, usually an API key. `null` when the payer started it from a refund link. |
+| `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token. Reversals net off, so it can be `0` or negative. |
+| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
 | `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
-
-Because a refund has no completed or failed amount fields, `requested_amount` is both what was asked for and, once `status` is `Completed`, what was returned.
 
 ### Failure reasons
 
@@ -86,11 +84,12 @@ Record it and wait. Do not create a second refund for the same order.
   "request_id": "request_refund_001",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Pending",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
   "commission_fee": null,
+  "failed_reason": null,
   "created_timestamp": 1744690400,
   "updated_timestamp": 1744690400
 }
@@ -109,11 +108,12 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
   "request_id": "request_refund_001",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Completed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": "0xrefund001",
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
-  "commission_fee": { "token_id": "ETH_USDC", "fee_amount": "0.50" },
+  "commission_fee": { "fee_amount": "0.5" },
+  "failed_reason": null,
   "created_timestamp": 1744690400,
   "updated_timestamp": 1744690500
 }
@@ -132,7 +132,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
   "request_id": "request_refund_002",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Failed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",
@@ -159,7 +159,7 @@ The fee could not be charged. Top up Fee Station and create the refund again.
   "request_id": "request_refund_003",
   "to_address": "0x9876543210abcdef1234567890abcdef12345678",
   "status": "Failed",
-  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "tx_hash": null,
   "refund_type": "Merchant",
   "initiator": "api_key_abc123",

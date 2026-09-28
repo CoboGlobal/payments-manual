@@ -19,17 +19,23 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-**订单 `status` 每变化一次发一条事件。** `status` 不变但您仍需要处理时，也会发一条，用 `notice_type` 说明为什么。除此之外不发——包括订单在 `Processing` 期间入金反复变化，见下方。
+**订单 `status` 每变化一次发一条事件。** `status` 不变但某笔入金需要您知道时，也会发一条，用 `notice_type` 说明为什么。
 
 | 什么时候会收到 | `status` | `notice_type` | 您该做什么 |
 | --- | --- | --- | --- |
-| 订单创建成功 | `Pending` | 无 | 建立订单记录，向付款方展示应付金额。 |
-| 检测到该订单的**第一笔**入金，订单从 `Pending` 变为 `Processing` | `Processing` | 无 | 更新进度，不要发货。 |
-| 某笔入金进入 `ActionRequired`，**订单状态不变** | `Processing` | `PaymentUpdated` | 按该条目的 `message` 处理，这笔资金在您处理前会一直挂起。 |
-| 累计实收达到足额阈值，订单变为 `Completed`。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | 无 | 发货，以 `order_id` 作为幂等键。 |
-| 有效期结束，存在已完成入账但未达阈值 | `Underpaid` | 无 | 进入少付处理，不要按足额订单发货。 |
-| 有效期结束且没有任何已完成入账，或订单被撤销 | `Expired` | 无 | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 订单已是终态，又收到一笔入金**且该笔通过筛查**，**订单状态保持终态** | 保持原终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
+| 订单创建成功 | `Pending` | `null` | 建立订单记录，向付款方展示应付金额。 |
+| 检测到该订单的**第一笔**入金 | `Processing` | `null` | 更新进度，不要发货。 |
+| 某笔入金进入 `ActionRequired` | `Processing` | `PaymentUpdated` | 按该条目的 `message` 处理，这笔资金在您处理前一直挂起。 |
+| 某笔入金失败 | `Processing` | `PaymentFailed` | 读该条目的 `failed_reason.code`。这笔钱进不了订单，按您自己的规则联系付款方重付。 |
+| 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | `null` | 发货，以 `order_id` 作为幂等键。 |
+| 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid` | `null` | 进入少付处理，不要按足额订单发货。 |
+| 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired` | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
+| 订单已是终态，又收到一笔入金**且该笔通过筛查** | 保持原终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
+| 订单已是终态，晚到的那笔**筛查未通过** | 保持原终态 | `PaymentFailed` | 不需要处理，这笔钱没有到账。 |
+
+**终态在有效期结束那一刻定下来，之后不再重算。** 因此您可能看到 `status` 为 `Expired`、`credited_amount` 为 `0`，而 `transactions` 里有一条 `Completed`——那是到期之后才到的钱（`is_late` 为 `true`），不参与终态判定，也不计入 `credited_amount`。
+
+**这些情况不发事件**：检测到第二笔及以后的入金、入金进入筛查、入金顺利通过筛查（`credited_amount` 会变但不通知）、晚到款刚到达还没走完筛查。
 
 ### 事件内容
 
@@ -40,21 +46,23 @@ lang: "zh-hans"
 | `data_type` | `string` | 必填 | 固定为 `PaymentOrderUpdate`，用于反序列化 `data`。 |
 | `order_id` | `string` | 必填 | 订单身份，也是您做发货幂等时使用的键。 |
 | `psp_order_code` | `string` | 必填 | 您自己为该订单分配的参考编号。 |
-| `merchant_order_code` | `string` | 条件必填 | 订单归属商户时，商户自己的参考编号。 |
-| `merchant_id` | `string` | 条件必填 | 订单归属商户时，该商户的 ID。 |
+| `merchant_order_code` | `string` | 必填 | 订单归属商户时，商户自己的参考编号，否则为 `null`。 |
+| `merchant_id` | `string` | 必填 | 订单归属商户时，该商户的 ID，否则为 `null`。 |
 | `receive_address` | `string` | 必填 | 付款方转账的目标地址。 |
 | `expired_at` | `integer` | 必填 | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 必填 | 订单当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
-| `notice_type` | `string` | 必填 | `status` 没变但仍通知您的原因，取 `PaymentUpdated` 或 `LatePaymentReceived`。 |
-| `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**。<br/>• 展示给付款方用。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status=Completed` 为准。 |
-| `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，用于对账。<br/>• **它不包含这几类钱**：还在筛查中的入金、等您补材料的入金、被拒绝的入金，以及订单结束后才到的晚付。某笔钱属于哪一类，看 `transactions` 里该条目的 `status`。<br/>• ⚠️ **不要自己对 `transactions` 求和**：晚到款是 `Completed` 条目但不计入订单，自行求和会偏大。<br/>• ⚠️ 它**包含将要分给您的那部分手续费，不是商户的入账金额**。两个账户各自实际收到多少，读取 `payment.account.balance.updated`，或调用 `GET /payments/balance_changes?source_id=<order_id>`。 |
+| `notice_type` | `string` | 必填 | `status` 没变但仍通知您的原因，取 `PaymentUpdated`、`PaymentFailed` 或 `LatePaymentReceived`；其余情况为 `null`。 |
+| `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**，创建时确定、之后不变。展示给付款方用。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status` 为 `Completed` 为准。 |
+| `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：还在筛查中的入金、等您处理的入金、被拒绝的入金，以及订单结束后才到的晚付（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自己对 `transactions` 求和**，晚到款会让您的和偏大。<br/>• ⚠️ 它**含将要分给您的手续费，不是商户的入账金额**。两个账户各自实际收到多少，看[余额变动](/payments/cn/guides/events/balances)。 |
 | `outstanding_amount` | `object` | 必填 | **付款方还需再付多少**＝`requested_amount` − `credited_amount`。<br/>• `requested_amount` 在查询接口里叫 `payable_amount`，所以也可以记成「应付 − 已收」。<br/>• **怎么用：`status` 为 `Underpaid` 时用它告诉付款方还差多少。**<br/>• ⚠️ **不要用它判断是否少付**：`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单是足额的，按它催款会催一笔不该催的钱。是否少付只看 `status`。<br/>• 下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。 |
-| `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是自上条事件以来的增量。<br/>• 请整体替换本地副本，按 `transaction_id` upsert。<br/>• 每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及该条目自己的 `status`（取值与充值相同的五个）。<br/>• 处于 `PendingScreening`／`ActionRequired` 的条目还带 `screening_mode`，`ActionRequired` 的条目还带 `message`，失败的条目带自己的 `failed_reason`。<br/>• ⚠️ **低于粉尘阈值的入金完全不在数组里**，默认阈值 `0.05`，金额需严格大于该值才保留。 |
+| `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是增量；无入金时为 `[]`。请整体替换本地副本，按 `transaction_id` upsert。<br/>• 每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及条目自己的 `status`（五个取值与充值相同）、`screening_mode`、`message`、`failed_reason`。<br/>• `is_late` 为 `true` 表示这笔钱在订单终态之后才到，不计入 `credited_amount`。<br/>• ⚠️ **低于粉尘阈值的入金不在数组里**，默认阈值为 `0.05`，各 token 的阈值见登记入金地址接口返回的 `min_amount`。 |
 | `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
 
 </div>
 
 订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
+
+所有金额固定 2 位小数、去掉尾零。应付类金额本来就不超过 2 位，链上实收金额（`credited_amount`、条目的 `amount`）按 `ROUND_DOWN` 截断——付款方打 `103.0305`，事件里是 `103.03`。足额判定用的是未截断的原值，`status` 不受影响。
 
 ### 失败原因
 
@@ -82,11 +90,12 @@ lang: "zh-hans"
   "merchant_id": "M1001",
   "merchant_order_code": "shop_20260921_0001",
   "status": "Pending",
+  "notice_type": null,
   "receive_address": "0xorder_addr_001",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [],
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689000
@@ -105,16 +114,17 @@ lang: "zh-hans"
   "merchant_id": "M1001",
   "merchant_order_code": "shop_20260921_0001",
   "status": "Processing",
+  "notice_type": null,
   "receive_address": "0xorder_addr_001",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
       "tx_hash": "0xdep001",
-      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "PendingScreening",
       "screening_mode": "IntegratedVendor",
@@ -141,14 +151,14 @@ lang: "zh-hans"
   "notice_type": "PaymentUpdated",
   "receive_address": "0xorder_addr_001",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "outstanding_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
       "tx_hash": "0xdep001",
-      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "ActionRequired",
       "screening_mode": "CustomVendor",
@@ -158,6 +168,43 @@ lang: "zh-hans"
   ],
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689200
+}
+```
+
+#### 某笔入金失败
+
+`notice_type` 为 `PaymentFailed`，订单 `status` 没有变化。这笔钱不计入 `credited_amount`，按该条目的 `failed_reason.code` 决定怎么跟付款方沟通。
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": "PaymentFailed",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Failed",
+      "is_late": false,
+      "failed_reason": {
+        "code": "transaction.rejected_by_screening_app",
+        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+      }
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689250
 }
 ```
 
@@ -173,16 +220,17 @@ lang: "zh-hans"
   "merchant_id": "M1001",
   "merchant_order_code": "shop_20260921_0001",
   "status": "Completed",
+  "notice_type": null,
   "receive_address": "0xorder_addr_001",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "credited_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "outstanding_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
       "tx_hash": "0xdep001",
-      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
       "is_late": false
@@ -190,7 +238,7 @@ lang: "zh-hans"
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
       "tx_hash": "0xdep002",
-      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
       "is_late": false
@@ -213,16 +261,17 @@ lang: "zh-hans"
   "merchant_id": "M1001",
   "merchant_order_code": "shop_20260921_0002",
   "status": "Underpaid",
+  "notice_type": null,
   "receive_address": "0xorder_addr_002",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
       "tx_hash": "0xdep101",
-      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
       "is_late": false
@@ -230,7 +279,7 @@ lang: "zh-hans"
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
       "tx_hash": "0xdep102",
-      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Failed",
       "is_late": false,
@@ -260,14 +309,14 @@ lang: "zh-hans"
   "notice_type": "LatePaymentReceived",
   "receive_address": "0xorder_addr_002",
   "expired_at": 1744692600,
-  "requested_amount": { "amount": "102.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "credited_amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
-  "outstanding_amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
   "transactions": [
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
       "tx_hash": "0xdep101",
-      "amount": { "amount": "60.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
       "is_late": false
@@ -275,7 +324,7 @@ lang: "zh-hans"
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
       "tx_hash": "0xdep103",
-      "amount": { "amount": "42.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
       "is_late": true
@@ -285,16 +334,6 @@ lang: "zh-hans"
   "updated_timestamp": 1744693900
 }
 ```
-
-#### 不会发事件的情况
-
-下面这些会改变订单的内容，但不产生通知，因为订单 `status` 没有变化，也不需要您采取任何处理：
-
-- 检测到第二笔及以后的入金。
-- 某笔入金进入筛查。
-- **某笔入金通过筛查**，这会抬高 `credited_amount`、降低 `outstanding_amount`。
-- 某笔入金失败。
-- 晚到款已到达但尚未通过筛查。
 
 ## 相关
 

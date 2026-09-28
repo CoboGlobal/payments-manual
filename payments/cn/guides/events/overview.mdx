@@ -49,7 +49,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
       <td rowSpan={5}>**订单**</td>
       <td>[`payment.order.updated`](/payments/cn/guides/events/orders#payment-order-updated)</td>
       <td>**必选**</td>
-      <td>订单的收款结果：已付清、少付、过期、某笔入金需要您处理，或订单结束后又收到钱。</td>
+      <td>订单的收款结果：已付清、少付、过期，以及某笔入金需要您处理、失败，或订单结束后又收到钱。</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#payment-order-status-updated)</td>
@@ -170,7 +170,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 | ID | 防的是什么 |
 | --- | --- |
-| `event_id` | 重复投递。同一条消息重投时 `event_id` 不变。 |
+| `event_id` | 重复投递。同一条消息重投时 `event_id` 不变。**去重只能用它**——同一个 `status` 可能合法地出现两次，例如转出被银行退回后换账户重试，会再来一条 `Transferring`。 |
 | 业务单据 ID | 同一个业务事实被不同事件或不同代码路径处理两次。 |
 
 两层都要做。对 `event_id` 建唯一约束用于投递去重，再对每个不可逆动作（入账、发货、关闭付款）按业务单据 ID 建第二个唯一约束。
@@ -185,9 +185,11 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 **数组是全量快照。** `transactions` 等字段携带的是该对象当前的完整列表，不是自上条事件以来的增量。请整体替换本地副本，不要往里追加。
 
-**投递不保证顺序。** 按业务单据 ID 做 upsert，并丢弃比本地已记录状态更早的事件。终态不能被后到的处理中事件回退。
+**投递不保证顺序。** 按业务单据 ID 做 upsert，用 `updated_timestamp` 丢弃比本地更旧的事件。终态不能被后到的处理中事件回退。
 
-**没有值的字段不会出现。** 字段不适用时，整个键会被省略而不是给 `null`。读取可选字段时请使用防御性写法，例如用 `payload.get("failed_reason")` 而不是 `payload["failed_reason"]`。
+**用每条事件的 `status` 覆盖本地状态，不要校验状态迁移是否合法。** 中间状态可能没有对应的事件（例如一笔入金从 `Detected` 直接到 `Completed`），那不是丢事件。需要您动手的状态不会被跳过。
+
+**字段始终存在，不适用时为 `null`。** 例如 `failed_reason` 只有失败时有值，其余情况是 `null` 而不是没有这个键；数组字段为空时是 `[]`。请按 `null` 处理，不要用「有没有这个键」判断。
 
 ## 读取失败原因
 
@@ -216,17 +218,19 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 | 结构 | 字段 | 用在哪 |
 | --- | --- | --- |
 | 资产金额 | `amount`、`token_id`、`chain_id` | 绝大多数金额字段。 |
-| 资产或法币金额 | `amount_type`，以及 `amount` 加上 `token_id` 与 `chain_id`，或者 `currency` | 可能是加密货币也可能是法币的字段，例如 `actual_payout_amount`。请先读 `amount_type`，不要根据有没有 `token_id` 推断。 |
-| 佣金 | `token_id`、`fee_amount` | Cobo 收取的佣金。 |
+| 资产或法币金额 | `amount_type`，以及 `amount` 加上 `token_id` 与 `chain_id`，或者 `currency` | 可能是加密货币也可能是法币的字段，例如 `actual_payout_amounts` 的元素。请先读 `amount_type`，不要根据有没有 `token_id` 推断。 |
+| 佣金 | `fee_amount` | Cobo 收取的佣金，**单位为美元**。佣金从 Fee Station 扣，余额是美元口径，所以不带币种。 |
 
 ```json
-{ "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
-{ "amount_type": "Crypto", "amount": "300.00", "token_id": "TRON_USDT", "chain_id": "TRON" }
-{ "amount_type": "Fiat", "amount": "497.50", "currency": "USD" }
-{ "token_id": "ETH_USDC", "fee_amount": "2.50" }
+{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }
+{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
+{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }
+{ "fee_amount": "2.5" }
 ```
 
-字段名为复数的（例如 `requested_amounts`）是数组，可能跨多种 token；单数字段是单个对象，只涉及一种资产。不要跨资产相加。
+字段名为复数的（例如 `requested_amounts`）是数组，可能跨多种 token；单数字段是单个对象，只涉及一种资产。不要跨资产相加。数组按 `token_id` 分组，同一种币在两条链上是两项。
+
+**金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。应付类金额本来就不超过 2 位；链上实收金额按 `ROUND_DOWN` 截断，因此可能比链上的实际数值少几位。
 
 Webhook 消息不携带余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。要保持自己账本的实时性，请在收到事件时调用[List merchant balances](/payments/en/api-references/payment/list-merchant-balances)或[Get developer balances](/payments/en/api-references/payment/get-developer-balance)。需要手续费明细时，请使用交易查询接口或[Generate reports](/payments/en/api-references/payment/generate-reports)。
 
