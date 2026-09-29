@@ -26,10 +26,10 @@ lang: "zh-hans"
 | 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
 | 校验通过，开始逐项执行 | `Transferring` | 等待。 |
 | 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
-| 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 是资金动过的，`not_executed_item_count` 是从未提交的。 |
-| 批次整体失败 | `Failed` | 读取 `failed_reason.code`——**执行前后都可能失败**，资金动没动要看它，见[批次的失败原因](#批次的失败原因)。 |
+| 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 为已提交执行但失败的条目，`not_executed_item_count` 为从未提交执行的条目。 |
+| 批次整体失败 | `Failed` | 读取 `failed_reason.code`——**执行前后都可能失败**，资金是否已被使用以它为准，见[批次的失败原因](#批次的失败原因)。 |
 
-启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批」**，两者的 `status` 都是 `Pending`。停在 `Pending` 比平时久时，请到 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
+启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批」**，两者的 `status` 都是 `Pending`。批次在 `Pending` 停留时间较长时，请在 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
 
 ### 批次的事件内容
 
@@ -42,10 +42,10 @@ lang: "zh-hans"
 | `request_id` | `string` | 选填 | 您创建批次时提供的请求 ID。 |
 | `source_account` | `string` | 必填 | 批次的付款账户。 |
 | `status` | `string` | 必填 | 批次当前状态，取值与含义见[批次的事件触发条件](#批次的事件触发条件)。 |
-| `execution_mode` | `string` | 必填 | 取 `Strict` 或 `Partial`。`Strict` 下只要有条目**校验**不通过就整批不执行；它管的是校验这道闸，**不保证上链后要么全成要么全败**——全部条目通过校验、提交转出后个别失败时，批次是 `PartiallyCompleted`。 |
+| `execution_mode` | `string` | 必填 | 取 `Strict` 或 `Partial`。`Strict` 下只要有条目**校验**不通过就整批不执行；它只作用于校验阶段，**不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次是 `PartiallyCompleted`。 |
 | `item_count` | `integer` | 必填 | 批次包含多少个条目。 |
 | `failed_item_count` | `integer` | 必填 | 已提交执行但失败的条目数。这些条目锁过资金、扣过手续费，事后已释放已退回。能否直接重发看条目的 `failed_reason.code`。 |
-| `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，资金完全没动。不修正原因就重发会以同样方式再失败。 |
+| `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式再失败。 |
 | `requested_amounts` | `array` | 必填 | 全部条目的请求金额合计，按 `token_id` 分组。分组键是 `token_id` 不是币种符号——同一种 USDT 在两条链上是两项，不能合并。 |
 | `completed_amounts` | `array` | 必填 | 已完成条目的合计，按 token 分组。 |
 | `failed_amounts` | `array` | 必填 | 未成功条目的合计，按 token 分组。 |
@@ -57,21 +57,21 @@ lang: "zh-hans"
 
 </div>
 
-`failed_amounts` 把两类未成功条目——资金动过的和从未提交的——合并成每个 token 一个数。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
+`failed_amounts` 把两类未成功条目——已提交执行的和从未提交的——按 token 合并为一个金额。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
 
 批次事件**不携带条目列表**。逐条信息只通过条目事件送达，且两者的到达顺序不作保证。
 
 ### 批次的失败原因
 
-`failed_reason.code` 是您分支的依据，也是判断资金动没动的唯一办法——`status` 本身区分不出来。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
+`failed_reason.code` 是您分支的依据，也是判断资金是否已被使用的唯一依据——`status` 本身无法区分。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
 
-| `code` | 发生了什么 | 资金动过吗 | 怎么处理 |
+| `code` | 发生了什么 | 资金是否已被使用 | 怎么处理 |
 | --- | --- | --- | --- |
 | `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 没有 | 修正条目后创建新批次。 |
 | `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 没有 | 修正那些条目后创建新批次。 |
 | `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
 | `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
-| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 归集动过，没有付款 | 创建新批次。 |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 已归集，未付款 | 创建新批次。 |
 | `payment.bulk_send_all_items_failed` | 一个成功的条目都没有——可能全部提交后失败，也可能一笔都没提交。 | 看两个计数：`failed_item_count` 大于 `0` 表示有条目提交过并失败；`not_executed_item_count` 等于 `item_count` 表示一笔都没提交 | 逐条读条目事件的原因，修正后创建新批次。 |
 
 ### 批次的示例事件
@@ -138,7 +138,7 @@ lang: "zh-hans"
 
 #### 批次部分完成
 
-按两个计数分流处理。本例有一个条目资金动过并失败，另一个从未提交——`failed_amounts` 把两者合并成一个数，所以只能靠计数区分。
+按两个计数分流处理。本例有一个条目已提交执行但失败，另一个从未提交——`failed_amounts` 把两者合并成一个数，所以只能靠计数区分。
 
 ```json
 {
@@ -170,7 +170,7 @@ lang: "zh-hans"
 
 #### Strict 模式在执行前中止了批次
 
-没有资金动过。修正被指出的条目后创建新批次。具体是哪些条目有问题，来自条目事件。
+未使用任何资金。修正出错的条目后创建新批次，出错条目见条目事件。
 
 ```json
 {
@@ -211,11 +211,11 @@ lang: "zh-hans"
 
 | 什么时候会收到 | `status` | 您该做什么 |
 | --- | --- | --- |
-| 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停在这里不等于卡在校验。 |
+| 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停留在此状态不代表仍在校验。 |
 | 该条目的转出已提交 | `Processing` | 等待结果，不要标记完成。 |
 | 转出成功 | `Completed` | 保存金额和 `tx_hash`，关闭该条目。 |
 | 转出已提交但失败 | `Failed` | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
-| 该条目从未提交执行 | `NotExecuted` | **资金完全没有动过。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
+| 该条目从未提交执行 | `NotExecuted` | **资金未被使用。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
 
 ### 条目的事件内容
 
@@ -293,7 +293,7 @@ lang: "zh-hans"
 
 #### 某个条目在提交转账后失败
 
-资金动过又退回：锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。
+资金曾被锁定，现已释放，手续费已退回。能否原样重发取决于 `failed_reason.code`。
 
 ```json
 {
@@ -318,7 +318,7 @@ lang: "zh-hans"
 
 #### 某个条目从未执行
 
-**没有资金动过。** 修正原因后再重发，否则会以同样的方式失败。本例条目自身没有问题，是 `Strict` 模式下同批的其他条目出错导致它没有执行。
+**未使用任何资金。** 修正原因后再重发，否则会以同样的方式失败。本例条目自身没有问题，是 `Strict` 模式下同批的其他条目出错导致它没有执行。
 
 ```json
 {

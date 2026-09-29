@@ -7,7 +7,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 ## 按支付业务选择事件
 
-按您实际做的业务订阅。**「必选」的判据是：这是您知道这件事的唯一途径**——标「可选」的那些，同一个事实在别处也拿得到，它们只是在更低一层重复，多给底层链上交易的细节。
+按您实际做的业务订阅。**「必选」的判据是：这是您知道这件事的唯一途径**——标「可选」的那些，同一信息也可以从其他事件获得，它们只是在更低一层重复，多给底层链上交易的细节。
 
 <table>
   <thead>
@@ -49,7 +49,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
       <td rowSpan={5}>**订单**</td>
       <td>[`payment.order.updated`](/payments/cn/guides/events/orders#payment-order-updated)</td>
       <td>**必选**</td>
-      <td>订单的收款结果：已付清、少付、过期，以及某笔入金需要您处理、失败，或订单结束后又收到钱。</td>
+      <td>订单的收款结果：已付清、少付、过期，以及某笔入金需要处理、失败，或订单结束后收到晚到款。</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#payment-order-status-updated)</td>
@@ -86,7 +86,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
       <td rowSpan={2}>**退款**</td>
       <td>[`payment.refund.updated`](/payments/cn/guides/events/refunds#payment-refund-updated)</td>
       <td>**必选**</td>
-      <td>退款单：已创建待执行、已完成，或者失败且一分未退。</td>
+      <td>退款单：已创建待执行、已完成，或失败且未退还任何资金。</td>
     </tr>
     <tr>
       <td>[`payment.refund.status.updated`](/payments/cn/guides/events/advanced#payment-refund-status-updated)</td>
