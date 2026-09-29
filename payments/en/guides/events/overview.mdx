@@ -144,6 +144,8 @@ Subscribe by the business you actually run. **Required means this event is your 
 
 Every webhook message shares the same envelope. Route on `type`, then deserialize `data` according to `data_type`.
 
+The envelope's `created_timestamp` is **when this event was produced, in milliseconds**. The `created_timestamp` and `updated_timestamp` inside `data` are **the business object's own creation and last-update times, in seconds**. Do not mix the two.
+
 ```json
 {
   "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",

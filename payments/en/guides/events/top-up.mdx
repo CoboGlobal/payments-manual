@@ -52,7 +52,7 @@ The main event for Top-up Mode. One deposit is one object, identified by `transa
 | `screening_mode` | `string` | Required | Which screening system is handling this deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.<br/>• All three can require action from you, so **read `status` to know whether it is your turn**.<br/>• It can be `null` while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
 | `message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The three fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
-| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | When this deposit was created and **last changed**, in Unix timestamp (seconds). They describe the object, not when this event was produced — that is the envelope's `created_timestamp`, in milliseconds. Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
 

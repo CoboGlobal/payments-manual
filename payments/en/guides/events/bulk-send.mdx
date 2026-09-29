@@ -50,7 +50,7 @@ The batch-level event, identified by `bulk_send_id`.
 | `description` | `string` | Required | The note you wrote for the whole batch, `null` if you wrote none. |
 | `commission_fee` | `object` | Required | The commission Cobo charged for the batch, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It stays a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. |
-| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). Use `updated_timestamp` to discard out-of-order events. |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | When the batch was created and **last changed**, in Unix timestamp (seconds). They describe the object, not when this event was produced — that is the envelope's `created_timestamp`, in milliseconds. Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
 
@@ -228,7 +228,7 @@ The item-level event, identified by `bulk_send_item_id`.
 | `tx_hash` | `string` | Required | The on-chain hash of this item's transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
 | `description` | `string` | Required | The note you wrote for this item, `null` if you wrote none. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed` or `NotExecuted`; `null` otherwise. |
-| `created_timestamp` / `updated_timestamp` | `integer` | Required | Creation and last update time, in Unix timestamp (seconds). See [Item trigger conditions](#item-trigger-conditions). |
+| `created_timestamp` / `updated_timestamp` | `integer` | Required | When the item was created and **last changed**, in Unix timestamp (seconds). They describe the object, not when this event was produced — that is the envelope's `created_timestamp`, in milliseconds. Use `updated_timestamp` to discard out-of-order events. |
 
 </div>
 

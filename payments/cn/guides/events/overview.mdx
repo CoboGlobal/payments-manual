@@ -144,6 +144,8 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。
 
+外层的 `created_timestamp` 是**这条事件产生的时间，单位毫秒**；`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**。两者不要混用。
+
 ```json
 {
   "event_id": "8f2e919a-6a7b-4a9b-8c1a-4c0b3f5b8b2f",

@@ -56,7 +56,7 @@ lang: "zh-hans"
 | `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：还在筛查中的入金、等您处理的入金、被拒绝的入金，以及订单结束后才到的晚付（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自己对 `transactions` 求和**，晚到款会让您的和偏大。<br/>• ⚠️ 它**含将要分给您的手续费，不是商户的入账金额**。两个账户各自实际收到多少，看[余额变动](/payments/cn/guides/events/balances)。 |
 | `outstanding_amount` | `object` | 必填 | **付款方还需再付多少**＝`requested_amount` − `credited_amount`。<br/>• `requested_amount` 在查询接口里叫 `payable_amount`，所以也可以记成「应付 − 已收」。<br/>• **怎么用：`status` 为 `Underpaid` 时用它告诉付款方还差多少。**<br/>• ⚠️ **不要用它判断是否少付**：`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单是足额的，按它催款会催一笔不该催的钱。是否少付只看 `status`。<br/>• 下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。 |
 | `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是增量；无入金时为 `[]`。请整体替换本地副本，按 `transaction_id` upsert。<br/>• 每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及条目自己的 `status`（五个取值与充值相同）、`screening_mode`、`message`、`failed_reason`。<br/>• `is_late` 为 `true` 表示这笔钱在订单终态之后才到，不计入 `credited_amount`。<br/>• ⚠️ **低于粉尘阈值的入金不在数组里**，默认阈值为 `0.05`，各 token 的阈值见登记入金地址接口返回的 `min_amount`。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 创建时间与最近更新时间，Unix 时间戳（秒）。用 `updated_timestamp` 判断事件新旧，避免乱序覆盖。 |
+| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 该订单的创建时间与**最近一次状态更新时间**，Unix 时间戳（秒）。它们描述的是对象，不是这条事件何时产生——那是外层的 `created_timestamp`，单位毫秒。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
 
 </div>
 
