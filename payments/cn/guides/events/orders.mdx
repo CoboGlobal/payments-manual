@@ -65,20 +65,20 @@ lang: "zh-hans"
 | `outstanding_amount.token_id` | `string` | 必填 | 币种 ID。 |
 | `outstanding_amount.chain_id` | `string` | 必填 | 链 ID。 |
 | `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是增量；无入金时为 `[]`。请整体替换本地副本，按 `transaction_id` upsert。<br/>• ⚠️ **低于粉尘阈值的入金不在数组中**，默认阈值为 `0.05`，各 token 的阈值见登记入金地址接口返回的 `min_amount`。 |
-| `transactions[].transaction_id` | `string` | 必填 | 该笔入金的 ID。 |
-| `transactions[].tx_hash` | `string` | 必填 | 该笔入金的链上交易哈希。 |
-| `transactions[].amount` | `object` | 必填 | 该笔入金的金额。 |
-| `transactions[].amount.amount` | `string` | 必填 | 金额，十进制字符串。 |
-| `transactions[].amount.token_id` | `string` | 必填 | 币种 ID。 |
-| `transactions[].amount.chain_id` | `string` | 必填 | 链 ID。 |
-| `transactions[].source_address` | `string` | 必填 | 付款方的链上地址，无法识别时为 `null`。 |
-| `transactions[].status` | `string` | 必填 | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `transactions[].is_late` | `boolean` | 必填 | `true` 表示该笔入金在订单进入终态后才到达，不计入 `credited_amount`。 |
-| `transactions[].screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在筛查中时为 `null`；筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
-| `transactions[].message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
-| `transactions[].failed_reason` | `object` | 必填 | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
-| `transactions[].failed_reason.code` | `string` | 必填 | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
-| `transactions[].failed_reason.message` | `string` | 必填 | 面向运营人员的说明，不要用于程序匹配。 |
+| `transactions.transaction_id` | `string` | 必填 | 该笔入金的 ID。 |
+| `transactions.tx_hash` | `string` | 必填 | 该笔入金的链上交易哈希。 |
+| `transactions.amount` | `object` | 必填 | 该笔入金的金额。 |
+| `transactions.amount.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `transactions.amount.token_id` | `string` | 必填 | 币种 ID。 |
+| `transactions.amount.chain_id` | `string` | 必填 | 链 ID。 |
+| `transactions.source_address` | `string` | 必填 | 付款方的链上地址，无法识别时为 `null`。 |
+| `transactions.status` | `string` | 必填 | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `transactions.is_late` | `boolean` | 必填 | `true` 表示该笔入金在订单进入终态后才到达，不计入 `credited_amount`。 |
+| `transactions.screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在筛查中时为 `null`；筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
+| `transactions.message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `transactions.failed_reason` | `object` | 必填 | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
+| `transactions.failed_reason.code` | `string` | 必填 | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
+| `transactions.failed_reason.message` | `string` | 必填 | 面向运营人员的说明，不要用于程序匹配。 |
 | `created_timestamp` | `integer` | 必填 | 该订单的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 该订单最近一次状态更新时间，Unix 时间戳（秒）。入金的新增和变化不会更新它，因此同一时间戳下可能收到 `transactions` 不同的多条事件：**只丢弃严格更早的事件，相等的不能丢**。 |
 

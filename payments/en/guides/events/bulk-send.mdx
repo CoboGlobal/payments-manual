@@ -47,17 +47,17 @@ In an organization with an approval workflow, a new batch waits for approval fir
 | `failed_item_count` | `integer` | Required | Items submitted for execution that failed. Their funds were locked and fees charged, then released and refunded. Whether you can resend one as is depends on its `failed_reason.code`. |
 | `not_executed_item_count` | `integer` | Required | Items never submitted for execution; their funds were not used. Resending without fixing the cause fails the same way. |
 | `requested_amounts` | `array` | Required | The requested total across all items, grouped by `token_id`. The same token symbol on two chains is two entries and cannot be merged. |
-| `requested_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
-| `requested_amounts[].token_id` | `string` | Required | The token ID. |
-| `requested_amounts[].chain_id` | `string` | Required | The chain ID. |
+| `requested_amounts.amount` | `string` | Required | The amount, as a decimal string. |
+| `requested_amounts.token_id` | `string` | Required | The token ID. |
+| `requested_amounts.chain_id` | `string` | Required | The chain ID. |
 | `completed_amounts` | `array` | Required | The total for completed items, grouped by `token_id`. |
-| `completed_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
-| `completed_amounts[].token_id` | `string` | Required | The token ID. |
-| `completed_amounts[].chain_id` | `string` | Required | The chain ID. |
+| `completed_amounts.amount` | `string` | Required | The amount, as a decimal string. |
+| `completed_amounts.token_id` | `string` | Required | The token ID. |
+| `completed_amounts.chain_id` | `string` | Required | The chain ID. |
 | `failed_amounts` | `array` | Required | The total for items that did not succeed, grouped by `token_id`, combining items that were submitted and items that never were. Use `failed_item_count` and `not_executed_item_count` to tell them apart. |
-| `failed_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
-| `failed_amounts[].token_id` | `string` | Required | The token ID. |
-| `failed_amounts[].chain_id` | `string` | Required | The chain ID. |
+| `failed_amounts.amount` | `string` | Required | The amount, as a decimal string. |
+| `failed_amounts.token_id` | `string` | Required | The token ID. |
+| `failed_amounts.chain_id` | `string` | Required | The chain ID. |
 | `description` | `string` | Required | The note you wrote for the whole batch; `null` if none. |
 | `commission_fee` | `object` | Required | The commission Cobo charged; `null` when none was charged. |
 | `commission_fee.fee_amount` | `string` | Required | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. It is a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |

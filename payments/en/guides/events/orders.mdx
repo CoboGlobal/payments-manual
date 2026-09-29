@@ -65,20 +65,20 @@ The primary event for Order Mode, identified by `order_id`.
 | `outstanding_amount.token_id` | `string` | Required | The token ID. |
 | `outstanding_amount.chain_id` | `string` | Required | The chain ID. |
 | `transactions` | `array` | Required | **Every deposit associated with the order so far**, not the change since the last event; `[]` when there are none. Replace your local copy and upsert by `transaction_id`.<br/>• ⚠️ **Deposits below the dust threshold are not in the array**: the default is `0.05`, and each token's threshold is returned as `min_amount` when you register a deposit address. |
-| `transactions[].transaction_id` | `string` | Required | The deposit's ID. |
-| `transactions[].tx_hash` | `string` | Required | The deposit's on-chain transaction hash. |
-| `transactions[].amount` | `object` | Required | The deposit's amount. |
-| `transactions[].amount.amount` | `string` | Required | The amount, as a decimal string. |
-| `transactions[].amount.token_id` | `string` | Required | The token ID. |
-| `transactions[].amount.chain_id` | `string` | Required | The chain ID. |
-| `transactions[].source_address` | `string` | Required | The payer's on-chain address; `null` when it cannot be identified. |
-| `transactions[].status` | `string` | Required | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `transactions[].is_late` | `boolean` | Required | `true` means the deposit arrived after the order reached a final status, so it does not count towards `credited_amount`. |
-| `transactions[].screening_mode` | `string` | Required | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo's own KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo.<br/>Both can require action from you, so **read `status` to know whether it is your turn**. `null` outside screening; it can also be `null` during screening, which means Cobo could not determine the provider at that moment, not that none is configured. |
-| `transactions[].message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
-| `transactions[].failed_reason` | `object` | Required | Set when the deposit's `status` is `Failed`; `null` otherwise. |
-| `transactions[].failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
-| `transactions[].failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
+| `transactions.transaction_id` | `string` | Required | The deposit's ID. |
+| `transactions.tx_hash` | `string` | Required | The deposit's on-chain transaction hash. |
+| `transactions.amount` | `object` | Required | The deposit's amount. |
+| `transactions.amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `transactions.amount.token_id` | `string` | Required | The token ID. |
+| `transactions.amount.chain_id` | `string` | Required | The chain ID. |
+| `transactions.source_address` | `string` | Required | The payer's on-chain address; `null` when it cannot be identified. |
+| `transactions.status` | `string` | Required | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `transactions.is_late` | `boolean` | Required | `true` means the deposit arrived after the order reached a final status, so it does not count towards `credited_amount`. |
+| `transactions.screening_mode` | `string` | Required | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo's own KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo.<br/>Both can require action from you, so **read `status` to know whether it is your turn**. `null` outside screening; it can also be `null` during screening, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `transactions.message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `transactions.failed_reason` | `object` | Required | Set when the deposit's `status` is `Failed`; `null` otherwise. |
+| `transactions.failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions.failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
 | `created_timestamp` | `integer` | Required | When the order was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | When the order last changed status, in Unix timestamp (seconds). New or changed deposits do not advance it, so several events with different `transactions` can share one value: **discard only events that are strictly older, never equal ones**. |
 

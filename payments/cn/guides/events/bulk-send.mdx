@@ -47,17 +47,17 @@ lang: "zh-hans"
 | `failed_item_count` | `integer` | 必填 | 已提交执行但失败的条目数。这些条目的资金曾被锁定、手续费曾被扣收，现已释放和退回。能否直接重发取决于各条目的 `failed_reason.code`。 |
 | `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式失败。 |
 | `requested_amounts` | `array` | 必填 | 全部条目的请求金额合计，按 `token_id` 分组。同一币种在两条链上是两项，不能合并。 |
-| `requested_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
-| `requested_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
-| `requested_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `requested_amounts.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `requested_amounts.token_id` | `string` | 必填 | 币种 ID。 |
+| `requested_amounts.chain_id` | `string` | 必填 | 链 ID。 |
 | `completed_amounts` | `array` | 必填 | 已完成条目的金额合计，按 `token_id` 分组。 |
-| `completed_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
-| `completed_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
-| `completed_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `completed_amounts.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `completed_amounts.token_id` | `string` | 必填 | 币种 ID。 |
+| `completed_amounts.chain_id` | `string` | 必填 | 链 ID。 |
 | `failed_amounts` | `array` | 必填 | 未成功条目的金额合计，按 `token_id` 分组，已提交执行的与从未提交的合并计算。区分两者请看 `failed_item_count` 与 `not_executed_item_count`。 |
-| `failed_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
-| `failed_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
-| `failed_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `failed_amounts.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `failed_amounts.token_id` | `string` | 必填 | 币种 ID。 |
+| `failed_amounts.chain_id` | `string` | 必填 | 链 ID。 |
 | `description` | `string` | 必填 | 您创建批次时填写的整批备注，未填写时为 `null`。 |
 | `commission_fee` | `object` | 必填 | Cobo 收取的佣金，未产生时为 `null`。 |
 | `commission_fee.fee_amount` | `string` | 必填 | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计，因此不带币种。批次跨多少种 token 都只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
