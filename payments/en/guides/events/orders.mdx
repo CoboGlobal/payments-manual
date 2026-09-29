@@ -73,7 +73,7 @@ All amounts carry at most two decimal places, with trailing zeros stripped. Expe
 | --- | --- | --- |
 | `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there. |
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
-| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case, quoting the ID below. |
+| `transaction.failed` | Everything else, including an on-chain failure and a deposit reversed by a chain reorganization. | Raise a case and quote `order_id`. |
 
 ### Sample events
 

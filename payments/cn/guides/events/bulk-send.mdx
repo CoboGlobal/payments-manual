@@ -22,12 +22,14 @@ lang: "zh-hans"
 
 | 什么时候会收到 | `status` | 您该做什么 |
 | --- | --- | --- |
-| 批次创建成功 | `Pending` | 建立批次记录并等待。⚠️ 停在这里不一定是在校验，见下。 |
+| 批次创建成功 | `Pending` | 建立批次记录并等待。停在这里不一定是在校验，也可能在等审批，见下方说明。 |
 | 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
 | 校验通过，开始逐项执行 | `Transferring` | 等待。 |
 | 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
 | 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 是资金动过的，`not_executed_item_count` 是从未提交的。 |
 | 批次整体失败 | `Failed` | 读取 `failed_reason.code`——**执行前后都可能失败**，资金动没动要看它，见[批次的失败原因](#批次的失败原因)。 |
+
+启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批」**，两者的 `status` 都是 `Pending`。停在 `Pending` 比平时久时，请到 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
 
 ### 批次的事件内容
 

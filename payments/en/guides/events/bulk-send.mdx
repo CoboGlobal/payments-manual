@@ -22,12 +22,14 @@ The batch-level event, identified by `bulk_send_id`.
 
 | When you receive it | `status` | What to do |
 | --- | --- | --- |
-| The batch is created | `Pending` | Record the batch and wait. ⚠️ Sitting here does not necessarily mean validation is running — see below. |
+| The batch is created | `Pending` | Record the batch and wait. Sitting here does not necessarily mean validation is running; the batch may be waiting for approval, see below. |
 | The batch enters per-item validation | `Validating` | Wait. Which items will be rejected is not known yet. |
 | Validation passed and execution starts | `Transferring` | Wait. |
 | Every item succeeded | `Completed` | Close the batch summary. Item completion is still reported by the item event. |
 | The batch result is settled and some items did not succeed | `PartiallyCompleted` | Split by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items never submitted. |
 | The whole batch fails | `Failed` | Read `failed_reason.code` — **a batch can fail before or after execution starts**, and only the code tells you whether funds moved. See [Batch failure reasons](#batch-failure-reasons). |
+
+In an organization with an approval workflow, a new batch waits for approval first. **Approval sends no event, and no field distinguishes waiting for validation from waiting for approval** — both are `Pending`. If a batch sits in `Pending` longer than usual, check the approval progress in Cobo Portal. The outcome is visible: once approved the batch moves on to `Validating`; if rejected or revoked it moves to `Failed`, and the items carry `failed_reason.code` `payment.app_workflow_approval_rejected` or `payment.app_workflow_approval_revoked`.
 
 ### Batch event content
 
