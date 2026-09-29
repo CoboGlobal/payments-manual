@@ -54,7 +54,7 @@ The primary payout event, identified by `payout_id`.
 | `remark` | `string` | Required | The note you wrote when creating the payout, returned as is. |
 | `requested_amounts` | `array` | Required | **Source side**: what you asked to pay out, grouped by token and fixed at creation. |
 | `failed_amounts` | `array` | Required | **Source side**: the part that was not paid out, in the same terms as `requested_amounts`; at a final status the amount that succeeded is the difference.<br/>• ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction exists (consolidation, cross-chain conversion, commission), leaving no matching entry. |
-| `actual_payout_amounts` | `array` | Required | **Delivery side**: what the recipient actually received, one entry per asset; `[]` until the payout finishes.<br/>• Read `amount_type` first: `Crypto` carries `token_id` and `chain_id`, `Fiat` (Off-Ramp to a bank account) carries `currency`.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
+| `actual_payout_amounts` | `array` | Required | **Delivery side**: what the recipient actually received. **It has values only when `status` is `Completed` or `PartiallyCompleted`**, and is `[]` otherwise.<br/>• Read `amount_type` first: `Crypto` carries `token_id` and `chain_id`, with one entry per token actually sent; `Fiat` (Off-Ramp to a bank account) carries `currency` and is always a single entry.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
 | `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token and stays a single total even across tokens. Reversals net off, so it can be `0` or negative. |
 | `transactions` | `array` | Required | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. Upsert by `transaction_id`, and **do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart.<br/>• Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`, where `result` is `Completed`, `Failed`, or `null` when there is no result yet.<br/>• An entry with `result` `Failed` carries its own `failed_reason`.<br/>• ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
@@ -199,7 +199,9 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
       }
     }
   ],
-  "actual_payout_amounts": [],
+  "actual_payout_amounts": [
+    { "amount_type": "Crypto", "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
   "initiator": "api_key_abc123",
   "commission_fee": { "fee_amount": "1" },
   "remark": "September vendor settlement",

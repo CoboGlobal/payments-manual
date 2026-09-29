@@ -26,9 +26,11 @@ lang: "zh-hans"
 | --- | --- | --- | --- |
 | 入金地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理入金。 |
 | 该笔入金进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
-| 筛查需要您处理（补材料、提交自有 KYT 结论，或完成人工复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
+| 筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
 | 筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
 | 该笔入金被拒绝或失败 | `Failed` | ❌ | 读取 `failed_reason.code` 决定下一步。 |
+
+**金额不超过粉尘阈值的入金不发事件**，各 token 的阈值见登记入金地址接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
 
 <Warning>
   **中间状态可能不出现。** 一笔入金可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过筛查。请用每条事件里的 `status` 覆盖本地状态，不要校验状态迁移是否合法，也不要等 `PendingScreening` 再做什么。需要您动手的 `ActionRequired` 会一直停在那里，不会被跳过。
@@ -51,7 +53,7 @@ lang: "zh-hans"
 | `topup_address` | `string` | 必填 | 收到这笔资金的入金地址，用它反查付款方和链。 |
 | `source_address` | `string` | 必填 | 链上发送方，原路退回时作为转出目标。链上无法识别时为 `null`。 |
 | `screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。<br/>• 三种模式都可能需要您动手，**判断是不是轮到您处理请看 `status`**。<br/>• 筛查进行中也可能为 `null`，表示 Cobo 这次没查到供应商，不表示没有配置供应商。 |
-| `message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明该做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。三段固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A screening result from your own KYT provider is required…`：在 Screening App 中提交您自有 KYT 供应商的结论。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明该做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。两段固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
 | `created_timestamp` | `integer` | 必填 | 这笔充值的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 这笔充值最近一次状态更新时间，Unix 时间戳（秒）。 |

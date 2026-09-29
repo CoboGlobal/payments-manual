@@ -54,7 +54,7 @@ lang: "zh-hans"
 | `remark` | `string` | 必填 | 您创建转出时写的备注，原样返回。 |
 | `requested_amounts` | `array` | 必填 | **源侧**：您请求付出的金额，按币种分组，创建时确定。 |
 | `failed_amounts` | `array` | 必填 | **源侧**：其中没有付出去的部分，与 `requested_amounts` 同口径，到终态时成功金额等于两者之差。<br/>• ⚠️ **不要用 `transactions` 去核对它**：转出项可能在任何转出交易创建之前就失败（归集、跨链兑换、佣金扣收），此时数组里没有对应条目。 |
-| `actual_payout_amounts` | `array` | 必填 | **交付侧**：收款方实际收到的金额，每种资产一项；未完成时为 `[]`。<br/>• 先读 `amount_type`：`Crypto` 带 `token_id` 与 `chain_id`，`Fiat`（Off-Ramp 打到银行账户）带 `currency`。<br/>• ⚠️ **不要与源侧金额相减**：跨链兑换和法币结算会让两边不是同一种资产。 |
+| `actual_payout_amounts` | `array` | 必填 | **交付侧**：收款方实际收到的金额，**只有 `status` 为 `Completed` 或 `PartiallyCompleted` 时有值**，其余情况为 `[]`。<br/>• 先读 `amount_type`：`Crypto` 带 `token_id` 与 `chain_id`，按实际转出的币种每种一项；`Fiat`（Off-Ramp 打到银行账户）带 `currency`，只有一项。<br/>• ⚠️ **不要与源侧金额相减**：跨链兑换和法币结算会让两边不是同一种资产。 |
 | `commission_fee` | `object` | 必填 | Cobo 收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。佣金从 Fee Station 扣，余额是美元口径，所以不带币种，跨多币种转出也只给一个总额。退费冲抵后可能为 `0` 或负数。 |
 | `transactions` | `array` | 必填 | 该笔转出的全部转出交易，不是增量；无交易时为 `[]`。按 `transaction_id` upsert，**不要用 `tx_hash` 认条目**——未广播时它是 `null`，拆成多笔时无法区分。<br/>• 每个条目含 `transaction_id`、`amount`、`tx_hash` 和 `result`，`result` 取 `Completed`、`Failed` 或 `null`（尚无结果）。<br/>• `result` 为 `Failed` 的条目带自己的 `failed_reason`。<br/>• ⚠️ 经过跨链兑换后，条目的 `amount` 是**实际转出时的币种**，可能与 `requested_amounts` 中的源币种不同。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed`、`RejectedByBank` 或 `PartiallyCompleted` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
@@ -199,7 +199,9 @@ lang: "zh-hans"
       }
     }
   ],
-  "actual_payout_amounts": [],
+  "actual_payout_amounts": [
+    { "amount_type": "Crypto", "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
   "initiator": "api_key_abc123",
   "commission_fee": { "fee_amount": "1" },
   "remark": "September vendor settlement",

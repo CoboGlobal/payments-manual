@@ -26,9 +26,11 @@ The main event for Top-up Mode. One deposit is one object, identified by `transa
 | --- | --- | --- | --- |
 | The funds are detected on a deposit address | `Detected` | ❌ | Record the incoming deposit. |
 | The deposit enters compliance screening | `PendingScreening` | ❌ | Wait. |
-| Screening needs you to act — supply information, submit your own KYT result, or complete a manual review | `ActionRequired` | ❌ | Act on `message`. |
+| Screening needs you to act — supply information, or complete a manual compliance review | `ActionRequired` | ❌ | Act on `message`. |
 | Screening passed and the transaction has at least one on-chain confirmation | `Completed` | ✅ | Credit `amount`, using `transaction_id` as the idempotency key. |
 | The deposit was rejected or failed | `Failed` | ❌ | Read `failed_reason.code` to decide what happens next. |
+
+**A deposit at or below the dust threshold sends no event.** Each token's threshold is returned as `min_amount` when you register a deposit address; tokens without their own setting default to `0.05`, and an amount must exceed it.
 
 <Warning>
   **Intermediate states can be missing.** A deposit can go straight from `Detected` to `Completed` with no event for `PendingScreening` — that does not mean it skipped screening. Overwrite your local state with the `status` on each event, do not validate that a transition is legal, and do not wait for `PendingScreening` before doing anything. `ActionRequired`, which needs you to act, stays until you handle it and is never skipped.
@@ -51,7 +53,7 @@ The main event for Top-up Mode. One deposit is one object, identified by `transa
 | `topup_address` | `string` | Required | The deposit address that received the funds. Use it to look up the payer and chain. |
 | `source_address` | `string` | Required | The on-chain sender, and the target if you return the funds. `null` when the chain does not identify a sender. |
 | `screening_mode` | `string` | Required | Which screening system is handling this deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.<br/>• All three can require action from you, so **read `status` to know whether it is your turn**.<br/>• It can be `null` while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
-| `message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The three fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A screening result from your own KYT provider is required…` — submit your own KYT provider's result in the Screening App.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The two fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
 | `created_timestamp` | `integer` | Required | When this deposit was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | When this deposit last changed status, in Unix timestamp (seconds). |
