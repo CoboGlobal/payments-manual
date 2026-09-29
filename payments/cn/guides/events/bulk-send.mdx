@@ -37,21 +37,33 @@ lang: "zh-hans"
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
-| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendUpdate`，用于反序列化 `data`。 |
-| `bulk_send_id` | `string` | 必填 | 批次身份。 |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendUpdate`。 |
+| `bulk_send_id` | `string` | 必填 | 批次 ID。 |
 | `request_id` | `string` | 选填 | 您创建批次时提供的请求 ID。 |
-| `source_account` | `string` | 必填 | 批次的付款账户。 |
-| `status` | `string` | 必填 | 批次当前状态，取值与含义见[批次的事件触发条件](#批次的事件触发条件)。 |
-| `execution_mode` | `string` | 必填 | 取 `Strict` 或 `Partial`。`Strict` 下只要有条目**校验**不通过就整批不执行；它只作用于校验阶段，**不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次是 `PartiallyCompleted`。 |
-| `item_count` | `integer` | 必填 | 批次包含多少个条目。 |
-| `failed_item_count` | `integer` | 必填 | 已提交执行但失败的条目数。这些条目锁过资金、扣过手续费，事后已释放已退回。能否直接重发看条目的 `failed_reason.code`。 |
-| `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式再失败。 |
-| `requested_amounts` | `array` | 必填 | 全部条目的请求金额合计，按 `token_id` 分组。分组键是 `token_id` 不是币种符号——同一种 USDT 在两条链上是两项，不能合并。 |
-| `completed_amounts` | `array` | 必填 | 已完成条目的合计，按 token 分组。 |
-| `failed_amounts` | `array` | 必填 | 未成功条目的合计，按 token 分组。 |
-| `description` | `string` | 必填 | 您创建批次时写的整批备注，未填时为 `null`。 |
-| `commission_fee` | `object` | 必填 | Cobo 为该批次收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。批次跨多少种 token 都只给一个总额。退费冲抵后可能为 `0` 或负数。 |
-| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。 |
+| `source_account` | `string` | 必填 | 批次的付款账户：商户账户为商户 ID，开发者账户为 `developer`。 |
+| `status` | `string` | 必填 | 批次当前状态，含义见[批次的事件触发条件](#批次的事件触发条件)：<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
+| `execution_mode` | `string` | 必填 | 执行模式：<br/>• `Strict`：只要有条目**校验**不通过，整批都不执行。<br/>• `Partial`：只隔离未通过校验的条目，其余继续执行。<br/>`Strict` 只作用于校验阶段，**不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次为 `PartiallyCompleted`。 |
+| `item_count` | `integer` | 必填 | 批次包含的条目数。 |
+| `failed_item_count` | `integer` | 必填 | 已提交执行但失败的条目数。这些条目的资金曾被锁定、手续费曾被扣收，现已释放和退回。能否直接重发取决于各条目的 `failed_reason.code`。 |
+| `not_executed_item_count` | `integer` | 必填 | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式失败。 |
+| `requested_amounts` | `array` | 必填 | 全部条目的请求金额合计，按 `token_id` 分组。同一币种在两条链上是两项，不能合并。 |
+| `requested_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `requested_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
+| `requested_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `completed_amounts` | `array` | 必填 | 已完成条目的金额合计，按 `token_id` 分组。 |
+| `completed_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `completed_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
+| `completed_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `failed_amounts` | `array` | 必填 | 未成功条目的金额合计，按 `token_id` 分组，已提交执行的与从未提交的合并计算。区分两者请看 `failed_item_count` 与 `not_executed_item_count`。 |
+| `failed_amounts[].amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `failed_amounts[].token_id` | `string` | 必填 | 币种 ID。 |
+| `failed_amounts[].chain_id` | `string` | 必填 | 链 ID。 |
+| `description` | `string` | 必填 | 您创建批次时填写的整批备注，未填写时为 `null`。 |
+| `commission_fee` | `object` | 必填 | Cobo 收取的佣金，未产生时为 `null`。 |
+| `commission_fee.fee_amount` | `string` | 必填 | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计，因此不带币种。批次跨多少种 token 都只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
+| `failed_reason.code` | `string` | 必填 | 失败原因代码，按它分支。取值见[批次的失败原因](#批次的失败原因)。 |
+| `failed_reason.message` | `string` | 必填 | 面向运营人员的说明，不要用于程序匹配。 |
 | `created_timestamp` | `integer` | 必填 | 该批次的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 该批次最近一次状态更新时间，Unix 时间戳（秒）。 |
 
@@ -223,17 +235,22 @@ lang: "zh-hans"
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
-| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`，用于反序列化 `data`。 |
-| `bulk_send_item_id` | `string` | 必填 | 条目身份，也是您对账时使用的键。 |
-| `bulk_send_id` | `string` | 必填 | 该条目所属的批次。 |
+| `data_type` | `string` | 必填 | 固定为 `PaymentBulkSendItemUpdate`。 |
+| `bulk_send_item_id` | `string` | 必填 | 条目 ID，也是对账使用的键。 |
+| `bulk_send_id` | `string` | 必填 | 该条目所属的批次 ID。 |
 | `request_id` | `string` | 选填 | 批次的请求 ID，同一批次下所有条目相同。逐条幂等请用 `bulk_send_item_id`。 |
 | `source_account` | `string` | 必填 | 批次的付款账户。 |
-| `status` | `string` | 必填 | 该条目的当前状态，取值与含义见[条目的事件触发条件](#条目的事件触发条件)。 |
-| `requested_amount` | `object` | 必填 | 该条目的请求下发金额。条目整体完成或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `status` | `string` | 必填 | 该条目的当前状态，含义见[条目的事件触发条件](#条目的事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
+| `requested_amount` | `object` | 必填 | 该条目的请求下发金额。条目整体成功或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `requested_amount.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `requested_amount.token_id` | `string` | 必填 | 币种 ID。 |
+| `requested_amount.chain_id` | `string` | 必填 | 链 ID。 |
 | `receiving_address` | `string` | 必填 | 收款方地址。 |
 | `tx_hash` | `string` | 必填 | 该条目转出交易的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
-| `description` | `string` | 必填 | 您创建该条目时写的备注，未填时为 `null`。 |
-| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 或 `NotExecuted` 时给出 `{ code, message }`，其余情况为 `null`。 |
+| `description` | `string` | 必填 | 您创建该条目时填写的备注，未填写时为 `null`。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 或 `NotExecuted` 时有值，其余情况为 `null`。 |
+| `failed_reason.code` | `string` | 必填 | 失败原因代码，按它分支。取值见[条目的失败原因](#条目的失败原因)。 |
+| `failed_reason.message` | `string` | 必填 | 面向运营人员的说明，不要用于程序匹配。 |
 | `created_timestamp` | `integer` | 必填 | 该条目的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 该条目最近一次状态更新时间，Unix 时间戳（秒）。 |
 

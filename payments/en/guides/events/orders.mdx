@@ -43,19 +43,42 @@ The primary event for Order Mode, identified by `order_id`.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentOrderUpdate`. Use it to deserialize `data`. |
-| `order_id` | `string` | Required | The order's identity, and the key you use for fulfilment idempotency. |
+| `data_type` | `string` | Required | Always `PaymentOrderUpdate`. |
+| `order_id` | `string` | Required | The order ID, and the key you use for fulfilment idempotency. |
 | `psp_order_code` | `string` | Required | Your own reference code for the order. |
-| `merchant_order_code` | `string` | Required | The merchant's own reference code when the order belongs to a merchant, `null` otherwise. |
-| `merchant_id` | `string` | Required | The merchant ID when the order belongs to a merchant, `null` otherwise. |
+| `merchant_id` | `string` | Required | The merchant ID when the order belongs to a merchant; `null` otherwise. |
+| `merchant_order_code` | `string` | Required | The merchant's own reference code when the order belongs to a merchant; `null` otherwise. |
 | `receive_address` | `string` | Required | The address the payer sends funds to. |
-| `expired_at` | `integer` | Required | When the payment window closes, as a Unix timestamp in seconds. |
-| `status` | `string` | Required | The current order status. See [Trigger conditions](#trigger-conditions) for the values. |
-| `notice_type` | `string` | Required | Something about one deposit you need to know: `PaymentUpdated` (it entered `ActionRequired`), `PaymentFailed` (it failed), or `LatePaymentReceived` (a late deposit cleared screening); `null` otherwise. `status` usually stays the same when this is set, but can change in the same event — **to tell whether the order's status changed, compare `status` alone**. |
-| `requested_amount` | `object` | Required | The total the order expects, **including your fee**. Fixed at creation. Show it to the payer.<br/>• ⚠️ **It is not a fulfilment threshold**: completion allows a tolerance, so release goods when `status` is `Completed`, not on an amount comparison. |
-| `credited_amount` | `object` | Required | The total received and counted towards the order. This is the authoritative figure for reconciling it.<br/>• **It leaves out** deposits still in screening, deposits waiting on you, rejected deposits, and money that arrived after the order ended (entries with `is_late` `true`).<br/>• ⚠️ **Do not sum `transactions` yourself** — late payments make your sum too high.<br/>• ⚠️ It **includes the portion that will be split out as your fee, so it is not the merchant's credited amount**. For what each account actually received, see [Balance changes](/payments/en/guides/events/balances). |
-| `outstanding_amount` | `object` | Required | **How much more the payer still owes** = `requested_amount` − `credited_amount`.<br/>• `requested_amount` is called `payable_amount` in the query APIs, so read this as payable minus credited.<br/>• **How to use it: when `status` is `Underpaid`, quote it to tell the payer what is left.**<br/>• ⚠️ **Do not use it to decide whether an order was underpaid**: it can still be greater than `0` when `status` is `Completed` (the order closed within `amount_tolerance`). The order is then treated as paid in full; whether to collect the difference from the payer is your decision. Rely on `status` to tell whether an order was underpaid.<br/>• It has a floor of `0` and stays `0` on overpayment, so it **never tells you how much was overpaid**. |
-| `transactions` | `array` | Required | **Every deposit associated with the order so far**, not the change since the last event; `[]` when there are none. Replace your local copy and upsert by `transaction_id`.<br/>• Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status` (the same five values as a top-up), `screening_mode`, `message`, and `failed_reason`.<br/>• `is_late` `true` means the money arrived after the order reached a final status, so it does not count towards `credited_amount`.<br/>• ⚠️ **Deposits below the dust threshold are not in the array**: the default is `0.05`, and each token's threshold is returned as `min_amount` when you register a deposit address. |
+| `expired_at` | `integer` | Required | When the payment window closes, in Unix timestamp (seconds). |
+| `status` | `string` | Required | The order's current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
+| `notice_type` | `string` | Required | The deposit change this event reports:<br/>• `PaymentUpdated` — a deposit entered `ActionRequired`.<br/>• `PaymentFailed` — a deposit failed.<br/>• `LatePaymentReceived` — a late deposit cleared screening.<br/>`null` when none of these applies. `status` usually stays the same when it is set, but can change in the same event — **to tell whether the order's status changed, compare `status` alone**. |
+| `requested_amount` | `object` | Required | The total the order expects, **including your fee**. Fixed at creation; show it to the payer.<br/>• ⚠️ **It is not a fulfilment threshold**: completion allows a tolerance, so release goods when `status` is `Completed`, not on an amount comparison. |
+| `requested_amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `requested_amount.token_id` | `string` | Required | The token ID. |
+| `requested_amount.chain_id` | `string` | Required | The chain ID. |
+| `credited_amount` | `object` | Required | The total received and counted towards the order; the authoritative figure for reconciling it.<br/>• **It leaves out** deposits in screening, deposits waiting on you, rejected deposits, and money that arrived after the order ended (entries with `is_late` `true`).<br/>• ⚠️ **Do not sum `transactions` yourself** — late payments make your sum too high.<br/>• ⚠️ It **includes the portion that will be split out as your fee, so it is not the merchant's credited amount**. For what each account actually received, see [Balance changes](/payments/en/guides/events/balances). |
+| `credited_amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `credited_amount.token_id` | `string` | Required | The token ID. |
+| `credited_amount.chain_id` | `string` | Required | The chain ID. |
+| `outstanding_amount` | `object` | Required | **How much more the payer still owes** = `requested_amount` − `credited_amount` (`requested_amount` is called `payable_amount` in the query APIs, so this is payable minus credited).<br/>• **How to use it: when `status` is `Underpaid`, quote it to tell the payer what is left.**<br/>• ⚠️ **Do not use it to decide whether an order was underpaid**: it can still be greater than `0` when `status` is `Completed` (the order closed within `amount_tolerance`). The order is then treated as paid in full; whether to collect the difference from the payer is your decision. Rely on `status` to tell whether an order was underpaid.<br/>• It has a floor of `0` and stays `0` on overpayment, so it **never shows how much was overpaid**. |
+| `outstanding_amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `outstanding_amount.token_id` | `string` | Required | The token ID. |
+| `outstanding_amount.chain_id` | `string` | Required | The chain ID. |
+| `transactions` | `array` | Required | **Every deposit associated with the order so far**, not the change since the last event; `[]` when there are none. Replace your local copy and upsert by `transaction_id`.<br/>• ⚠️ **Deposits below the dust threshold are not in the array**: the default is `0.05`, and each token's threshold is returned as `min_amount` when you register a deposit address. |
+| `transactions[].transaction_id` | `string` | Required | The deposit's ID. |
+| `transactions[].tx_hash` | `string` | Required | The deposit's on-chain transaction hash. |
+| `transactions[].amount` | `object` | Required | The deposit's amount. |
+| `transactions[].amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `transactions[].amount.token_id` | `string` | Required | The token ID. |
+| `transactions[].amount.chain_id` | `string` | Required | The chain ID. |
+| `transactions[].source_address` | `string` | Required | The payer's on-chain address; `null` when it cannot be identified. |
+| `transactions[].status` | `string` | Required | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `transactions[].is_late` | `boolean` | Required | `true` means the deposit arrived after the order reached a final status, so it does not count towards `credited_amount`. |
+| `transactions[].screening_mode` | `string` | Required | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo's own KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo.<br/>Both can require action from you, so **read `status` to know whether it is your turn**. `null` outside screening; it can also be `null` during screening, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `transactions[].message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `transactions[].failed_reason` | `object` | Required | Set when the deposit's `status` is `Failed`; `null` otherwise. |
+| `transactions[].failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions[].failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
 | `created_timestamp` | `integer` | Required | When the order was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | When the order last changed status, in Unix timestamp (seconds). New or changed deposits do not advance it, so several events with different `transactions` can share one value: **discard only events that are strictly older, never equal ones**. |
 

@@ -31,12 +31,19 @@ Neither event appears in any order's `transactions` array, and neither produces 
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentTransaction`. Use it to deserialize `data`. |
 | `transaction_id` | `string` | Required | The deposit's transaction ID. Quote it when you raise a case. |
-| `status` | `string` | Required | The transaction status. In progress on `created`, `Completed` on `completed`. |
+| `status` | `string` | Required | The transaction status:<br/>• On `created`: an in-progress status such as `Submitted`.<br/>• On `completed`: `Completed`. |
 | `chain_id` | `string` | Optional | The chain the deposit arrived on. |
 | `token_id` | `string` | Optional | The token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
 | `transaction_hash` | `string` | Optional | The on-chain hash. It can be empty before the transaction is broadcast. |
-| `source` | `object` | Required | Where the funds came from, typically an external wallet address. Use it if you return them. |
-| `destination` | `object` | Required | Where they went: the receiving `address`, the `amount` received, and on some chains a `memo`. |
+| `source` | `object` | Required | Where the funds came from, typically an external address. Use it if you return them. |
+| `source.source_type` | `string` | Required | The source type; `DepositFromAddress` for a deposit from an external address. |
+| `source.addresses` | `array` | Required | The sender addresses. |
+| `destination` | `object` | Required | Where the funds went. |
+| `destination.destination_type` | `string` | Required | The destination type; `DepositToAddress` for a deposit to an address. |
+| `destination.wallet_id` | `string` | Required | The receiving wallet ID. |
+| `destination.address` | `string` | Required | The receiving address. |
+| `destination.amount` | `string` | Required | The amount received. |
+| `destination.memo` | `string` | Optional | The memo, on chains that use one. |
 | `confirmed_num` | `integer` | Optional | Confirmations this transaction has received. |
 | `confirming_threshold` | `integer` | Optional | Confirmations the chain needs before a transaction is considered secure. |
 | `created_timestamp` | `integer` | Required | When the deposit was created, in Unix timestamp (milliseconds). |
@@ -62,8 +69,8 @@ Record it. Do not credit anything.
   "chain_id": "TRON",
   "token_id": "TRON_USDT",
   "transaction_hash": "0xexternal001",
-  "source": { "source_type": "DepositFromAddress", "address": "0xunknown_sender" },
-  "destination": { "destination_type": "DepositToAddress", "address": "0xtopup_addr_M1001_user_abc", "amount": "35.00" },
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
   "confirmed_num": 0,
   "confirming_threshold": 19,
   "created_timestamp": 1744730000000,
@@ -83,8 +90,8 @@ The funds are in your developer balance. Apply your own rule for them.
   "chain_id": "TRON",
   "token_id": "TRON_USDT",
   "transaction_hash": "0xexternal001",
-  "source": { "source_type": "DepositFromAddress", "address": "0xunknown_sender" },
-  "destination": { "destination_type": "DepositToAddress", "address": "0xtopup_addr_M1001_user_abc", "amount": "35.00" },
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
   "confirmed_num": 19,
   "confirming_threshold": 19,
   "created_timestamp": 1744730000000,

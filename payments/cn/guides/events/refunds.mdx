@@ -31,19 +31,25 @@ lang: "zh-hans"
 
 | 字段 | 类型 | 必填性 | 说明 |
 | --- | --- | --- | --- |
-| `data_type` | `string` | 必填 | 固定为 `PaymentRefundUpdate`，用于反序列化 `data`。 |
-| `refund_id` | `string` | 必填 | 退款单身份，也是您做对账幂等时使用的键。 |
-| `order_id` | `string` | 必填 | 本次退款对应的收款订单；不关联订单时为 `null`。 |
-| `merchant_id` | `string` | 必填 | 退款归属商户时，该商户的 ID，否则为 `null`。 |
-| `status` | `string` | 必填 | 退款单当前状态，事件里只会是 `Pending`、`Completed` 或 `Failed`。查询接口的状态枚举还有其他取值，请让您的反序列化能容纳它们，但业务分支只需覆盖这三个。 |
-| `request_id` | `string` | 必填 | 您创建退款时提供的请求 ID。通过退款链接创建的退款沿用创建链接时的请求 ID，创建链接时没传则为链接 ID。 |
-| `to_address` | `string` | 必填 | 退款的收款地址。通过退款链接产生的地址由付款方自己填写。 |
-| `requested_amount` | `object` | 必填 | 请求退还的金额，对应创建退款时传的 `payable_amount`。一笔退款只有全成功或全失败，因此 `Completed` 时它也是实际退还的金额。 |
+| `data_type` | `string` | 必填 | 固定为 `PaymentRefundUpdate`。 |
+| `refund_id` | `string` | 必填 | 退款单 ID，也是对账幂等使用的键。 |
+| `order_id` | `string` | 必填 | 本次退款对应的收款订单，不关联订单时为 `null`。 |
+| `merchant_id` | `string` | 必填 | 退款归属商户时为该商户的 ID，否则为 `null`。 |
+| `status` | `string` | 必填 | 退款单当前状态，事件中只会出现：<br/>• `Pending`<br/>• `Completed`<br/>• `Failed`<br/>查询接口的状态枚举还有其他取值，请让反序列化能够容纳，但业务分支只需覆盖以上三个。 |
+| `request_id` | `string` | 必填 | 您创建退款时提供的请求 ID。通过退款链接创建的退款沿用创建链接时的请求 ID，创建链接时未提供则为链接 ID。 |
+| `to_address` | `string` | 必填 | 退款的收款地址。通过退款链接创建时由付款方填写。 |
+| `requested_amount` | `object` | 必填 | 请求退还的金额，对应创建退款时传入的 `payable_amount`。退款只会全部成功或全部失败，因此 `Completed` 时它也是实际退还的金额。 |
+| `requested_amount.amount` | `string` | 必填 | 金额，十进制字符串。 |
+| `requested_amount.token_id` | `string` | 必填 | 币种 ID。 |
+| `requested_amount.chain_id` | `string` | 必填 | 链 ID。 |
 | `tx_hash` | `string` | 必填 | 退款转账的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
-| `refund_type` | `string` | 必填 | 退款资金从哪出，取 `Merchant`（商户余额）或 `Psp`（开发者余额）。 |
-| `initiator` | `string` | 必填 | 谁发起了这笔退款，通常是 API key。通过退款链接创建的退款沿用创建链接的 API key。 |
-| `commission_fee` | `object` | 必填 | Cobo 收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。佣金从 Fee Station 扣，余额是美元口径，所以不带币种。退费冲抵后可能为 `0` 或负数。 |
-| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
+| `refund_type` | `string` | 必填 | 退款资金来源：<br/>• `Merchant`：商户余额。<br/>• `Psp`：开发者余额。 |
+| `initiator` | `string` | 必填 | 退款发起方，通常是 API key。通过退款链接创建的退款沿用创建链接的 API key。 |
+| `commission_fee` | `object` | 必填 | Cobo 收取的佣金，未产生时为 `null`。 |
+| `commission_fee.fee_amount` | `string` | 必填 | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计，因此不带币种。退费冲抵后可能为 `0` 或负数。 |
+| `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
+| `failed_reason.code` | `string` | 必填 | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
+| `failed_reason.message` | `string` | 必填 | 面向运营人员的说明，不要用于程序匹配。 |
 | `created_timestamp` | `integer` | 必填 | 该退款单的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 必填 | 该退款单最近一次状态更新时间，Unix 时间戳（秒）。 |
 

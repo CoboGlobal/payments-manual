@@ -44,20 +44,51 @@ The primary payout event, identified by `payout_id`.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentPayoutUpdate`. Use it to deserialize `data`. |
-| `payout_id` | `string` | Required | The payout's identity, and the key you use when closing it and when raising a case. |
+| `data_type` | `string` | Required | Always `PaymentPayoutUpdate`. |
+| `payout_id` | `string` | Required | The payout ID, used when closing the payout and when raising a case. |
 | `request_id` | `string` | Required | The request ID you supplied when creating the payout. |
-| `source_account` | `string` | Required | Which account the money comes from: a merchant ID for a merchant account, or `developer`. |
-| `status` | `string` | Required | The current payout status. See [Trigger conditions](#trigger-conditions) for the values. |
-| `requested_target` | `object` | Required | Where the money is going, keyed by `target_type`: `Address` carries `address` and `chain_id`; `BankAccount` carries `bank_account_id`, `account_alias`, `bank_name`, and `currency`. It never carries full account details — look those up by `bank_account_id`. |
+| `source_account` | `string` | Required | Which account the funds come from: a merchant ID for a merchant account, or `developer`. |
+| `status` | `string` | Required | The current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Preparing`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed`<br/>• `RejectedByBank` |
+| `requested_target` | `object` | Required | Where the funds are going. It never carries full account details — look those up by `bank_account_id`. |
+| `requested_target.target_type` | `string` | Required | The target type:<br/>• `Address` — a crypto address.<br/>• `BankAccount` — a bank account (Off-Ramp). |
+| `requested_target.address` | `string` | Required | The receiving address. Present only when `target_type` is `Address`. |
+| `requested_target.chain_id` | `string` | Required | The chain ID. Present only when `target_type` is `Address`. |
+| `requested_target.bank_account_id` | `string` | Required | The bank account ID. Present only when `target_type` is `BankAccount`. |
+| `requested_target.account_alias` | `string` | Required | The bank account alias. Present only when `target_type` is `BankAccount`. |
+| `requested_target.bank_name` | `string` | Required | The bank name. Present only when `target_type` is `BankAccount`. |
+| `requested_target.currency` | `string` | Required | The account currency, for example `USD`. Present only when `target_type` is `BankAccount`. |
 | `initiator` | `string` | Required | Who started the payout, usually an API key. |
-| `remark` | `string` | Required | The note you wrote when creating the payout, returned as is. |
+| `remark` | `string` | Required | The note you wrote when creating the payout; `null` if none. |
 | `requested_amounts` | `array` | Required | **Source side**: what you asked to pay out, grouped by token and fixed at creation. |
+| `requested_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
+| `requested_amounts[].token_id` | `string` | Required | The token ID. |
+| `requested_amounts[].chain_id` | `string` | Required | The chain ID. |
 | `failed_amounts` | `array` | Required | **Source side**: the part that was not paid out, in the same terms as `requested_amounts`; at a final status the amount that succeeded is the difference.<br/>• ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction exists (consolidation, cross-chain conversion, commission), leaving no matching entry. |
-| `actual_payout_amounts` | `array` | Required | **Delivery side**: what the recipient actually received. **It has values only when `status` is `Completed` or `PartiallyCompleted`**, and is `[]` otherwise.<br/>• Read `amount_type` first: `Crypto` carries `token_id` and `chain_id`, with one entry per token actually sent; `Fiat` (Off-Ramp to a bank account) carries `currency` and is always a single entry.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
-| `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token and stays a single total even across tokens. Reversals net off, so it can be `0` or negative. |
-| `transactions` | `array` | Required | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. Upsert by `transaction_id`, and **do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart.<br/>• Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`, where `result` is `Completed`, `Failed`, or `null` when there is no result yet.<br/>• An entry with `result` `Failed` carries its own `failed_reason`.<br/>• ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
-| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
+| `failed_amounts[].token_id` | `string` | Required | The token ID. |
+| `failed_amounts[].chain_id` | `string` | Required | The chain ID. |
+| `actual_payout_amounts` | `array` | Required | **Delivery side**: what the recipient actually received. **It has values only when `status` is `Completed` or `PartiallyCompleted`**, and is `[]` otherwise. A crypto payout has one entry per token actually sent; an Off-Ramp payout has a single entry.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
+| `actual_payout_amounts[].amount_type` | `string` | Required | The amount type. Read it before the other fields:<br/>• `Crypto` — crypto.<br/>• `Fiat` — fiat, for Off-Ramp to a bank account. |
+| `actual_payout_amounts[].amount` | `string` | Required | The amount, as a decimal string. |
+| `actual_payout_amounts[].token_id` | `string` | Optional | The token ID. Present only when `amount_type` is `Crypto`. |
+| `actual_payout_amounts[].chain_id` | `string` | Optional | The chain ID. Present only when `amount_type` is `Crypto`. |
+| `actual_payout_amounts[].currency` | `string` | Optional | The fiat currency, for example `USD`. Present only when `amount_type` is `Fiat`. |
+| `commission_fee` | `object` | Required | The commission Cobo charged; `null` when none was charged. |
+| `commission_fee.fee_amount` | `string` | Required | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. It is a single total even across tokens. Reversals net off, so it can be `0` or negative. |
+| `transactions` | `array` | Required | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. |
+| `transactions[].transaction_id` | `string` | Required | The outgoing transaction ID; upsert by it. **Do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart. |
+| `transactions[].amount` | `object` | Required | The amount this transaction actually sent. After cross-chain conversion it can be in a different token from `requested_amounts`. |
+| `transactions[].amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `transactions[].amount.token_id` | `string` | Required | The token ID. |
+| `transactions[].amount.chain_id` | `string` | Required | The chain ID. |
+| `transactions[].tx_hash` | `string` | Required | The on-chain transaction hash; `null` before broadcast. |
+| `transactions[].result` | `string` | Required | The transaction's result:<br/>• `Completed` — sent successfully.<br/>• `Failed` — did not go through; the amount counts in `failed_amounts`.<br/>`null` while there is no result yet. |
+| `transactions[].failed_reason` | `object` | Required | Set when `result` is `Failed`; `null` otherwise. |
+| `transactions[].failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions[].failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
+| `failed_reason` | `object` | Required | Set when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. |
+| `failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
 | `created_timestamp` | `integer` | Required | When the payout was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | When the payout last changed status, in Unix timestamp (seconds). |
 

@@ -26,7 +26,7 @@ lang: "zh-hans"
 | `data_type` | `string` | 必填 | 固定为 `PaymentAccountBalanceUpdate`，用于反序列化 `data`。 |
 | `source_account` | `string` | 必填 | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
 | `source_id` | `string` | 必填 | 引起本次变动的业务单据 ID，例如订单 ID。 |
-| `source_type` | `string` | 必填 | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
+| `source_type` | `string` | 必填 | 变动来源：<br/>• `OrderIn`：订单收款。<br/>• `LatePayment`：晚到款。<br/>• `TopUp`：充值。<br/>• `UnexceptedIn`：意外入金。<br/>• `RefundOut`：退款。<br/>• `Payout`：转出。<br/>• `UnexceptedOut`：意外出金。<br/>• `Allocation`：资金分配。<br/>• `BulkSend`：批量下发。<br/>• `SettlementNetwork`：结算网络。<br/>• `Init`：初始化。 |
 | `token_id` | `string` | 必填 | 发生变动的 token。 |
 | `amount` | `string` | 必填 | 变动金额，截断至两位小数。 |
 | `amount_raw` | `string` | 必填 | 同一笔变动金额，按该 token 自身的精度表示。 |
@@ -34,7 +34,7 @@ lang: "zh-hans"
 | `balance_before_raw` | `string` | 必填 | 变动前余额，按该 token 自身的精度表示。 |
 | `balance_after` | `string` | 必填 | 变动后余额，截断至两位小数。 |
 | `balance_after_raw` | `string` | 必填 | 变动后余额，按该 token 自身的精度表示。 |
-| `flow_direction` | `string` | 必填 | 变动方向，取 `in` 或 `out`。 |
+| `flow_direction` | `string` | 必填 | 变动方向：<br/>• `in`：资金流入该账户。<br/>• `out`：资金流出该账户。 |
 | `update_time` | `integer` | 必填 | 余额更新时间，Unix 时间戳（秒）。 |
 
 </div>

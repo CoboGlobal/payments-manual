@@ -31,19 +31,25 @@ The primary refund event, identified by `refund_id`.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
-| `refund_id` | `string` | Required | The refund order's identity, and the key you use for reconciliation idempotency. |
+| `data_type` | `string` | Required | Always `PaymentRefundUpdate`. |
+| `refund_id` | `string` | Required | The refund order ID, and the key you use for reconciliation idempotency. |
 | `order_id` | `string` | Required | The pay-in order this refund returns funds for; `null` when the refund is not tied to an order. |
-| `merchant_id` | `string` | Required | The merchant this refund belongs to, `null` if none. |
-| `status` | `string` | Required | The current status. Only `Pending`, `Completed`, and `Failed` appear in events. The query APIs expose more values, so keep your deserialization tolerant, but branch on these three. |
+| `merchant_id` | `string` | Required | The merchant this refund belongs to; `null` if none. |
+| `status` | `string` | Required | The current status. Only these values appear in events:<br/>• `Pending`<br/>• `Completed`<br/>• `Failed`<br/>The query APIs expose more values, so keep deserialization tolerant, but branch on these three. |
 | `request_id` | `string` | Required | The request ID you provided when creating the refund. A refund created through a refund link inherits the request ID you gave the link, or the link ID if you gave none. |
-| `to_address` | `string` | Required | Where the money was returned. For a refund link, the payer entered this address themselves. |
-| `requested_amount` | `object` | Required | The amount to return, matching the `payable_amount` you passed when creating the refund. A refund either fully succeeds or fully fails, so on `Completed` this is also the amount actually returned. |
+| `to_address` | `string` | Required | Where the funds are returned. For a refund link, the payer entered this address. |
+| `requested_amount` | `object` | Required | The amount to return, matching the `payable_amount` you passed when creating the refund. A refund either fully succeeds or fully fails, so on `Completed` this is also the amount returned. |
+| `requested_amount.amount` | `string` | Required | The amount, as a decimal string. |
+| `requested_amount.token_id` | `string` | Required | The token ID. |
+| `requested_amount.chain_id` | `string` | Required | The chain ID. |
 | `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
-| `refund_type` | `string` | Required | Which balance funds the refund: `Merchant` or `Psp`. |
+| `refund_type` | `string` | Required | Which balance funds the refund:<br/>• `Merchant` — the merchant balance.<br/>• `Psp` — the developer balance. |
 | `initiator` | `string` | Required | Who started the refund, usually an API key. A refund created through a refund link inherits the API key that created the link. |
-| `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token. Reversals net off, so it can be `0` or negative. |
-| `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
+| `commission_fee` | `object` | Required | The commission Cobo charged; `null` when none was charged. |
+| `commission_fee.fee_amount` | `string` | Required | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. Reversals net off, so it can be `0` or negative. |
+| `failed_reason` | `object` | Required | Set when `status` is `Failed`; `null` otherwise. |
+| `failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
 | `created_timestamp` | `integer` | Required | When the refund order was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | Required | When the refund order last changed status, in Unix timestamp (seconds). |
 
