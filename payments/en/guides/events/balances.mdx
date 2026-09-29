@@ -28,9 +28,12 @@ It is also how you see **what each account actually received**. An order's `cred
 | `source_id` | `string` | Required | The ID of the business record that caused the change, such as the order ID. |
 | `source_type` | `string` | Required | What caused the change, for example `OrderIn`, `Payout`, `RefundOut`, `BulkSend`, or `SettlementNetwork`. |
 | `token_id` | `string` | Required | The token whose balance changed. |
-| `amount` / `amount_raw` | `string` | Required | The change, truncated to two decimal places and in the token's own decimal precision respectively. |
-| `balance_before` / `balance_before_raw` | `string` | Required | The balance before the change, in the same two precisions. |
-| `balance_after` / `balance_after_raw` | `string` | Required | The balance after the change, in the same two precisions. |
+| `amount` | `string` | Required | The change, truncated to two decimal places. |
+| `amount_raw` | `string` | Required | The same change, in the token's own precision. |
+| `balance_before` | `string` | Required | The balance before the change, truncated to two decimal places. |
+| `balance_before_raw` | `string` | Required | The balance before the change, in the token's own precision. |
+| `balance_after` | `string` | Required | The balance after the change, truncated to two decimal places. |
+| `balance_after_raw` | `string` | Required | The balance after the change, in the token's own precision. |
 | `flow_direction` | `string` | Required | The direction of the change. Either `in` or `out`. |
 | `update_time` | `integer` | Required | When the balance was updated, in Unix timestamp (seconds). |
 

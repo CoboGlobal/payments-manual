@@ -58,7 +58,8 @@ The primary payout event, identified by `payout_id`.
 | `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token and stays a single total even across tokens. Reversals net off, so it can be `0` or negative. |
 | `transactions` | `array` | Required | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. Upsert by `transaction_id`, and **do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart.<br/>• Each entry carries `transaction_id`, `amount`, `tx_hash`, and `result`, where `result` is `Completed`, `Failed`, or `null` when there is no result yet.<br/>• An entry with `result` `Failed` carries its own `failed_reason`.<br/>• ⚠️ After cross-chain conversion, an entry's `amount` is **in the token actually sent**, which can differ from the source token in `requested_amounts`. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
-| `created_timestamp` / `updated_timestamp` | `integer` | Required | When the payout was created and **last changed**, in Unix timestamp (seconds). They describe the object, not when this event was produced — that is the envelope's `created_timestamp`, in milliseconds. Use `updated_timestamp` to discard out-of-order events. |
+| `created_timestamp` | `integer` | Required | When the payout was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | When the payout last changed status, in Unix timestamp (seconds). |
 
 </div>
 

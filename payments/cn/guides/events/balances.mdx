@@ -28,9 +28,12 @@ lang: "zh-hans"
 | `source_id` | `string` | 必填 | 引起本次变动的业务单据 ID，例如订单 ID。 |
 | `source_type` | `string` | 必填 | 变动的来源类型，例如 `OrderIn`、`Payout`、`RefundOut`、`BulkSend`、`SettlementNetwork`。 |
 | `token_id` | `string` | 必填 | 发生变动的 token。 |
-| `amount` / `amount_raw` | `string` | 必填 | 变动金额，分别为截断至两位小数和按该 token 自身精度表示。 |
-| `balance_before` / `balance_before_raw` | `string` | 必填 | 变动前余额，两种精度。 |
-| `balance_after` / `balance_after_raw` | `string` | 必填 | 变动后余额，两种精度。 |
+| `amount` | `string` | 必填 | 变动金额，截断至两位小数。 |
+| `amount_raw` | `string` | 必填 | 同一笔变动金额，按该 token 自身的精度表示。 |
+| `balance_before` | `string` | 必填 | 变动前余额，截断至两位小数。 |
+| `balance_before_raw` | `string` | 必填 | 变动前余额，按该 token 自身的精度表示。 |
+| `balance_after` | `string` | 必填 | 变动后余额，截断至两位小数。 |
+| `balance_after_raw` | `string` | 必填 | 变动后余额，按该 token 自身的精度表示。 |
 | `flow_direction` | `string` | 必填 | 变动方向，取 `in` 或 `out`。 |
 | `update_time` | `integer` | 必填 | 余额更新时间，Unix 时间戳（秒）。 |
 

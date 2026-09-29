@@ -43,7 +43,8 @@ lang: "zh-hans"
 | `data_type` | `string` | 必填 | 固定为 `PaymentTopUpUpdate`。 |
 | `transaction_id` | `string` | 必填 | 这笔入金的 ID。入账幂等用它，调用 Cobo 合规接口时也传它。 |
 | `merchant_id` | `string` | 必填 | 这笔入金记在哪个商户名下。 |
-| `payer_id` / `custom_payer_id` | `string` | 必填 | Cobo 分配的付款方 ID，以及您登记入金地址时提供的 ID。后者未提供时为 `null`。 |
+| `payer_id` | `string` | 必填 | Cobo 分配的付款方 ID。 |
+| `custom_payer_id` | `string` | 必填 | 您登记入金地址时提供的付款方 ID，未提供时为 `null`。 |
 | `status` | `string` | 必填 | 当前状态，取值见[事件触发条件](#事件触发条件)。 |
 | `amount` | `object` | 必填 | 这笔入金的金额、币种和链。全程不变，失败时也保留。 |
 | `tx_hash` | `string` | 必填 | 链上交易哈希。Cobo 内部划转不上链，此时为 `null`，且不会后补。不要用它做幂等键。 |
@@ -52,7 +53,8 @@ lang: "zh-hans"
 | `screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。<br/>• 三种模式都可能需要您动手，**判断是不是轮到您处理请看 `status`**。<br/>• 筛查进行中也可能为 `null`，表示 Cobo 这次没查到供应商，不表示没有配置供应商。 |
 | `message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明该做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。三段固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A screening result from your own KYT provider is required…`：在 Screening App 中提交您自有 KYT 供应商的结论。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 这笔充值的创建时间与**最近一次状态更新时间**，Unix 时间戳（秒）。它们描述的是对象，不是这条事件何时产生——那是外层的 `created_timestamp`，单位毫秒。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
+| `created_timestamp` | `integer` | 必填 | 这笔充值的创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 必填 | 这笔充值最近一次状态更新时间，Unix 时间戳（秒）。 |
 
 </div>
 
@@ -207,7 +209,8 @@ lang: "zh-hans"
 | --- | --- | --- | --- |
 | `data_type` | `string` | 必填 | 固定为 `PaymentAddressUpdate`。 |
 | `merchant_id` | `string` | 必填 | 该付款方属于哪个商户。 |
-| `payer_id` / `custom_payer_id` | `string` | 必填 | 地址发生变更的付款方。 |
+| `payer_id` | `string` | 必填 | 地址发生变更的付款方，Cobo 分配的 ID。 |
+| `custom_payer_id` | `string` | 必填 | 同一付款方在您系统里的 ID，未提供时为 `null`。 |
 | `chain` | `string` | 必填 | 该地址所属的链。只有这条链上的地址发生变更。 |
 | `previous_address` | `string` | 必填 | 替换前的地址。 |
 | `updated_address` | `string` | 必填 | 从现在起应展示给付款方的地址。 |

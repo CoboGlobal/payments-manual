@@ -50,7 +50,8 @@ lang: "zh-hans"
 | `description` | `string` | 必填 | 您创建批次时写的整批备注，未填时为 `null`。 |
 | `commission_fee` | `object` | 必填 | Cobo 为该批次收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。批次跨多少种 token 都只给一个总额。退费冲抵后可能为 `0` 或负数。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 该批次的创建时间与**最近一次状态更新时间**，Unix 时间戳（秒）。它们描述的是对象，不是这条事件何时产生——那是外层的 `created_timestamp`，单位毫秒。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
+| `created_timestamp` | `integer` | 必填 | 该批次的创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 必填 | 该批次最近一次状态更新时间，Unix 时间戳（秒）。 |
 
 </div>
 
@@ -228,7 +229,8 @@ lang: "zh-hans"
 | `tx_hash` | `string` | 必填 | 该条目转出交易的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
 | `description` | `string` | 必填 | 您创建该条目时写的备注，未填时为 `null`。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 或 `NotExecuted` 时给出 `{ code, message }`，其余情况为 `null`。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 该条目的创建时间与**最近一次状态更新时间**，Unix 时间戳（秒）。它们描述的是对象，不是这条事件何时产生——那是外层的 `created_timestamp`，单位毫秒。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
+| `created_timestamp` | `integer` | 必填 | 该条目的创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 必填 | 该条目最近一次状态更新时间，Unix 时间戳（秒）。 |
 
 </div>
 

@@ -46,7 +46,8 @@ lang: "zh-hans"
 | `initiator` | `string` | 必填 | 谁发起了这笔退款，通常是 API key。付款方通过退款链接发起时为 `null`。 |
 | `commission_fee` | `object` | 必填 | Cobo 收取的佣金，形如 `{ fee_amount }`，**单位为美元**，未产生时为 `null`。佣金从 Fee Station 扣，余额是美元口径，所以不带币种。退费冲抵后可能为 `0` 或负数。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
-| `created_timestamp` / `updated_timestamp` | `integer` | 必填 | 该退款单的创建时间与**最近一次状态更新时间**，Unix 时间戳（秒）。它们描述的是对象，不是这条事件何时产生——那是外层的 `created_timestamp`，单位毫秒。用 `updated_timestamp` 丢弃乱序到达的旧事件。 |
+| `created_timestamp` | `integer` | 必填 | 该退款单的创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 必填 | 该退款单最近一次状态更新时间，Unix 时间戳（秒）。 |
 
 </div>
 
