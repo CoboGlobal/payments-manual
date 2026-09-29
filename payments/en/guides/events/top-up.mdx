@@ -52,7 +52,7 @@ The main event for Top-up Mode. One deposit is one object, identified by `transa
 | `tx_hash` | `string` | Required | The on-chain transaction hash. `null` for an internal Cobo transfer that never goes on-chain, and never filled in later. Do not use it as an idempotency key. |
 | `topup_address` | `string` | Required | The deposit address that received the funds. Use it to look up the payer and chain. |
 | `source_address` | `string` | Required | The on-chain sender, and the target if you return the funds. `null` when the chain does not identify a sender. |
-| `screening_mode` | `string` | Required | Which screening system is handling this deposit: `CoboKyt`, `IntegratedVendor`, or `CustomVendor`. Use it for reconciliation and investigation.<br/>• All three can require action from you, so **read `status` to know whether it is your turn**.<br/>• It can be `null` while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `screening_mode` | `string` | Required | Which screening system is handling this deposit: `CoboKyt` (Cobo's own KYT) or `IntegratedVendor` (a third-party provider integrated by Cobo). Use it for reconciliation and investigation.<br/>• Both can require action from you, so **read `status` to know whether it is your turn**.<br/>• It can be `null` while screening is in progress, which means Cobo could not determine the provider at that moment, not that none is configured. |
 | `message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The two fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
 | `created_timestamp` | `integer` | Required | When this deposit was created, in Unix timestamp (seconds). |
@@ -192,7 +192,7 @@ Stop any automatic crediting and read `failed_reason.code`. Here Cobo's complian
   "message": null,
   "failed_reason": {
     "code": "transaction.rejected_by_compliance",
-    "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
+    "message": "This transaction was rejected by Cobo's compliance checks. Please do not resubmit it; contact Cobo support to resolve the issue first."
   },
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689400

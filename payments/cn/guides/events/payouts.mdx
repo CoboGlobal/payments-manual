@@ -71,7 +71,8 @@ lang: "zh-hans"
 | --- | --- | --- |
 | `payment.payout_partially_failed` | 这笔转出有一部分未能完成。`failed_amounts` 就是没有转出去的金额。 | 这部分金额另建一笔转出。 |
 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重新创建转出。 |
-| `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。 | 联系对方，然后重新创建转出。 |
+| `transaction.rejected_by_approval` | 这笔转账在您组织的审批环节被拒绝——审批人拒绝，或您的回调服务器拒绝。 | 向对方确认原因，然后重新创建转出。 |
+| `transaction.rejected_by_signer` | 这笔转账在签名环节被拒绝——co-signer 拒绝签名。 | 向 co-signer 确认原因，然后重新创建转出。 |
 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重新创建转出。 |
 | `payment.payout_fee_charge_failed` | Fee Station 余额不足。 | 充值后重新创建转出。 |
 | `payment.payout_fee_station_not_configured` | 未配置 Fee Station。 | 配置后重新创建转出。 |
@@ -112,6 +113,7 @@ lang: "zh-hans"
   "initiator": "api_key_abc123",
   "commission_fee": null,
   "remark": "September vendor settlement",
+  "failed_reason": null,
   "created_timestamp": 1744700000,
   "updated_timestamp": 1744700000
 }
@@ -142,7 +144,8 @@ lang: "zh-hans"
       "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
       "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout001",
-      "result": "Completed"
+      "result": "Completed",
+      "failed_reason": null
     }
   ],
   "actual_payout_amounts": [
@@ -186,7 +189,8 @@ lang: "zh-hans"
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
       "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout002a",
-      "result": "Completed"
+      "result": "Completed",
+      "failed_reason": null
     },
     {
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
@@ -195,7 +199,7 @@ lang: "zh-hans"
       "result": "Failed",
       "failed_reason": {
         "code": "transaction.rejected_by_policy",
-        "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+        "message": "This transaction was rejected by one of your transaction policies. Please update the applicable policy in Cobo Portal before resubmitting."
       }
     }
   ],
@@ -254,7 +258,7 @@ lang: "zh-hans"
 
 #### Off-Ramp 转出被银行拒绝
 
-**这不是终态。** 记录一次被拒、让运营与收款方核对账户信息，然后继续等这个 `payout_id` 的后续事件：换账户重试成功时，您会先收到一条 `Transferring`，再收到 `Completed`。不要在这里关闭付款，也不要另建一笔转出。
+**这不是终态。** 链上那一段已经完成（`transactions` 里的条目是 `Completed`），是收款银行退回了法币入账，所以 `failed_amounts` 为空。记录一次被拒、让运营与收款方核对账户信息，然后继续等这个 `payout_id` 的后续事件：换账户重试成功时，您会先收到一条 `Transferring`，再收到 `Completed`。不要在这里关闭付款，也不要另建一笔转出。
 
 ```json
 {
@@ -266,9 +270,7 @@ lang: "zh-hans"
   "requested_amounts": [
     { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
-  "failed_amounts": [
-    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
-  ],
+  "failed_amounts": [],
   "requested_target": {
     "target_type": "BankAccount",
     "bank_account_id": "ba_20260901_0007",
@@ -276,10 +278,18 @@ lang: "zh-hans"
     "bank_name": "Example Bank",
     "currency": "USD"
   },
-  "transactions": [],
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0004-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout004",
+      "result": "Completed",
+      "failed_reason": null
+    }
+  ],
   "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fee": null,
+  "commission_fee": { "fee_amount": "1" },
   "remark": null,
   "failed_reason": {
     "code": "payment.payout_rejected_by_bank",

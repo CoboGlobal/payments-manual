@@ -98,6 +98,7 @@ lang: "zh-hans"
   "failed_amounts": [],
   "description": "September affiliate payouts",
   "commission_fee": null,
+  "failed_reason": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744710000
 }
@@ -127,6 +128,7 @@ lang: "zh-hans"
   "failed_amounts": [],
   "description": "September affiliate payouts",
   "commission_fee": { "fee_amount": "0.6" },
+  "failed_reason": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744711200
 }
@@ -158,6 +160,7 @@ lang: "zh-hans"
   ],
   "description": "September affiliate payouts",
   "commission_fee": { "fee_amount": "0.2" },
+  "failed_reason": null,
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744713000
 }
@@ -252,7 +255,8 @@ lang: "zh-hans"
 | `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后重发。 |
 | `payment.app_workflow_approval_revoked` | 审批流被撤销。 | 让批次通过审批，然后重发。 |
 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重发。 |
-| `transaction.rejected_by_approval` | 您组织内有人拒绝了这笔转账——可能是审批人，也可能是 co-signer 拒绝为它签名。 | 联系对方，然后重发。 |
+| `transaction.rejected_by_approval` | 这笔转账在您组织的审批环节被拒绝——审批人拒绝，或您的回调服务器拒绝。 | 向对方确认原因，然后重发。 |
+| `transaction.rejected_by_signer` | 这笔转账在签名环节被拒绝——co-signer 拒绝签名。 | 向 co-signer 确认原因，然后重发。 |
 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重发。 |
 | `payment.sweep_task_failed` | 准备资金的归集交易失败。 | 重发。 |
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
@@ -279,6 +283,7 @@ lang: "zh-hans"
   "receiving_address": "0xaffiliate001",
   "tx_hash": "0xbulkitem001",
   "description": "affiliate 001",
+  "failed_reason": null,
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712900
 }
@@ -302,7 +307,7 @@ lang: "zh-hans"
   "description": "affiliate 002",
   "failed_reason": {
     "code": "transaction.rejected_by_approval",
-    "message": "Someone in your organization rejected this transaction — an approver, or a co-signer who declined to sign. Contact them, then resend."
+    "message": "This transaction was rejected during your organization's approval process, either by an approver or by your callback server. Please confirm the reason with the relevant party before resubmitting."
   },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712950

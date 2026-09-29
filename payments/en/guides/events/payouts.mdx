@@ -70,8 +70,9 @@ The primary payout event, identified by `payout_id`.
 | `code` | What happened | What to do |
 | --- | --- | --- |
 | `payment.payout_partially_failed` | Some of the payout could not be completed. `failed_amounts` is the amount that did not go through. | Send that amount with a new payout. |
-| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Adjust the policy in Cobo Portal, then create the payout again. |
-| `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. | Contact them, then create the payout again. |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Update that policy in Cobo Portal, then create the payout again. |
+| `transaction.rejected_by_approval` | The transfer was rejected in your organization's approval process — by an approver, or by your callback server. | Confirm the reason with them, then create the payout again. |
+| `transaction.rejected_by_signer` | The transfer was declined during signing by a co-signer. | Confirm the reason with the co-signer, then create the payout again. |
 | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then create the payout again. |
 | `payment.payout_fee_charge_failed` | The Fee Station balance is insufficient. | Add funds, then create the payout again. |
 | `payment.payout_fee_station_not_configured` | Fee Station is not configured. | Configure it, then create the payout again. |
@@ -112,6 +113,7 @@ Record it and do not submit the request again. `requested_target` is your own in
   "initiator": "api_key_abc123",
   "commission_fee": null,
   "remark": "September vendor settlement",
+  "failed_reason": null,
   "created_timestamp": 1744700000,
   "updated_timestamp": 1744700000
 }
@@ -142,7 +144,8 @@ Close the payout. This means Cobo finished the transfer, **not** that the recipi
       "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
       "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout001",
-      "result": "Completed"
+      "result": "Completed",
+      "failed_reason": null
     }
   ],
   "actual_payout_amounts": [
@@ -186,7 +189,8 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
       "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "tx_hash": "0xpayout002a",
-      "result": "Completed"
+      "result": "Completed",
+      "failed_reason": null
     },
     {
       "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
@@ -195,7 +199,7 @@ Here one of two source tokens failed on its outgoing transaction, so both the ob
       "result": "Failed",
       "failed_reason": {
         "code": "transaction.rejected_by_policy",
-        "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+        "message": "This transaction was rejected by one of your transaction policies. Please update the applicable policy in Cobo Portal before resubmitting."
       }
     }
   ],
@@ -254,7 +258,7 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
 
 #### An Off-Ramp payout is rejected by the bank
 
-**This is not a final status.** Record the rejection, have your team confirm the account details with the recipient, and keep waiting for events on this `payout_id`: if the retry against another account succeeds, you receive a second `Transferring` and then `Completed`. Do not close the payment here, and do not create another payout.
+**This is not a final status.** The on-chain leg has already completed (the entry in `transactions` is `Completed`); it is the receiving bank that returned the fiat credit, so `failed_amounts` is empty. Record the rejection, have your team confirm the account details with the recipient, and keep waiting for events on this `payout_id`: if the retry against another account succeeds, you receive a second `Transferring` and then `Completed`. Do not close the payment here, and do not create another payout.
 
 ```json
 {
@@ -266,9 +270,7 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
   "requested_amounts": [
     { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
   ],
-  "failed_amounts": [
-    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
-  ],
+  "failed_amounts": [],
   "requested_target": {
     "target_type": "BankAccount",
     "bank_account_id": "ba_20260901_0007",
@@ -276,10 +278,18 @@ Do not retry in place. Here the failure happened before any transfer, so `transa
     "bank_name": "Example Bank",
     "currency": "USD"
   },
-  "transactions": [],
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0004-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout004",
+      "result": "Completed",
+      "failed_reason": null
+    }
+  ],
   "actual_payout_amounts": [],
   "initiator": "api_key_abc123",
-  "commission_fee": null,
+  "commission_fee": { "fee_amount": "1" },
   "remark": null,
   "failed_reason": {
     "code": "payment.payout_rejected_by_bank",

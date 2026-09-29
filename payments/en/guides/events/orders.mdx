@@ -30,8 +30,8 @@ The primary event for Order Mode, identified by `order_id`.
 | Cumulative receipts reach the completion threshold. Overpayment also lands here; there is no `Overpaid` status | `Completed` | `null` | Release goods, using `order_id` as the idempotency key. |
 | The validity period ends with completed deposits that did not reach the threshold | `Underpaid` | `null` | Handle as underpaid. Do not treat as fully paid. |
 | The validity period ends with no completed deposit, or the order is canceled | `Expired` | `null` | Close the payment window. Create a new order to keep collecting. |
-| The order is already final and another deposit arrives **and clears screening** | unchanged | `LatePaymentReceived` | Decide whether to refund or fulfil. Do not reopen the original order. |
-| The order is already final and the late deposit **fails screening** | unchanged | `PaymentFailed` | Nothing to do — those funds never arrived. |
+| The order is already final (or reaches its final status in this same event) and another deposit arrives **and clears screening** | final | `LatePaymentReceived` | Decide whether to refund or fulfil. Do not reopen the original order. |
+| The order is already final and the late deposit **fails screening** | final | `PaymentFailed` | Nothing to do — those funds never arrived. |
 
 **The final status is decided at the moment the validity period ends and is never recalculated.** So you can see `status` `Expired` with `credited_amount` `0` and a `Completed` entry in `transactions` — that money arrived after the order ended (`is_late` is `true`), so it neither decides the final status nor adds to `credited_amount`.
 
@@ -51,13 +51,13 @@ The primary event for Order Mode, identified by `order_id`.
 | `receive_address` | `string` | Required | The address the payer sends funds to. |
 | `expired_at` | `integer` | Required | When the payment window closes, as a Unix timestamp in seconds. |
 | `status` | `string` | Required | The current order status. See [Trigger conditions](#trigger-conditions) for the values. |
-| `notice_type` | `string` | Required | Why you were notified when `status` did not change: `PaymentUpdated`, `PaymentFailed`, or `LatePaymentReceived`; `null` otherwise. |
+| `notice_type` | `string` | Required | Something about one deposit you need to know: `PaymentUpdated` (it entered `ActionRequired`), `PaymentFailed` (it failed), or `LatePaymentReceived` (a late deposit cleared screening); `null` otherwise. `status` usually stays the same when this is set, but can change in the same event — **to tell whether the order's status changed, compare `status` alone**. |
 | `requested_amount` | `object` | Required | The total the order expects, **including your fee**. Fixed at creation. Show it to the payer.<br/>• ⚠️ **It is not a fulfilment threshold**: completion allows a tolerance, so release goods when `status` is `Completed`, not on an amount comparison. |
 | `credited_amount` | `object` | Required | The total received and counted towards the order. This is the authoritative figure for reconciling it.<br/>• **It leaves out** deposits still in screening, deposits waiting on you, rejected deposits, and money that arrived after the order ended (entries with `is_late` `true`).<br/>• ⚠️ **Do not sum `transactions` yourself** — late payments make your sum too high.<br/>• ⚠️ It **includes the portion that will be split out as your fee, so it is not the merchant's credited amount**. For what each account actually received, see [Balance changes](/payments/en/guides/events/balances). |
 | `outstanding_amount` | `object` | Required | **How much more the payer still owes** = `requested_amount` − `credited_amount`.<br/>• `requested_amount` is called `payable_amount` in the query APIs, so read this as payable minus credited.<br/>• **How to use it: when `status` is `Underpaid`, quote it to tell the payer what is left.**<br/>• ⚠️ **Do not use it to decide whether an order was underpaid**: it can still be greater than `0` when `status` is `Completed` (the order closed within `amount_tolerance`), and chasing that balance would chase money the payer does not owe. Only `status` tells you that.<br/>• It has a floor of `0` and stays `0` on overpayment, so it **never tells you how much was overpaid**. |
 | `transactions` | `array` | Required | **Every deposit associated with the order so far**, not the change since the last event; `[]` when there are none. Replace your local copy and upsert by `transaction_id`.<br/>• Each entry carries `transaction_id`, `tx_hash`, `amount`, `source_address`, `is_late`, and its own `status` (the same five values as a top-up), `screening_mode`, `message`, and `failed_reason`.<br/>• `is_late` `true` means the money arrived after the order reached a final status, so it does not count towards `credited_amount`.<br/>• ⚠️ **Deposits below the dust threshold are not in the array**: the default is `0.05`, and each token's threshold is returned as `min_amount` when you register a deposit address. |
 | `created_timestamp` | `integer` | Required | When the order was created, in Unix timestamp (seconds). |
-| `updated_timestamp` | `integer` | Required | When the order last changed status, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | Required | When the order last changed status, in Unix timestamp (seconds). New or changed deposits do not advance it, so several events with different `transactions` can share one value: **discard only events that are strictly older, never equal ones**. |
 
 </div>
 
@@ -129,7 +129,9 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
       "source_address": "0xpayer001",
       "status": "PendingScreening",
       "screening_mode": "IntegratedVendor",
-      "is_late": false
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -162,9 +164,10 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "ActionRequired",
-      "screening_mode": "CustomVendor",
+      "screening_mode": "IntegratedVendor",
       "message": "A manual compliance review by your team is required before these funds can be made available. Please complete it in the Screening App.",
-      "is_late": false
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -197,10 +200,12 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Failed",
+      "screening_mode": null,
+      "message": null,
       "is_late": false,
       "failed_reason": {
         "code": "transaction.rejected_by_screening_app",
-        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
       }
     }
   ],
@@ -234,7 +239,10 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
@@ -242,7 +250,10 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -275,7 +286,10 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
@@ -283,10 +297,12 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Failed",
+      "screening_mode": null,
+      "message": null,
       "is_late": false,
       "failed_reason": {
         "code": "transaction.rejected_by_screening_app",
-        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
       }
     }
   ],
@@ -320,7 +336,10 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
@@ -328,7 +347,10 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": true
+      "screening_mode": null,
+      "message": null,
+      "is_late": true,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,

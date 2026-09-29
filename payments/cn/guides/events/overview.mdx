@@ -144,7 +144,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。
 
-外层的 `created_timestamp` 是**这条事件产生的时间，单位毫秒**；`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**。两者不要混用。
+外层的 `created_timestamp` 是 **Webhook 服务收到这条事件的时间，单位毫秒**，重投时不变；投递链路可能打乱顺序，所以**不要用它判断事件先后**。`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**，判断先后用后者。
+
+外层的 `status`（`Success`、`Retrying`、`Failed`）以及重试时才出现的 `next_retry_timestamp`、`retries_left` 描述的是这条消息的投递情况，与业务无关，处理时可以忽略。
 
 ```json
 {
@@ -187,7 +189,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 **数组是全量快照。** `transactions` 等字段携带的是该对象当前的完整列表，不是自上条事件以来的增量。请整体替换本地副本，不要往里追加。
 
-**投递不保证顺序。** 按业务单据 ID 做 upsert，用 `updated_timestamp` 丢弃比本地更旧的事件。终态不能被后到的处理中事件回退。
+**投递不保证顺序。** 按业务单据 ID 做 upsert，用 `data.updated_timestamp` 判断先后：**严格小于本地值才丢弃，相等的不能丢**（精度只到秒，同一秒内可能有多条内容不同的事件）。终态不能被后到的处理中事件回退。
 
 **用每条事件的 `status` 覆盖本地状态，不要校验状态迁移是否合法。** 中间状态可能没有对应的事件（例如一笔入金从 `Detected` 直接到 `Completed`），那不是丢事件。需要您动手的状态不会被跳过。
 

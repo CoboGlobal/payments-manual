@@ -52,7 +52,7 @@ lang: "zh-hans"
 | `tx_hash` | `string` | 必填 | 链上交易哈希。Cobo 内部划转不上链，此时为 `null`，且不会后补。不要用它做幂等键。 |
 | `topup_address` | `string` | 必填 | 收到这笔资金的入金地址，用它反查付款方和链。 |
 | `source_address` | `string` | 必填 | 链上发送方，原路退回时作为转出目标。链上无法识别时为 `null`。 |
-| `screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`、`IntegratedVendor` 或 `CustomVendor`，用于对账和排查。<br/>• 三种模式都可能需要您动手，**判断是不是轮到您处理请看 `status`**。<br/>• 筛查进行中也可能为 `null`，表示 Cobo 这次没查到供应商，不表示没有配置供应商。 |
+| `screening_mode` | `string` | 必填 | 这笔入金由哪套筛查体系处理，取 `CoboKyt`（Cobo 的 KYT）或 `IntegratedVendor`（Cobo 集成的第三方供应商），用于对账和排查。<br/>• 两种模式都可能需要您动手，**判断是不是轮到您处理请看 `status`**。<br/>• 筛查进行中也可能为 `null`，表示 Cobo 这次没查到供应商，不表示没有配置供应商。 |
 | `message` | `string` | 必填 | `status` 为 `ActionRequired` 时说明该做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。两段固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按邮件要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | 必填 | `status` 为 `Failed` 时给出 `{ code, message }`，其余情况为 `null`。取值见[失败原因](#失败原因)。 |
 | `created_timestamp` | `integer` | 必填 | 这笔充值的创建时间，Unix 时间戳（秒）。 |
@@ -192,7 +192,7 @@ lang: "zh-hans"
   "message": null,
   "failed_reason": {
     "code": "transaction.rejected_by_compliance",
-    "message": "Cobo's compliance checks rejected this transaction. Do not resend it — contact Cobo support to resolve the issue first."
+    "message": "This transaction was rejected by Cobo's compliance checks. Please do not resubmit it; contact Cobo support to resolve the issue first."
   },
   "created_timestamp": 1744689000,
   "updated_timestamp": 1744689400

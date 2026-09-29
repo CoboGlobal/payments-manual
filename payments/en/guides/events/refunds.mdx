@@ -5,8 +5,6 @@ lang: "en"
 
 These events track a refund order from creation to completion. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
-Refunds currently apply to orders only. To return funds received through Top-up Mode, create a payout instead.
-
 ## Events on this page
 
 | Event | What it notifies you of | When you need it |
@@ -35,15 +33,15 @@ The primary refund event, identified by `refund_id`.
 | --- | --- | --- | --- |
 | `data_type` | `string` | Required | Always `PaymentRefundUpdate`. Use it to deserialize `data`. |
 | `refund_id` | `string` | Required | The refund order's identity, and the key you use for reconciliation idempotency. |
-| `order_id` | `string` | Required | The pay-in order this refund returns funds for. |
+| `order_id` | `string` | Required | The pay-in order this refund returns funds for; `null` when the refund is not tied to an order. |
 | `merchant_id` | `string` | Required | The merchant this refund belongs to, `null` if none. |
 | `status` | `string` | Required | The current status. Only `Pending`, `Completed`, and `Failed` appear in events. The query APIs expose more values, so keep your deserialization tolerant, but branch on these three. |
-| `request_id` | `string` | Required | The request ID you provided when creating the refund. `null` when the payer started it from a refund link. |
+| `request_id` | `string` | Required | The request ID you provided when creating the refund. A refund created through a refund link inherits the request ID you gave the link, or the link ID if you gave none. |
 | `to_address` | `string` | Required | Where the money was returned. For a refund link, the payer entered this address themselves. |
 | `requested_amount` | `object` | Required | The amount to return, matching the `payable_amount` you passed when creating the refund. A refund either fully succeeds or fully fails, so on `Completed` this is also the amount actually returned. |
 | `tx_hash` | `string` | Required | The on-chain hash of the refund transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
 | `refund_type` | `string` | Required | Which balance funds the refund: `Merchant` or `Psp`. |
-| `initiator` | `string` | Required | Who started the refund, usually an API key. `null` when the payer started it from a refund link. |
+| `initiator` | `string` | Required | Who started the refund, usually an API key. A refund created through a refund link inherits the API key that created the link. |
 | `commission_fee` | `object` | Required | The commission Cobo charged, shaped `{ fee_amount }` and **denominated in USD**; `null` when none was charged. It is taken from Fee Station, whose balance is in USD, so it carries no token. Reversals net off, so it can be `0` or negative. |
 | `failed_reason` | `object` | Required | `{ code, message }` when `status` is `Failed`; `null` otherwise. See [Failure reasons](#failure-reasons) for the values. |
 | `created_timestamp` | `integer` | Required | When the refund order was created, in Unix timestamp (seconds). |
@@ -57,8 +55,9 @@ The primary refund event, identified by `refund_id`.
 
 | `code` | What happened | What to do |
 | --- | --- | --- |
-| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Adjust the policy in Cobo Portal, then create the refund again. |
-| `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. | Contact them, then create the refund again. |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Update that policy in Cobo Portal, then create the refund again. |
+| `transaction.rejected_by_approval` | The transfer was rejected in your organization's approval process — by an approver, or by your callback server. | Confirm the reason with them, then create the refund again. |
+| `transaction.rejected_by_signer` | The transfer was declined during signing by a co-signer. | Confirm the reason with the co-signer, then create the refund again. |
 | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then create the refund again. |
 | `payment.refund_fee_charge_failed` | The Fee Station balance is insufficient. | Add funds, then create the refund again. |
 | `payment.refund_fee_station_not_configured` | Fee Station is not configured. | Configure it, then create the refund again. |
@@ -140,7 +139,7 @@ Reconcile and close it, using `refund_id` as the idempotency key. `requested_amo
   "commission_fee": null,
   "failed_reason": {
     "code": "transaction.rejected_by_policy",
-    "message": "This transaction was rejected by one of your transaction policies. Adjust the relevant policy in Cobo Portal, then resend."
+    "message": "This transaction was rejected by one of your transaction policies. Please update the applicable policy in Cobo Portal before resubmitting."
   },
   "created_timestamp": 1744690600,
   "updated_timestamp": 1744690700

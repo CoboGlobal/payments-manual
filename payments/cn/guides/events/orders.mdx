@@ -30,8 +30,8 @@ lang: "zh-hans"
 | 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | `null` | 发货，以 `order_id` 作为幂等键。 |
 | 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid` | `null` | 进入少付处理，不要按足额订单发货。 |
 | 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired` | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 订单已是终态，又收到一笔入金**且该笔通过筛查** | 保持原终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
-| 订单已是终态，晚到的那笔**筛查未通过** | 保持原终态 | `PaymentFailed` | 不需要处理，这笔钱没有到账。 |
+| 订单已是终态（或在这一条事件里刚进入终态），又收到一笔入金**且该笔通过筛查** | 终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
+| 订单已是终态，晚到的那笔**筛查未通过** | 终态 | `PaymentFailed` | 不需要处理，这笔钱没有到账。 |
 
 **终态在有效期结束那一刻定下来，之后不再重算。** 因此您可能看到 `status` 为 `Expired`、`credited_amount` 为 `0`，而 `transactions` 里有一条 `Completed`——那是到期之后才到的钱（`is_late` 为 `true`），不参与终态判定，也不计入 `credited_amount`。
 
@@ -51,13 +51,13 @@ lang: "zh-hans"
 | `receive_address` | `string` | 必填 | 付款方转账的目标地址。 |
 | `expired_at` | `integer` | 必填 | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 必填 | 订单当前状态，取值与含义见[事件触发条件](#事件触发条件)。 |
-| `notice_type` | `string` | 必填 | `status` 没变但仍通知您的原因，取 `PaymentUpdated`、`PaymentFailed` 或 `LatePaymentReceived`；其余情况为 `null`。 |
+| `notice_type` | `string` | 必填 | 某笔入金需要您知道的事：`PaymentUpdated`（进入 `ActionRequired`）、`PaymentFailed`（失败）或 `LatePaymentReceived`（晚到款通过筛查）；其余情况为 `null`。它有值时 `status` 通常不变，但也可能同时变化——**判断订单状态是否变了，只比较 `status`**。 |
 | `requested_amount` | `object` | 必填 | 订单应收总额，**含您的手续费**，创建时确定、之后不变。展示给付款方用。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status` 为 `Completed` 为准。 |
 | `credited_amount` | `object` | 必填 | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：还在筛查中的入金、等您处理的入金、被拒绝的入金，以及订单结束后才到的晚付（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自己对 `transactions` 求和**，晚到款会让您的和偏大。<br/>• ⚠️ 它**含将要分给您的手续费，不是商户的入账金额**。两个账户各自实际收到多少，看[余额变动](/payments/cn/guides/events/balances)。 |
 | `outstanding_amount` | `object` | 必填 | **付款方还需再付多少**＝`requested_amount` − `credited_amount`。<br/>• `requested_amount` 在查询接口里叫 `payable_amount`，所以也可以记成「应付 − 已收」。<br/>• **怎么用：`status` 为 `Underpaid` 时用它告诉付款方还差多少。**<br/>• ⚠️ **不要用它判断是否少付**：`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单是足额的，按它催款会催一笔不该催的钱。是否少付只看 `status`。<br/>• 下限为 `0`，多付时保持 `0`，**无法表达多收了多少**。 |
 | `transactions` | `array` | 必填 | 该订单**至今的全部入金**，不是增量；无入金时为 `[]`。请整体替换本地副本，按 `transaction_id` upsert。<br/>• 每个条目含 `transaction_id`、`tx_hash`、`amount`、`source_address`、`is_late`，以及条目自己的 `status`（五个取值与充值相同）、`screening_mode`、`message`、`failed_reason`。<br/>• `is_late` 为 `true` 表示这笔钱在订单终态之后才到，不计入 `credited_amount`。<br/>• ⚠️ **低于粉尘阈值的入金不在数组里**，默认阈值为 `0.05`，各 token 的阈值见登记入金地址接口返回的 `min_amount`。 |
 | `created_timestamp` | `integer` | 必填 | 该订单的创建时间，Unix 时间戳（秒）。 |
-| `updated_timestamp` | `integer` | 必填 | 该订单最近一次状态更新时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 必填 | 该订单最近一次状态更新时间，Unix 时间戳（秒）。入金的新增和变化不会推进它，因此同一时间戳下可能收到 `transactions` 不同的多条事件：**只丢弃严格更早的事件，相等的不能丢**。 |
 
 </div>
 
@@ -129,7 +129,9 @@ lang: "zh-hans"
       "source_address": "0xpayer001",
       "status": "PendingScreening",
       "screening_mode": "IntegratedVendor",
-      "is_late": false
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -162,9 +164,10 @@ lang: "zh-hans"
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "ActionRequired",
-      "screening_mode": "CustomVendor",
+      "screening_mode": "IntegratedVendor",
       "message": "A manual compliance review by your team is required before these funds can be made available. Please complete it in the Screening App.",
-      "is_late": false
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -197,10 +200,12 @@ lang: "zh-hans"
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Failed",
+      "screening_mode": null,
+      "message": null,
       "is_late": false,
       "failed_reason": {
         "code": "transaction.rejected_by_screening_app",
-        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
       }
     }
   ],
@@ -234,7 +239,10 @@ lang: "zh-hans"
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
@@ -242,7 +250,10 @@ lang: "zh-hans"
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer001",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,
@@ -275,7 +286,10 @@ lang: "zh-hans"
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
@@ -283,10 +297,12 @@ lang: "zh-hans"
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Failed",
+      "screening_mode": null,
+      "message": null,
       "is_late": false,
       "failed_reason": {
         "code": "transaction.rejected_by_screening_app",
-        "message": "Your compliance team rejected this transaction in the Screening App. Review the case there to see why. Resend only after it has been cleared."
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
       }
     }
   ],
@@ -320,7 +336,10 @@ lang: "zh-hans"
       "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": false
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
     },
     {
       "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
@@ -328,7 +347,10 @@ lang: "zh-hans"
       "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
       "source_address": "0xpayer002",
       "status": "Completed",
-      "is_late": true
+      "screening_mode": null,
+      "message": null,
+      "is_late": true,
+      "failed_reason": null
     }
   ],
   "created_timestamp": 1744689000,

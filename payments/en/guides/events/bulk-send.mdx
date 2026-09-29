@@ -98,6 +98,7 @@ Record the batch and do not submit it again. Remember that `Pending` may also me
   "failed_amounts": [],
   "description": "September affiliate payouts",
   "commission_fee": null,
+  "failed_reason": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744710000
 }
@@ -127,6 +128,7 @@ Close the batch summary. Individual items are still confirmed by their own event
   "failed_amounts": [],
   "description": "September affiliate payouts",
   "commission_fee": { "fee_amount": "0.6" },
+  "failed_reason": null,
   "created_timestamp": 1744710000,
   "updated_timestamp": 1744711200
 }
@@ -158,6 +160,7 @@ Split your handling by the two counts. Here one item's funds moved and failed, a
   ],
   "description": "September affiliate payouts",
   "commission_fee": { "fee_amount": "0.2" },
+  "failed_reason": null,
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744713000
 }
@@ -251,8 +254,9 @@ The item-level event, identified by `bulk_send_item_id`.
 | `payment.bulk_send_commission_fee_charge_failed_unknown` | The fee could not be charged for another reason. | Check the Fee Station configuration and balance, then send it again. |
 | `payment.app_workflow_approval_rejected` | The approval workflow rejected the batch. | Ask the approver why, then send it again. |
 | `payment.app_workflow_approval_revoked` | The approval workflow was revoked. | Get the batch approved, then send it again. |
-| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Adjust the policy in Cobo Portal, then send it again. |
-| `transaction.rejected_by_approval` | Someone in your organization rejected the transfer — either an approver, or a co-signer who declined to sign it. | Contact them, then send it again. |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Update that policy in Cobo Portal, then send it again. |
+| `transaction.rejected_by_approval` | The transfer was rejected in your organization's approval process — by an approver, or by your callback server. | Confirm the reason with them, then send it again. |
+| `transaction.rejected_by_signer` | The transfer was declined during signing by a co-signer. | Confirm the reason with the co-signer, then send it again. |
 | `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then send it again. |
 | `payment.sweep_task_failed` | The sweep transaction that prepares the funds failed. | Send it again. |
 | `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
@@ -279,6 +283,7 @@ Save the amount and `tx_hash`, and close that item against your own recipient re
   "receiving_address": "0xaffiliate001",
   "tx_hash": "0xbulkitem001",
   "description": "affiliate 001",
+  "failed_reason": null,
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712900
 }
@@ -302,7 +307,7 @@ Funds moved and came back: locked funds were released and the fee was returned. 
   "description": "affiliate 002",
   "failed_reason": {
     "code": "transaction.rejected_by_approval",
-    "message": "Someone in your organization rejected this transaction — an approver, or a co-signer who declined to sign. Contact them, then resend."
+    "message": "This transaction was rejected during your organization's approval process, either by an approver or by your callback server. Please confirm the reason with the relevant party before resubmitting."
   },
   "created_timestamp": 1744712000,
   "updated_timestamp": 1744712950

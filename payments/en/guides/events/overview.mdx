@@ -144,7 +144,9 @@ Subscribe by the business you actually run. **Required means this event is your 
 
 Every webhook message shares the same envelope. Route on `type`, then deserialize `data` according to `data_type`.
 
-The envelope's `created_timestamp` is **when this event was produced, in milliseconds**. The `created_timestamp` and `updated_timestamp` inside `data` are **the business object's own creation and last-update times, in seconds**. Do not mix the two.
+The envelope's `created_timestamp` is **when the webhook service received this event, in milliseconds**; it does not change on retries. Delivery can reorder events, so **do not use it to order them**. The `created_timestamp` and `updated_timestamp` inside `data` are **the business object's own creation and last-update times, in seconds** — order by the latter.
+
+The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_timestamp` and `retries_left` fields that appear during retries describe delivery of this message, not your business, and can be ignored when processing.
 
 ```json
 {
@@ -187,7 +189,7 @@ Implement both. Put a unique constraint on `event_id` for delivery, and a second
 
 **Arrays are full snapshots.** Fields such as `transactions` carry the object's complete current list, not the delta since the last event. Replace your local copy rather than appending to it.
 
-**Delivery is not ordered.** Upsert by business record ID, and discard any event that reports a state earlier than the one you have already recorded. A terminal state must never be rolled back by a later-arriving in-progress event.
+**Delivery is not ordered.** Upsert by business record ID and order events by `data.updated_timestamp`: **discard an event only when it is strictly older than what you have, never when it is equal** (the precision is one second, and one second can hold several events with different content). A terminal state must never be rolled back by a later-arriving in-progress event.
 
 **A field with no value is absent.** When a field does not apply, the key is omitted rather than set to `null`. Read optional fields defensively, for example `payload.get("failed_reason")` rather than `payload["failed_reason"]`.
 
