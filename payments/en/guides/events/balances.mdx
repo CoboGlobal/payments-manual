@@ -21,21 +21,21 @@ It is also how you see **what each account actually received**. An order's `cred
 
 <div className="field-table">
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
-| `source_account` | `string` | Required | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
-| `source_id` | `string` | Required | The ID of the business record that caused the change, such as the order ID. |
-| `source_type` | `string` | Required | What caused the change:<br/>• `OrderIn` — an order payment.<br/>• `LatePayment` — a late payment.<br/>• `TopUp` — a top-up.<br/>• `UnexceptedIn` — an unexpected deposit.<br/>• `RefundOut` — a refund.<br/>• `Payout` — a payout.<br/>• `UnexceptedOut` — an unexpected outgoing payment.<br/>• `Allocation` — an allocation.<br/>• `BulkSend` — a bulk send.<br/>• `SettlementNetwork` — the settlement network.<br/>• `Init` — initialization. |
-| `token_id` | `string` | Required | The token whose balance changed. |
-| `amount` | `string` | Required | The change, truncated to two decimal places. |
-| `amount_raw` | `string` | Required | The same change, in the token's own precision. |
-| `balance_before` | `string` | Required | The balance before the change, truncated to two decimal places. |
-| `balance_before_raw` | `string` | Required | The balance before the change, in the token's own precision. |
-| `balance_after` | `string` | Required | The balance after the change, truncated to two decimal places. |
-| `balance_after_raw` | `string` | Required | The balance after the change, in the token's own precision. |
-| `flow_direction` | `string` | Required | The direction of the change:<br/>• `in` — funds flow into the account.<br/>• `out` — funds flow out of the account. |
-| `update_time` | `integer` | Required | When the balance was updated, in Unix timestamp (seconds). |
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
+| `source_account` | `string` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
+| `source_id` | `string` | The ID of the business record that caused the change, such as the order ID. |
+| `source_type` | `string` | What caused the change:<br/>• `OrderIn` — an order payment.<br/>• `LatePayment` — a late payment.<br/>• `TopUp` — a top-up.<br/>• `UnexceptedIn` — an unexpected deposit.<br/>• `RefundOut` — a refund.<br/>• `Payout` — a payout.<br/>• `UnexceptedOut` — an unexpected outgoing payment.<br/>• `Allocation` — an allocation.<br/>• `BulkSend` — a bulk send.<br/>• `SettlementNetwork` — the settlement network.<br/>• `Init` — initialization. |
+| `token_id` | `string` | The token whose balance changed. |
+| `amount` | `string` | The change, truncated to two decimal places. |
+| `amount_raw` | `string` | The same change, in the token's own precision. |
+| `balance_before` | `string` | The balance before the change, truncated to two decimal places. |
+| `balance_before_raw` | `string` | The balance before the change, in the token's own precision. |
+| `balance_after` | `string` | The balance after the change, truncated to two decimal places. |
+| `balance_after_raw` | `string` | The balance after the change, in the token's own precision. |
+| `flow_direction` | `string` | The direction of the change:<br/>• `in` — funds flow into the account.<br/>• `out` — funds flow out of the account. |
+| `update_time` | `integer` | When the balance was updated, in Unix timestamp (seconds). |
 
 </div>
 

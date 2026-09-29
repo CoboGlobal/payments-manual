@@ -40,28 +40,28 @@ The main event for Top-up Mode. One deposit is one object, identified by `transa
 
 <div className="field-table">
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentTopUpUpdate`. |
-| `transaction_id` | `string` | Required | The deposit's ID. Use it as the idempotency key for crediting, and as the parameter for Cobo's compliance operations. |
-| `merchant_id` | `string` | Required | Which merchant this deposit belongs to. |
-| `payer_id` | `string` | Required | The payer ID assigned by Cobo. |
-| `custom_payer_id` | `string` | Required | The payer ID you supplied when registering the deposit address; `null` if you supplied none. |
-| `status` | `string` | Required | The current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `amount` | `object` | Required | The deposit's amount. It never changes and is kept even when the deposit fails. |
-| `amount.amount` | `string` | Required | The amount, as a decimal string. |
-| `amount.token_id` | `string` | Required | The token ID. |
-| `amount.chain_id` | `string` | Required | The chain ID. |
-| `tx_hash` | `string` | Required | The on-chain transaction hash. `null` for an internal Cobo transfer that never goes on-chain, and never filled in later. Do not use it as an idempotency key. |
-| `topup_address` | `string` | Required | The deposit address that received the funds. Use it to identify the payer and chain. |
-| `source_address` | `string` | Required | The on-chain sender, and the target if you return the funds. `null` when the chain does not identify a sender. |
-| `screening_mode` | `string` | Required | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo's own KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo.<br/>Both can require action from you, so **read `status` to know whether it is your turn**. `null` outside screening; it can also be `null` during screening, which means Cobo could not determine the provider at that moment, not that none is configured. |
-| `message` | `string` | Required | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
-| `failed_reason` | `object` | Required | Set when `status` is `Failed`; `null` otherwise. |
-| `failed_reason.code` | `string` | Required | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
-| `failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
-| `created_timestamp` | `integer` | Required | When this deposit was created, in Unix timestamp (seconds). |
-| `updated_timestamp` | `integer` | Required | When this deposit last changed status, in Unix timestamp (seconds). |
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentTopUpUpdate`. |
+| `transaction_id` | `string` | The deposit's ID. Use it as the idempotency key for crediting, and as the parameter for Cobo's compliance operations. |
+| `merchant_id` | `string` | Which merchant this deposit belongs to. |
+| `payer_id` | `string` | The payer ID assigned by Cobo. |
+| `custom_payer_id` | `string` | The payer ID you supplied when registering the deposit address; `null` if you supplied none. |
+| `status` | `string` | The current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `amount` | `object` | The deposit's amount. It never changes and is kept even when the deposit fails. |
+| `amount.amount` | `string` | The amount, as a decimal string. |
+| `amount.token_id` | `string` | The token ID. |
+| `amount.chain_id` | `string` | The chain ID. |
+| `tx_hash` | `string` | The on-chain transaction hash. `null` for an internal Cobo transfer that never goes on-chain, and never filled in later. Do not use it as an idempotency key. |
+| `topup_address` | `string` | The deposit address that received the funds. Use it to identify the payer and chain. |
+| `source_address` | `string` | The on-chain sender, and the target if you return the funds. `null` when the chain does not identify a sender. |
+| `screening_mode` | `string` | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo's own KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo.<br/>Both can require action from you, so **read `status` to know whether it is your turn**. `null` outside screening; it can also be `null` during screening, which means Cobo could not determine the provider at that moment, not that none is configured. |
+| `message` | `string` | What to do when `status` is `ActionRequired`; `null` otherwise. Written for human operators — **never match on it**. The fixed strings are:<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `failed_reason` | `object` | Set when `status` is `Failed`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `created_timestamp` | `integer` | When this deposit was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When this deposit last changed status, in Unix timestamp (seconds). |
 
 </div>
 
@@ -212,15 +212,15 @@ Fires when a payer's deposit address is replaced. Update the address you show th
 
 <div className="field-table">
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentAddressUpdate`. |
-| `merchant_id` | `string` | Required | Which merchant the payer belongs to. |
-| `payer_id` | `string` | Required | The payer whose address changed, as assigned by Cobo. |
-| `custom_payer_id` | `string` | Required | The same payer's ID in your own system, `null` if you supplied none. |
-| `chain` | `string` | Required | The chain the address is on. Only the address on this chain changed. |
-| `previous_address` | `string` | Required | The address before the replacement. |
-| `updated_address` | `string` | Required | The address to show the payer from now on. |
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentAddressUpdate`. |
+| `merchant_id` | `string` | Which merchant the payer belongs to. |
+| `payer_id` | `string` | The payer whose address changed, as assigned by Cobo. |
+| `custom_payer_id` | `string` | The same payer's ID in your own system, `null` if you supplied none. |
+| `chain` | `string` | The chain the address is on. Only the address on this chain changed. |
+| `previous_address` | `string` | The address before the replacement. |
+| `updated_address` | `string` | The address to show the payer from now on. |
 
 </div>
 

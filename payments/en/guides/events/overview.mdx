@@ -174,7 +174,7 @@ A top-up has no separate `topup_id`. Its record ID is `transaction_id`, because 
 
 | ID | What it protects against |
 | --- | --- |
-| `event_id` | Redelivery. The same message retried carries the same `event_id`. |
+| `event_id` | Redelivery. The same message retried carries the same `event_id`. **Deduplicate on this only** — the same `status` can legitimately occur twice, as when a payout rejected by the bank is retried against another account and returns to `Transferring`. |
 | Business record ID | The same business fact being acted on twice through different events or code paths. |
 
 Implement both. Put a unique constraint on `event_id` for delivery, and a second one on the business record ID for each irreversible action such as crediting funds, releasing goods, or closing a payout.
@@ -191,7 +191,9 @@ Implement both. Put a unique constraint on `event_id` for delivery, and a second
 
 **Delivery is not ordered.** Upsert by business record ID and order events by `data.updated_timestamp`: **discard an event only when it is strictly older than what you have, never when it is equal** (the precision is one second, and one second can hold several events with different content). A terminal state must never be rolled back by a later-arriving in-progress event.
 
-**A field with no value is absent.** When a field does not apply, the key is omitted rather than set to `null`. Read optional fields defensively, for example `payload.get("failed_reason")` rather than `payload["failed_reason"]`.
+**Overwrite your local state with the `status` on each event; do not validate that a transition is legal.** An intermediate state may have no event of its own — a deposit can go from `Detected` straight to `Completed` — and that is not a lost event. States that need you to act are never skipped.
+
+**Fields are always present, and `null` when they do not apply.** Every field in the field tables appears in the payload, except those marked Optional or "Present only when…". `failed_reason`, for example, has a value only on failure and is `null` otherwise rather than missing; empty array fields are `[]`. Handle the `null`; do not test for the key.
 
 ## Read failure reasons
 

@@ -279,21 +279,16 @@ table:not(.six-columns-fixed-first-row-cn):not(.six-columns-fixed-first-row) td:
 
 .field-table th:nth-child(1),
 .field-table td:nth-child(1) {
-  width: 11rem;
+  width: 13rem;
 }
 
 .field-table th:nth-child(2),
 .field-table td:nth-child(2) {
-  width: 4.5rem;
+  width: 5.5rem;
 }
 
 .field-table th:nth-child(3),
 .field-table td:nth-child(3) {
-  width: 5rem;
-}
-
-.field-table th:nth-child(4),
-.field-table td:nth-child(4) {
   width: auto;
 }
 

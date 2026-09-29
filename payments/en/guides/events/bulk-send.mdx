@@ -35,37 +35,37 @@ In an organization with an approval workflow, a new batch waits for approval fir
 
 <div className="field-table">
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentBulkSendUpdate`. |
-| `bulk_send_id` | `string` | Required | The batch ID. |
-| `request_id` | `string` | Optional | The request ID you provided when creating the batch. |
-| `source_account` | `string` | Required | The account the batch pays from: a merchant ID, or `developer`. |
-| `status` | `string` | Required | The current batch status; see [Batch trigger conditions](#batch-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
-| `execution_mode` | `string` | Required | The execution mode:<br/>• `Strict` — the whole batch stops when any item fails **validation**.<br/>• `Partial` — only the items that fail validation are held back; the rest continue.<br/>`Strict` governs validation only and **does not make the batch all-or-nothing on-chain** — if every item passes validation and one fails after submission, the batch ends `PartiallyCompleted`. |
-| `item_count` | `integer` | Required | How many items the batch contains. |
-| `failed_item_count` | `integer` | Required | Items submitted for execution that failed. Their funds were locked and fees charged, then released and refunded. Whether you can resend one as is depends on its `failed_reason.code`. |
-| `not_executed_item_count` | `integer` | Required | Items never submitted for execution; their funds were not used. Resending without fixing the cause fails the same way. |
-| `requested_amounts` | `array` | Required | The requested total across all items, grouped by `token_id`. The same token symbol on two chains is two entries and cannot be merged. |
-| `requested_amounts.amount` | `string` | Required | The amount, as a decimal string. |
-| `requested_amounts.token_id` | `string` | Required | The token ID. |
-| `requested_amounts.chain_id` | `string` | Required | The chain ID. |
-| `completed_amounts` | `array` | Required | The total for completed items, grouped by `token_id`. |
-| `completed_amounts.amount` | `string` | Required | The amount, as a decimal string. |
-| `completed_amounts.token_id` | `string` | Required | The token ID. |
-| `completed_amounts.chain_id` | `string` | Required | The chain ID. |
-| `failed_amounts` | `array` | Required | The total for items that did not succeed, grouped by `token_id`, combining items that were submitted and items that never were. Use `failed_item_count` and `not_executed_item_count` to tell them apart. |
-| `failed_amounts.amount` | `string` | Required | The amount, as a decimal string. |
-| `failed_amounts.token_id` | `string` | Required | The token ID. |
-| `failed_amounts.chain_id` | `string` | Required | The chain ID. |
-| `description` | `string` | Required | The note you wrote for the whole batch; `null` if none. |
-| `commission_fee` | `object` | Required | The commission Cobo charged; `null` when none was charged. |
-| `commission_fee.fee_amount` | `string` | Required | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. It is a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |
-| `failed_reason` | `object` | Required | Set when `status` is `Failed`; `null` otherwise. |
-| `failed_reason.code` | `string` | Required | The failure code to branch on. See [Batch failure reasons](#batch-failure-reasons) for the values. |
-| `failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
-| `created_timestamp` | `integer` | Required | When the batch was created, in Unix timestamp (seconds). |
-| `updated_timestamp` | `integer` | Required | When the batch last changed status, in Unix timestamp (seconds). |
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentBulkSendUpdate`. |
+| `bulk_send_id` | `string` | The batch ID. |
+| `request_id` | `string` | **Optional.** The request ID you provided when creating the batch. |
+| `source_account` | `string` | The account the batch pays from: a merchant ID, or `developer`. |
+| `status` | `string` | The current batch status; see [Batch trigger conditions](#batch-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
+| `execution_mode` | `string` | The execution mode:<br/>• `Strict` — the whole batch stops when any item fails **validation**.<br/>• `Partial` — only the items that fail validation are held back; the rest continue.<br/>`Strict` governs validation only and **does not make the batch all-or-nothing on-chain** — if every item passes validation and one fails after submission, the batch ends `PartiallyCompleted`. |
+| `item_count` | `integer` | How many items the batch contains. |
+| `failed_item_count` | `integer` | Items submitted for execution that failed. Their funds were locked and fees charged, then released and refunded. Whether you can resend one as is depends on its `failed_reason.code`. |
+| `not_executed_item_count` | `integer` | Items never submitted for execution; their funds were not used. Resending without fixing the cause fails the same way. |
+| `requested_amounts` | `array` | The requested total across all items, grouped by `token_id`. The same token symbol on two chains is two entries and cannot be merged. |
+| `requested_amounts.amount` | `string` | The amount, as a decimal string. |
+| `requested_amounts.token_id` | `string` | The token ID. |
+| `requested_amounts.chain_id` | `string` | The chain ID. |
+| `completed_amounts` | `array` | The total for completed items, grouped by `token_id`. |
+| `completed_amounts.amount` | `string` | The amount, as a decimal string. |
+| `completed_amounts.token_id` | `string` | The token ID. |
+| `completed_amounts.chain_id` | `string` | The chain ID. |
+| `failed_amounts` | `array` | The total for items that did not succeed, grouped by `token_id`, combining items that were submitted and items that never were. Use `failed_item_count` and `not_executed_item_count` to tell them apart. |
+| `failed_amounts.amount` | `string` | The amount, as a decimal string. |
+| `failed_amounts.token_id` | `string` | The token ID. |
+| `failed_amounts.chain_id` | `string` | The chain ID. |
+| `description` | `string` | The note you wrote for the whole batch; `null` if none. |
+| `commission_fee` | `object` | The commission Cobo charged; `null` when none was charged. |
+| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. It is a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |
+| `failed_reason` | `object` | Set when `status` is `Failed`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code to branch on. See [Batch failure reasons](#batch-failure-reasons) for the values. |
+| `failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `created_timestamp` | `integer` | When the batch was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the batch last changed status, in Unix timestamp (seconds). |
 
 </div>
 
@@ -233,26 +233,26 @@ The item-level event, identified by `bulk_send_item_id`.
 
 <div className="field-table">
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `data_type` | `string` | Required | Always `PaymentBulkSendItemUpdate`. |
-| `bulk_send_item_id` | `string` | Required | The item ID, and the key you use to reconcile. |
-| `bulk_send_id` | `string` | Required | The batch this item belongs to. |
-| `request_id` | `string` | Optional | The batch's request ID, identical for every item in it. Use `bulk_send_item_id` for per-item idempotency. |
-| `source_account` | `string` | Required | The account the batch pays from. |
-| `status` | `string` | Required | The item's current status; see [Item trigger conditions](#item-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
-| `requested_amount` | `object` | Required | The amount this item sends. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
-| `requested_amount.amount` | `string` | Required | The amount, as a decimal string. |
-| `requested_amount.token_id` | `string` | Required | The token ID. |
-| `requested_amount.chain_id` | `string` | Required | The chain ID. |
-| `receiving_address` | `string` | Required | The recipient's address. |
-| `tx_hash` | `string` | Required | The on-chain hash of this item's transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
-| `description` | `string` | Required | The note you wrote for this item; `null` if none. |
-| `failed_reason` | `object` | Required | Set when `status` is `Failed` or `NotExecuted`; `null` otherwise. |
-| `failed_reason.code` | `string` | Required | The failure code to branch on. See [Item failure reasons](#item-failure-reasons) for the values. |
-| `failed_reason.message` | `string` | Required | An explanation for human operators. Never match on it. |
-| `created_timestamp` | `integer` | Required | When the item was created, in Unix timestamp (seconds). |
-| `updated_timestamp` | `integer` | Required | When the item last changed status, in Unix timestamp (seconds). |
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentBulkSendItemUpdate`. |
+| `bulk_send_item_id` | `string` | The item ID, and the key you use to reconcile. |
+| `bulk_send_id` | `string` | The batch this item belongs to. |
+| `request_id` | `string` | **Optional.** The batch's request ID, identical for every item in it. Use `bulk_send_item_id` for per-item idempotency. |
+| `source_account` | `string` | The account the batch pays from. |
+| `status` | `string` | The item's current status; see [Item trigger conditions](#item-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
+| `requested_amount` | `object` | The amount this item sends. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
+| `requested_amount.amount` | `string` | The amount, as a decimal string. |
+| `requested_amount.token_id` | `string` | The token ID. |
+| `requested_amount.chain_id` | `string` | The chain ID. |
+| `receiving_address` | `string` | The recipient's address. |
+| `tx_hash` | `string` | The on-chain hash of this item's transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
+| `description` | `string` | The note you wrote for this item; `null` if none. |
+| `failed_reason` | `object` | Set when `status` is `Failed` or `NotExecuted`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code to branch on. See [Item failure reasons](#item-failure-reasons) for the values. |
+| `failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `created_timestamp` | `integer` | When the item was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the item last changed status, in Unix timestamp (seconds). |
 
 </div>
 
