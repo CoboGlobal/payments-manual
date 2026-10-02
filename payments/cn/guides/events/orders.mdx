@@ -30,12 +30,12 @@ lang: "zh-hans"
 | 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | `null` | 发货，以 `order_id` 作为幂等键。 |
 | 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid` | `null` | 进入少付处理，不要按足额订单发货。 |
 | 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired` | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 订单已是终态（或在这一条事件里刚进入终态），又收到一笔入金**且该笔通过筛查** | 终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
-| 订单已是终态，晚到的那笔**筛查未通过** | 终态 | `PaymentFailed` | 无需处理，该笔资金未入账。 |
+| 订单已是终态（或在这一条事件里刚进入终态），又收到一笔入金**且该笔通过合规筛查** | 终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
+| 订单已是终态，晚到的那笔**合规筛查未通过** | 终态 | `PaymentFailed` | 无需处理，该笔资金未入账。 |
 
 **终态在有效期结束那一刻定下来，之后不再重算。** 因此您可能看到 `status` 为 `Expired`、`credited_amount` 为 `0`，而 `transactions` 里有一条 `Completed`——该笔入金在订单到期后才到达（`is_late` 为 `true`），不参与终态判定，也不计入 `credited_amount`。
 
-**这些情况不发事件**：检测到第二笔及以后的入金、入金进入筛查、入金顺利通过筛查（`credited_amount` 会变但不通知）、晚到款刚到达还没走完筛查。
+**这些情况不发事件**：检测到第二笔及以后的入金、入金进入合规筛查、入金顺利通过合规筛查（`credited_amount` 会变但不通知）、晚到款刚到达还没走完合规筛查。
 
 ### 事件内容
 
@@ -51,12 +51,12 @@ lang: "zh-hans"
 | `receive_address` | `string` | 付款方转账的目标地址。 |
 | `expired_at` | `integer` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 订单当前状态，含义见[事件触发条件](#事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
-| `notice_type` | `string` | 通知类型，说明本条事件涉及的入金变化：<br/>• `PaymentUpdated`：某笔入金进入 `ActionRequired`。<br/>• `PaymentFailed`：某笔入金失败。<br/>• `LatePaymentReceived`：晚到款通过筛查。<br/>不涉及上述变化时为 `null`。它有值时 `status` 通常不变，但也可能同时变化——**判断订单状态是否变化，只比较 `status`**。 |
+| `notice_type` | `string` | 通知类型，说明本条事件涉及的入金变化：<br/>• `PaymentUpdated`：某笔入金进入 `ActionRequired`。<br/>• `PaymentFailed`：某笔入金失败。<br/>• `LatePaymentReceived`：晚到款通过合规筛查。<br/>不涉及上述变化时为 `null`。它有值时 `status` 通常不变，但也可能同时变化——**判断订单状态是否变化，只比较 `status`**。 |
 | `requested_amount` | `object` | 订单应收总额，**含您的手续费**，创建时确定、之后不变，用于向付款方展示。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status` 为 `Completed` 为准。 |
 | `requested_amount.amount` | `string` | 金额，十进制字符串。 |
 | `requested_amount.token_id` | `string` | 币种 ID。 |
 | `requested_amount.chain_id` | `string` | 链 ID。 |
-| `credited_amount` | `object` | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：筛查中的入金、等待您处理的入金、被拒绝的入金，以及订单结束后才到达的入金（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自行对 `transactions` 求和**，晚到款会使结果偏大。<br/>• ⚠️ 它**包含将分给您的手续费，不是商户的入账金额**。各账户实际收到的金额见[余额变动](/payments/cn/guides/events/balances)。 |
+| `credited_amount` | `object` | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：合规筛查中的入金、等待您处理的入金、被拒绝的入金，以及订单结束后才到达的入金（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自行对 `transactions` 求和**，晚到款会使结果偏大。<br/>• ⚠️ 它**包含将分给您的手续费，不是商户的入账金额**。各账户实际收到的金额见[余额变动](/payments/cn/guides/events/balances)。 |
 | `credited_amount.amount` | `string` | 金额，十进制字符串。 |
 | `credited_amount.token_id` | `string` | 币种 ID。 |
 | `credited_amount.chain_id` | `string` | 链 ID。 |
@@ -74,7 +74,7 @@ lang: "zh-hans"
 | `transactions.source_address` | `string` | 付款方的链上地址，无法识别时为 `null`。 |
 | `transactions.status` | `string` | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
 | `transactions.is_late` | `boolean` | `true` 表示该笔入金在订单进入终态后才到达，不计入 `credited_amount`。 |
-| `transactions.screening_mode` | `string` | 这笔入金由哪套筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在筛查中时为 `null`；筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
+| `transactions.screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在合规筛查中时为 `null`；合规筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
 | `transactions.message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `transactions.failed_reason` | `object` | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
 | `transactions.failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
@@ -128,7 +128,7 @@ lang: "zh-hans"
 
 #### 检测到首笔入金
 
-更新进度。不要发货：这笔入金还在筛查中，`credited_amount` 仍然是 `0`。
+更新进度。不要发货：这笔入金还在合规筛查中，`credited_amount` 仍然是 `0`。
 
 ```json
 {
@@ -239,7 +239,7 @@ lang: "zh-hans"
 
 #### 订单已付清
 
-**发货。** 两笔入金通过筛查，合计达到阈值。以 `order_id` 作为幂等键，不要自己比较金额。
+**发货。** 两笔入金通过合规筛查，合计达到阈值。以 `order_id` 作为幂等键，不要自己比较金额。
 
 ```json
 {

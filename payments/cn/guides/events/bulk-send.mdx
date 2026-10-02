@@ -264,7 +264,7 @@ lang: "zh-hans"
 | --- | --- | --- |
 | `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 | 修正后在新批次中重发该条目。 |
 | `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 | 修正后在新批次中重发该条目。 |
-| `payment.address_kya_failed` | 收款地址未通过 KYA 筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
+| `payment.address_kya_failed` | 收款地址未通过 KYA 合规筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
 | `payment.strict_mode_other_items_validation_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目未通过校验。 | 修正那个条目后重发本条目。 |
 | `payment.strict_mode_other_sweep_tasks_failed` | 该条目本身没有问题。`Strict` 模式下有别的归集失败。 | 在新批次中重发。 |
 | `payment.strict_mode_other_items_commission_fee_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目佣金扣收失败。 | 处理 Fee Station 后重发。 |

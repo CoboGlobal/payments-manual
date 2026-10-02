@@ -26,7 +26,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
       <td rowSpan={5}>**充值**</td>
       <td>[`payment.topup.updated`](/payments/cn/guides/events/top-up#payment-topup-updated)</td>
       <td>标准事件</td>
-      <td>一笔充值从被检测到、经过筛查，直到可以入账或者失败。</td>
+      <td>一笔充值从被检测到、经过合规筛查，直到可以入账或者失败。</td>
     </tr>
     <tr>
       <td>[`payment.address.updated`](/payments/cn/guides/events/top-up#payment-address-updated)</td>
@@ -41,12 +41,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔入金通过筛查，附带确认数、链上交易手续费和区块信息。</td>
+      <td>一笔入金通过合规筛查，附带确认数、链上交易手续费和区块信息。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔入金未通过筛查，附带交易细节。</td>
+      <td>一笔入金未通过合规筛查，附带交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={5}>**订单**</td>
@@ -62,17 +62,17 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.late`](/payments/cn/guides/events/advanced#payment-transaction-late)</td>
       <td>高级事件</td>
-      <td>订单进入终态后又收到一笔通过筛查的入金。</td>
+      <td>订单进入终态后又收到一笔通过合规筛查的入金。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔入金通过筛查，附带链上细节。</td>
+      <td>一笔入金通过合规筛查，附带链上细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔入金未通过筛查，附带交易细节。</td>
+      <td>一笔入金未通过合规筛查，附带交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
@@ -83,7 +83,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
       <td>标准事件</td>
-      <td>该笔入金通过筛查，已计入您的开发者余额。</td>
+      <td>该笔入金通过合规筛查，已计入您的开发者余额。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**退款**</td>

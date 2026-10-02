@@ -9,7 +9,7 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.topup.updated`](#payment-topup-updated) | 一笔充值的全过程：检测到、筛查中、可以入账、或者失败。 | 标准事件 |
+| [`payment.topup.updated`](#payment-topup-updated) | 一笔充值的全过程：检测到、合规筛查中、可以入账、或者失败。 | 标准事件 |
 | [`payment.address.updated`](#payment-address-updated) | 某个付款方的入金地址被替换。除了您自己发起的更换，Cobo 也会主动更换地址。 | 标准事件 |
 
 ## `payment.topup.updated`
@@ -26,14 +26,14 @@ lang: "zh-hans"
 | --- | --- | --- | --- |
 | 入金地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理入金。 |
 | 该笔入金进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
-| 筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
-| 筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
+| 合规筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
+| 合规筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
 | 该笔入金被拒绝或失败 | `Failed` | ❌ | 读取 `failed_reason.code` 决定下一步。 |
 
 **金额不超过粉尘阈值的入金不发事件**，各 token 的阈值见登记入金地址接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
 
 <Warning>
-  **中间状态可能不出现。** 一笔入金可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过筛查。请用每条事件里的 `status` 覆盖本地状态，不要校验状态迁移是否合法，也不要等 `PendingScreening` 再做什么。需要您动手的 `ActionRequired` 会一直停在那里，不会被跳过。
+  **中间状态可能不出现。** 一笔入金可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过合规筛查。请用每条事件里的 `status` 覆盖本地状态，不要校验状态迁移是否合法，也不要等 `PendingScreening` 再做什么。需要您动手的 `ActionRequired` 会一直停在那里，不会被跳过。
 </Warning>
 
 ### 事件内容
@@ -55,7 +55,7 @@ lang: "zh-hans"
 | `tx_hash` | `string` | 链上交易哈希。Cobo 内部划转不上链，此时为 `null`，且不会后补。不要用它做幂等键。 |
 | `topup_address` | `string` | 收到这笔资金的入金地址，可据此确定对应的付款方和链。 |
 | `source_address` | `string` | 链上发送方，原路退回时作为转出目标。链上无法识别时为 `null`。 |
-| `screening_mode` | `string` | 这笔入金由哪套筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在筛查中时为 `null`；筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
+| `screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在合规筛查中时为 `null`；合规筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
 | `message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
 | `failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
@@ -65,7 +65,7 @@ lang: "zh-hans"
 
 </div>
 
-提交筛查结论时，调用 [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) 并传入本事件中的 `transaction_id`。资金退回、隔离、解冻同样按 `transaction_id` 定位，这些接口都不接受 `tx_hash`。
+提交合规筛查结论时，调用 [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) 并传入本事件中的 `transaction_id`。资金退回、隔离、解冻同样按 `transaction_id` 定位，这些接口都不接受 `tx_hash`。
 
 ### 失败原因
 
@@ -129,7 +129,7 @@ lang: "zh-hans"
 }
 ```
 
-#### 筛查需要您处理
+#### 合规筛查需要您处理
 
 把这笔入金放进人工队列，按 `message` 决定做哪件事。
 
