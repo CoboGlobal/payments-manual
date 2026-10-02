@@ -10,7 +10,7 @@ Cobo Payments notifies your system through webhook events. This page lists every
 Events come in two kinds:
 
 - **Standard events** report the outcome of each payment business. Subscribe to the ones for the businesses you use.
-- **Advanced events** provide detail about the underlying on-chain transactions, such as confirmations, fees, and block information. The business outcome is already reported by a standard event, so you do not need to subscribe to these unless you need that detail.
+- **Advanced events** provide detail about the underlying on-chain transactions, such as confirmations, on-chain transaction fees, and block information. The business outcome is already reported by a standard event, so you do not need to subscribe to these unless you need that detail.
 
 <table>
   <thead>
@@ -41,7 +41,7 @@ Events come in two kinds:
     <tr>
       <td>[`payment.transaction.completed`](/payments/en/guides/events/advanced#payment-transaction-completed)</td>
       <td>Advanced</td>
-      <td>A deposit cleared screening, with confirmation counts, fees and block information.</td>
+      <td>A deposit cleared screening, with confirmation counts, on-chain transaction fees, and block information.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>

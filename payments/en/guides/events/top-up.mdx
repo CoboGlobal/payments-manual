@@ -7,10 +7,10 @@ This page covers Top-up Mode: each payer has their own deposit address, and ever
 
 ## Events on this page
 
-| Event | What it notifies you of | When you need it |
+| Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.topup.updated`](#payment-topup-updated) | One deposit's whole life: detected, screened, available to credit, or failed. | Always — this is the event for top-up deposits. |
-| [`payment.address.updated`](#payment-address-updated) | A payer's deposit address was replaced. | Required. Besides replacements you request yourself, **Cobo also replaces addresses on its own**, and there is no other way to learn about those. |
+| [`payment.topup.updated`](#payment-topup-updated) | One deposit's whole life: detected, screened, available to credit, or failed. | Standard |
+| [`payment.address.updated`](#payment-address-updated) | A payer's deposit address was replaced. Besides replacements you request, Cobo also replaces addresses on its own. | Standard |
 
 ## `payment.topup.updated`
 
@@ -238,5 +238,5 @@ Fires when a payer's deposit address is replaced. Update the address you show th
 
 ## Related
 
-- For confirmation counts, fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Advanced events](/payments/en/guides/events/advanced).
+- For confirmation counts, on-chain transaction fee breakdowns, and the on-chain detail behind each deposit, subscribe to `payment.transaction.created`, `payment.transaction.completed`, and `payment.transaction.failed`. See [Advanced events](/payments/en/guides/events/advanced).
 - `payment.account.balance.updated` reports the matching balance movement. See [Balance changes](/payments/en/guides/events/balances).

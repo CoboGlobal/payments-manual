@@ -9,10 +9,10 @@ For batch payouts, see [Bulk send events](/payments/en/guides/events/bulk-send).
 
 ## Events on this page
 
-| Event | What it notifies you of | When you need it |
+| Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.payout.updated`](#payment-payout-updated) | A payout's result: in progress, completed, partially completed, failed, or rejected by the receiving bank. | Always — this is the event for payouts. |
-| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | A fiat withdrawal from one of your virtual accounts to a bank account changed status. | Required if you withdraw fiat. It is the only event for that flow. |
+| [`payment.payout.updated`](#payment-payout-updated) | A payout's result: in progress, completed, partially completed, failed, or rejected by the receiving bank. | Standard |
+| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | A fiat withdrawal from one of your virtual accounts to a bank account changed status. | Standard |
 
 ## `payment.payout.updated`
 

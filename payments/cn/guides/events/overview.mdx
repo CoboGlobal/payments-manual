@@ -10,7 +10,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 事件分为两类：
 
 - **标准事件**：各支付业务的结果通知，按您使用的业务订阅。
-- **高级事件**：提供底层链上交易的细节，例如确认数、手续费和区块信息。同一业务结果已由标准事件通知，除非您需要这些细节，否则无需订阅。
+- **高级事件**：提供底层链上交易的细节，例如确认数、链上交易手续费和区块信息。同一业务结果已由标准事件通知，除非您需要这些细节，否则无需订阅。
 
 <table>
   <thead>
@@ -41,7 +41,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔入金通过筛查，附带确认数、手续费和区块信息。</td>
+      <td>一笔入金通过筛查，附带确认数、链上交易手续费和区块信息。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>

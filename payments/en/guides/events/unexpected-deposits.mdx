@@ -7,10 +7,10 @@ A deposit that belongs to no deposit plan and no order, or that arrives in a tok
 
 ## Events on this page
 
-| Event | What it notifies you of | When you need it |
+| Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.transaction.external.created`](#payment-transaction-external) | An unexpected deposit was detected. | Required. Such a deposit belongs to no payer and no order, and no other event tells you it arrived. |
-| [`payment.transaction.external.completed`](#payment-transaction-external) | It cleared screening and was credited to your developer balance. | Required. Same as above; this one tells you it was credited. |
+| [`payment.transaction.external.created`](#payment-transaction-external) | An unexpected deposit was detected. | Standard |
+| [`payment.transaction.external.completed`](#payment-transaction-external) | It cleared screening and was credited to your developer balance. | Standard |
 
 ## `payment.transaction.external`
 

@@ -7,10 +7,10 @@ lang: "zh-hans"
 
 ## 本页的事件
 
-| 事件 | 通知什么 | 什么时候需要订阅 |
+| 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.topup.updated`](#payment-topup-updated) | 一笔充值的全过程：检测到、筛查中、可以入账、或者失败。 | 必选——这是充值业务的事件。 |
-| [`payment.address.updated`](#payment-address-updated) | 某个付款方的入金地址被替换了。 | 必选。除了您自己发起的更换，**Cobo 也会主动更换地址**，那种情况下没有别的途径能知道。 |
+| [`payment.topup.updated`](#payment-topup-updated) | 一笔充值的全过程：检测到、筛查中、可以入账、或者失败。 | 标准事件 |
+| [`payment.address.updated`](#payment-address-updated) | 某个付款方的入金地址被替换。除了您自己发起的更换，Cobo 也会主动更换地址。 | 标准事件 |
 
 ## `payment.topup.updated`
 
@@ -238,5 +238,5 @@ lang: "zh-hans"
 
 ## 相关
 
-- 需要确认数、手续费明细，以及每笔入金背后的链上细节时，订阅 `payment.transaction.created`、`payment.transaction.completed` 和 `payment.transaction.failed`。参见[高级事件](/payments/cn/guides/events/advanced)。
+- 需要确认数、链上交易手续费明细，以及每笔入金背后的链上细节时，订阅 `payment.transaction.created`、`payment.transaction.completed` 和 `payment.transaction.failed`。参见[高级事件](/payments/cn/guides/events/advanced)。
 - `payment.account.balance.updated` 汇报相应的余额变动。参见[余额变动](/payments/cn/guides/events/balances)。
