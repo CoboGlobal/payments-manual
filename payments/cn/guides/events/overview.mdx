@@ -236,8 +236,8 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本章按支付业务组
 
 **金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。应付类金额本来就不超过 2 位；链上实收金额按 `ROUND_DOWN` 截断，因此可能比链上的实际数值少几位。
 
-Webhook 消息不携带余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。要保持自己账本的实时性，请在收到事件时调用[List merchant balances](/payments/en/api-references/payment/list-merchant-balances)或[Get developer balances](/payments/en/api-references/payment/get-developer-balance)。需要手续费明细时，请使用交易查询接口或[Generate reports](/payments/en/api-references/payment/generate-reports)。
+Webhook 消息不携带余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。要保持自己账本的实时性，请在收到事件时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。需要手续费明细时，请使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。
 
 ## 测试您的接收端
 
-使用[Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event)向您已注册的接收端投递一条样例消息。
+使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) 向您已注册的接收端投递一条样例消息。
