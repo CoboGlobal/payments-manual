@@ -25,119 +25,119 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td rowSpan={5}>**充值**</td>
       <td>[`payment.topup.updated`](/payments/cn/guides/events/top-up#payment-topup-updated)</td>
-      <td>标准事件</td>
-      <td>一笔充值从被检测到、经过合规筛查，直到完成或失败。</td>
+      <td>**标准事件**</td>
+      <td>充值状态发生变更：已检测到、合规筛查中、需要处理、完成或失败。</td>
     </tr>
     <tr>
       <td>[`payment.address.updated`](/payments/cn/guides/events/top-up#payment-address-updated)</td>
-      <td>标准事件</td>
-      <td>付款方的入金地址被替换。Cobo 也会主动更换地址。</td>
+      <td>**标准事件**</td>
+      <td>付款方的充值地址被替换。Cobo 也会主动更换地址。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.created`](/payments/cn/guides/events/advanced#payment-transaction-created)</td>
       <td>高级事件</td>
-      <td>入金地址收到一笔新的入金，附带链上细节。</td>
+      <td>充值地址收到一笔新的充值，附带链上交易细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔入金通过合规筛查，附带确认数、链上交易手续费和区块信息。</td>
+      <td>一笔充值通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔入金未通过合规筛查，附带交易细节。</td>
+      <td>一笔充值未通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={5}>**订单**</td>
       <td>[`payment.order.updated`](/payments/cn/guides/events/orders#payment-order-updated)</td>
-      <td>标准事件</td>
-      <td>订单的收款结果：已付清、少付、过期，以及某笔入金需要处理、失败，或订单结束后收到晚到款。</td>
+      <td>**标准事件**</td>
+      <td>支付订单状态发生变更：待支付、处理中、已付清、少付或过期；某笔订单支付需要处理、失败，或在订单结束后到达时也会通知。</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#payment-order-status-updated)</td>
       <td>高级事件</td>
-      <td>订单的交易明细，包括 `transactions` 数组和费用字段。</td>
+      <td>支付订单状态发生变更，附带链上交易细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.late`](/payments/cn/guides/events/advanced#payment-transaction-late)</td>
       <td>高级事件</td>
-      <td>订单进入终态后又收到一笔通过合规筛查的入金。</td>
+      <td>订单进入终态后又收到一笔通过合规筛查的支付。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔入金通过合规筛查，附带链上细节。</td>
+      <td>一笔订单支付通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔入金未通过合规筛查，附带交易细节。</td>
+      <td>一笔订单支付未通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
       <td>[`payment.transaction.external.created`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
-      <td>标准事件</td>
-      <td>收到一笔不属于任何入金计划、也不属于任何订单的入金，或者币种不受支持。</td>
+      <td>**标准事件**</td>
+      <td>检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
-      <td>标准事件</td>
+      <td>**标准事件**</td>
       <td>该笔入金通过合规筛查，已计入您的开发者余额。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**退款**</td>
       <td>[`payment.refund.updated`](/payments/cn/guides/events/refunds#payment-refund-updated)</td>
-      <td>标准事件</td>
-      <td>退款单：已创建待执行、已完成，或失败且未退还任何资金。</td>
+      <td>**标准事件**</td>
+      <td>退款单状态发生变更：待执行、完成或失败。</td>
     </tr>
     <tr>
       <td>[`payment.refund.status.updated`](/payments/cn/guides/events/advanced#payment-refund-status-updated)</td>
       <td>高级事件</td>
-      <td>退款的交易明细，包括 `transactions` 数组和费用字段。</td>
+      <td>退款单状态发生变更，附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**资金转出**</td>
       <td>[`payment.payout.updated`](/payments/cn/guides/events/payouts#payment-payout-updated)</td>
-      <td>标准事件</td>
-      <td>一笔转出：处理中、已完成、部分完成、失败，或被收款银行拒绝。</td>
+      <td>**标准事件**</td>
+      <td>资金转出状态发生变更：已受理、准备资金、转出中、完成、部分完成、失败或被收款银行退回。</td>
     </tr>
     <tr>
       <td>[`payment.payout.status.updated`](/payments/cn/guides/events/advanced#payment-payout-status-updated)</td>
       <td>高级事件</td>
-      <td>转出的交易明细，包括 `transactions` 数组和 `payout_items`。</td>
+      <td>资金转出状态发生变更，附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={1}>**法币提现**</td>
       <td>[`payment.bank_withdrawal.status.updated`](/payments/cn/guides/events/payouts#payment-bank_withdrawal-status-updated)</td>
-      <td>标准事件</td>
+      <td>**标准事件**</td>
       <td>从您的虚拟账户提现法币到银行账户的状态变更。</td>
     </tr>
     <tr>
       <td rowSpan={4}>**批量下发**</td>
       <td>[`payment.bulk_send.updated`](/payments/cn/guides/events/bulk-send#payment-bulk_send-updated)</td>
-      <td>标准事件</td>
-      <td>批次的结果，以及金额和数量汇总。</td>
+      <td>**标准事件**</td>
+      <td>批量下发批次状态发生变更：已创建、校验中、执行中、完成、部分完成或失败，附带金额和条目数量汇总。</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send#payment-bulk_send-item-updated)</td>
-      <td>标准事件</td>
-      <td>单个条目的结果，区分「已提交后失败」和「从未提交」。</td>
+      <td>**标准事件**</td>
+      <td>批量下发条目状态发生变更：待执行、执行中、完成、失败或未执行。</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.status.updated`](/payments/cn/guides/events/advanced#payment-bulk_send-status-updated)</td>
       <td>高级事件</td>
-      <td>批次的交易明细。</td>
+      <td>批量下发批次状态发生变更。</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.item.status.updated`](/payments/cn/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>高级事件</td>
-      <td>条目的交易明细，包括 `validation_status`。</td>
+      <td>批量下发条目状态发生变更。</td>
     </tr>
     <tr>
       <td rowSpan={1}>**余额**</td>
       <td>[`payment.account.balance.updated`](/payments/cn/guides/events/balances#payment-account-balance-updated)</td>
-      <td>标准事件</td>
+      <td>**标准事件**</td>
       <td>某账户某币种的可用余额变动，给出变动前后的余额和变动来源。</td>
     </tr>
   </tbody>
@@ -145,9 +145,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 ## 事件结构
 
-所有 Webhook 消息共用同一个外层结构。先用 `type` 路由，再按 `data_type` 反序列化 `data`。
+所有 Webhook 消息共用同一个外层结构。`event_id` 是事件的唯一标识，同一条事件重投时不变，可用于去重。
 
-外层的 `created_timestamp` 是 **Webhook 服务收到这条事件的时间，单位毫秒**，重投时不变；投递链路可能打乱顺序，所以**不要用它判断事件先后**。`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**，判断先后用后者。
+外层的 `created_timestamp` 是**这条事件的创建时间，单位毫秒**，重投时不变。事件的创建顺序不一定与业务状态变化的顺序一致，所以**不要用它判断事件先后**。`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**。
 
 外层的 `status`（`Success`、`Retrying`、`Failed`）以及重试时才出现的 `next_retry_timestamp`、`retries_left` 描述的是这条消息的投递情况，与业务无关，处理时可以忽略。
 
@@ -157,7 +157,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
   "url": "https://example.com/webhook",
   "created_timestamp": 1701396866000,
   "type": "payment.topup.updated",
-  "data": { "data_type": "PaymentTopUpUpdate" },
+  "data": {
+    "data_type": "PaymentTopUpUpdate",
+    ...
+    "created_timestamp": 1701396800,
+    "updated_timestamp": 1701396865
+  },
   "status": "Success"
 }
 ```
@@ -173,32 +178,13 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 充值没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，因为一笔充值本身就是一笔入账交易。
 
-## 在两个层面做去重
-
-| ID | 防的是什么 |
-| --- | --- |
-| `event_id` | 重复投递。同一条消息重投时 `event_id` 不变。**去重只能用它**——同一个 `status` 可能合法地出现两次，例如转出被银行退回后换账户重试，会再来一条 `Transferring`。 |
-| 业务单据 ID | 同一个业务事实被不同事件或不同代码路径处理两次。 |
-
-两层都要做。对 `event_id` 建唯一约束用于投递去重，再对每个不可逆动作（入账、发货、关闭付款）按业务单据 ID 建第二个唯一约束。
-
 ## 所有事件通用的规则
 
-**按 `status` 分支。** 它是唯一供程序判断使用的字段。
+### 空值
 
-- 不要自己比较金额来判断订单是否付清。订单足额判定带容差，自行比较会把 Cobo 认定已付清的订单判成没付够。
-- 不要匹配 `message` 或 `failed_reason.message`。这些文本面向运营人员，措辞会变。
-- 不要用链上确认数判断资金是否可用。确认数是否达标已经体现在 `status` 里。
+字段表中的字段始终出现在 payload 里，不适用时为 `null`，空数组为 `[]`。标注「选填」或「仅……时出现」的字段除外。
 
-**数组是全量快照。** `transactions` 等字段携带的是该对象当前的完整列表，不是自上条事件以来的增量。请整体替换本地副本，不要往里追加。
-
-**投递不保证顺序。** 按业务单据 ID 做 upsert，用 `data.updated_timestamp` 判断先后：**严格小于本地值才丢弃，相等的不能丢**（精度只到秒，同一秒内可能有多条内容不同的事件）。终态不能被后到的处理中事件回退。
-
-**用每条事件的 `status` 覆盖本地状态，不要校验状态迁移是否合法。** 中间状态可能没有对应的事件（例如一笔入金从 `Detected` 直接到 `Completed`），那不是丢事件。需要您动手的状态不会被跳过。
-
-**字段始终存在，不适用时为 `null`。** 各页字段表中的字段都会出现在 payload 里，标注「选填」或「仅……时出现」的除外。例如 `failed_reason` 只有失败时有值，其余情况是 `null` 而不是没有这个键；数组字段为空时是 `[]`。请按 `null` 处理，不要用「有没有这个键」判断。
-
-## 读取失败原因
+### 读取失败原因
 
 可能汇报失败的事件会携带一个 `failed_reason` 对象。
 
@@ -206,41 +192,22 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 "failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
 ```
 
-`code` 是受控枚举，也是您分支的依据。请保留完整字符串，不要按点号拆开——前缀是取值的一部分，不是需要您解读的信息。
-
-`message` 面向运营人员，措辞可能调整，因此可以展示但绝不能用于匹配。
+`code` 是受控枚举，也是您分支的依据。`message` 面向运营人员，措辞可能调整，因此可以展示但绝不能用于匹配。
 
 每个业务页面会列出该对象上可能出现的 code，并按需要采取的处理方式分组：[充值](/payments/cn/guides/events/top-up#失败原因)、[订单](/payments/cn/guides/events/orders#失败原因)、[退款](/payments/cn/guides/events/refunds#失败原因)、[资金转出](/payments/cn/guides/events/payouts#失败原因)、[批量下发](/payments/cn/guides/events/bulk-send#批次的失败原因)。
 
-### 提交问题时报业务单据 ID
+### 读取金额
 
-需要排查失败时，请提供业务单据 ID 而不是交易 ID：充值用 `transaction_id`，其余用 `order_id`、`refund_id`、`payout_id`、`bulk_send_id`、`bulk_send_item_id`。每个 payload 都一定带自己的单据 ID，而交易 ID 在退款和批量下发条目的 payload 中根本不存在。
+**金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。
 
-对于 Payout，一个 `payout_id` 下可能有多笔转出交易，因此只有单据 ID 才能追溯整个请求。
-
-## 读取金额
-
-所有金额都是十进制字符串而不是数字类型，请使用 decimal 类型解析。
-
-| 结构 | 字段 | 用在哪 |
+| 结构 | 示例 | 用在哪 |
 | --- | --- | --- |
-| 资产金额 | `amount`、`token_id`、`chain_id` | 绝大多数金额字段。 |
-| 资产或法币金额 | `amount_type`，以及 `amount` 加上 `token_id` 与 `chain_id`，或者 `currency` | 可能是加密货币也可能是法币的字段，例如 `actual_payout_amounts` 的元素。请先读 `amount_type`，不要根据有没有 `token_id` 推断。 |
-| 佣金 | `fee_amount` | Cobo 收取的佣金，**单位为美元**。佣金从 Fee Station 扣，余额是美元口径，所以不带币种。 |
-
-```json
-{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }
-{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
-{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }
-{ "fee_amount": "2.5" }
-```
+| 资产金额 | `{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }` | 绝大多数金额字段。 |
+| 资产或法币金额 | `{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }`<br/>`{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }` | 可能是加密货币也可能是法币的字段，例如 `actual_payout_amounts` 的元素。用 `amount_type` 判断是哪一种。 |
+| 佣金 | `{ "fee_amount": "2.5" }` | Cobo 收取的佣金，**单位为美元**。佣金从 Fee Station 扣，余额是美元口径。 |
 
 字段名为复数的（例如 `requested_amounts`）是数组，可能跨多种 token；单数字段是单个对象，只涉及一种资产。不要跨资产相加。数组按 `token_id` 分组，同一种币在两条链上是两项。
 
-**金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。应付类金额本来就不超过 2 位；链上实收金额按 `ROUND_DOWN` 截断，因此可能比链上的实际数值少几位。
+## 设置接收端
 
-Webhook 消息不携带余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。要保持自己账本的实时性，请在收到事件时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。需要手续费明细时，请使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。
-
-## 测试您的接收端
-
-使用 [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) 向您已注册的接收端投递一条样例消息。
+设置 Webhook Endpoint 并订阅事件的步骤，请参阅[处理 Webhook 事件](/payments/cn/developer-tools/webhook#处理-webhook-事件)。

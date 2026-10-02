@@ -25,39 +25,39 @@ Events come in two kinds:
     <tr>
       <td rowSpan={5}>**Top-up**</td>
       <td>[`payment.topup.updated`](/payments/en/guides/events/top-up#payment-topup-updated)</td>
-      <td>Standard</td>
-      <td>A single deposit, from detection through compliance screening to completion or failure.</td>
+      <td>**Standard**</td>
+      <td>A top-up's status changed: detected, in compliance screening, action required, completed, or failed.</td>
     </tr>
     <tr>
       <td>[`payment.address.updated`](/payments/en/guides/events/top-up#payment-address-updated)</td>
-      <td>Standard</td>
+      <td>**Standard**</td>
       <td>A payer's deposit address was replaced. Cobo also replaces addresses on its own.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.created`](/payments/en/guides/events/advanced#payment-transaction-created)</td>
       <td>Advanced</td>
-      <td>A deposit address received a new deposit, with the on-chain detail.</td>
+      <td>A top-up address received a new deposit, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.completed`](/payments/en/guides/events/advanced#payment-transaction-completed)</td>
       <td>Advanced</td>
-      <td>A deposit cleared screening, with confirmation counts, on-chain transaction fees, and block information.</td>
+      <td>A top-up deposit cleared compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>
       <td>Advanced</td>
-      <td>A deposit did not clear screening, with the transaction detail.</td>
+      <td>A top-up deposit did not clear compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={5}>**Orders**</td>
       <td>[`payment.order.updated`](/payments/en/guides/events/orders#payment-order-updated)</td>
-      <td>Standard</td>
-      <td>An order's collection result: paid in full, underpaid, expired, plus a deposit needing your action, a deposit failing, or money arriving after it ended.</td>
+      <td>**Standard**</td>
+      <td>A pay-in order's status changed: pending, processing, paid in full, underpaid, or expired. Also sent when an order payment needs your action, fails, or arrives after the order ended.</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/en/guides/events/advanced#payment-order-status-updated)</td>
       <td>Advanced</td>
-      <td>The order's transaction detail, including the `transactions` array and the fee fields.</td>
+      <td>A pay-in order's status changed, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.late`](/payments/en/guides/events/advanced#payment-transaction-late)</td>
@@ -67,77 +67,77 @@ Events come in two kinds:
     <tr>
       <td>[`payment.transaction.completed`](/payments/en/guides/events/advanced#payment-transaction-completed)</td>
       <td>Advanced</td>
-      <td>A deposit cleared screening, with the on-chain detail.</td>
+      <td>An order payment cleared compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>
       <td>Advanced</td>
-      <td>A deposit did not clear screening, with the transaction detail.</td>
+      <td>An order payment did not clear compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Unexpected deposits**</td>
       <td>[`payment.transaction.external.created`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
-      <td>Standard</td>
-      <td>A deposit arrived that belongs to no deposit plan and no order, or is in an unsupported token.</td>
+      <td>**Standard**</td>
+      <td>An unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens).</td>
     </tr>
     <tr>
       <td>[`payment.transaction.external.completed`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
-      <td>Standard</td>
+      <td>**Standard**</td>
       <td>That deposit cleared screening and was credited to your developer balance.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Refunds**</td>
       <td>[`payment.refund.updated`](/payments/en/guides/events/refunds#payment-refund-updated)</td>
-      <td>Standard</td>
-      <td>A refund order: created and waiting, completed, or failed with nothing returned.</td>
+      <td>**Standard**</td>
+      <td>A refund order's status changed: pending, completed, or failed.</td>
     </tr>
     <tr>
       <td>[`payment.refund.status.updated`](/payments/en/guides/events/advanced#payment-refund-status-updated)</td>
       <td>Advanced</td>
-      <td>The refund's transaction detail, including the `transactions` array and the fee fields.</td>
+      <td>A refund order's status changed, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Payouts**</td>
       <td>[`payment.payout.updated`](/payments/en/guides/events/payouts#payment-payout-updated)</td>
-      <td>Standard</td>
-      <td>A payout: in progress, completed, partially completed, failed, or rejected by the receiving bank.</td>
+      <td>**Standard**</td>
+      <td>A payout's status changed: accepted, preparing funds, transferring, completed, partially completed, failed, or returned by the receiving bank.</td>
     </tr>
     <tr>
       <td>[`payment.payout.status.updated`](/payments/en/guides/events/advanced#payment-payout-status-updated)</td>
       <td>Advanced</td>
-      <td>The payout's transaction detail, including the `transactions` array and `payout_items`.</td>
+      <td>A payout's status changed, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={1}>**Fiat withdrawals**</td>
       <td>[`payment.bank_withdrawal.status.updated`](/payments/en/guides/events/payouts#payment-bank_withdrawal-status-updated)</td>
-      <td>Standard</td>
+      <td>**Standard**</td>
       <td>A fiat withdrawal from one of your virtual accounts to a bank account changed status.</td>
     </tr>
     <tr>
       <td rowSpan={4}>**Bulk send**</td>
       <td>[`payment.bulk_send.updated`](/payments/en/guides/events/bulk-send#payment-bulk_send-updated)</td>
-      <td>Standard</td>
-      <td>The batch's outcome plus its amount and count summaries.</td>
+      <td>**Standard**</td>
+      <td>A bulk send batch's status changed: created, validating, transferring, completed, partially completed, or failed, with amount and item-count summaries.</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send#payment-bulk_send-item-updated)</td>
-      <td>Standard</td>
-      <td>One item's outcome, distinguishing a transfer that failed after submission from one never submitted.</td>
+      <td>**Standard**</td>
+      <td>A bulk send item's status changed: pending, processing, completed, failed, or not executed.</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.status.updated`](/payments/en/guides/events/advanced#payment-bulk_send-status-updated)</td>
       <td>Advanced</td>
-      <td>The batch's transaction detail.</td>
+      <td>A bulk send batch's status changed.</td>
     </tr>
     <tr>
       <td>[`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>Advanced</td>
-      <td>The item's transaction detail, including `validation_status`.</td>
+      <td>A bulk send item's status changed.</td>
     </tr>
     <tr>
       <td rowSpan={1}>**Balances**</td>
       <td>[`payment.account.balance.updated`](/payments/en/guides/events/balances#payment-account-balance-updated)</td>
-      <td>Standard</td>
+      <td>**Standard**</td>
       <td>One account's available balance moved for one token, with the balance before and after and what caused it.</td>
     </tr>
   </tbody>
@@ -145,9 +145,9 @@ Events come in two kinds:
 
 ## Event structure
 
-Every webhook message shares the same envelope. Route on `type`, then deserialize `data` according to `data_type`.
+Every webhook message shares the same envelope. `event_id` uniquely identifies an event and stays the same when the event is redelivered, so use it to deduplicate.
 
-The envelope's `created_timestamp` is **when the webhook service received this event, in milliseconds**; it does not change on retries. Delivery can reorder events, so **do not use it to order them**. The `created_timestamp` and `updated_timestamp` inside `data` are **the business object's own creation and last-update times, in seconds** — order by the latter.
+The envelope's `created_timestamp` is **when this event was created, in milliseconds**; it does not change on retries. Events are not necessarily created in the order the business state changed, so **do not use it to order them**. The `created_timestamp` and `updated_timestamp` inside `data` are **the business object's own creation and last-update times, in seconds**.
 
 The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_timestamp` and `retries_left` fields that appear during retries describe delivery of this message, not your business, and can be ignored when processing.
 
@@ -157,7 +157,12 @@ The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_ti
   "url": "https://example.com/webhook",
   "created_timestamp": 1701396866000,
   "type": "payment.topup.updated",
-  "data": { "data_type": "PaymentTopUpUpdate" },
+  "data": {
+    "data_type": "PaymentTopUpUpdate",
+    ...
+    "created_timestamp": 1701396800,
+    "updated_timestamp": 1701396865
+  },
   "status": "Success"
 }
 ```
@@ -173,32 +178,13 @@ The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_ti
 
 A top-up has no separate `topup_id`. Its record ID is `transaction_id`, because one top-up is one deposit transaction.
 
-## Deduplicate at two levels
-
-| ID | What it protects against |
-| --- | --- |
-| `event_id` | Redelivery. The same message retried carries the same `event_id`. **Deduplicate on this only** — the same `status` can legitimately occur twice, as when a payout rejected by the bank is retried against another account and returns to `Transferring`. |
-| Business record ID | The same business fact being acted on twice through different events or code paths. |
-
-Implement both. Put a unique constraint on `event_id` for delivery, and a second one on the business record ID for each irreversible action such as crediting funds, releasing goods, or closing a payout.
-
 ## Rules that apply to every event
 
-**Branch on `status`.** It is the only field intended for program logic.
+### Empty values
 
-- Do not compare amounts yourself to decide whether an order is paid. Order completion allows a tolerance, so your own comparison rejects orders that Cobo considers paid in full.
-- Do not match on `message` or `failed_reason.message`. Those strings target human operators and their wording changes.
-- Do not read on-chain confirmation counts to decide whether funds are usable. Whether the confirmation requirement is met is already reflected in `status`.
+Every field in the field tables is always present in the payload: `null` when it does not apply, `[]` for an empty array. Fields marked Optional or "Present only when…" are the exception.
 
-**Arrays are full snapshots.** Fields such as `transactions` carry the object's complete current list, not the delta since the last event. Replace your local copy rather than appending to it.
-
-**Delivery is not ordered.** Upsert by business record ID and order events by `data.updated_timestamp`: **discard an event only when it is strictly older than what you have, never when it is equal** (the precision is one second, and one second can hold several events with different content). A terminal state must never be rolled back by a later-arriving in-progress event.
-
-**Overwrite your local state with the `status` on each event; do not validate that a transition is legal.** An intermediate state may have no event of its own — a deposit can go from `Detected` straight to `Completed` — and that is not a lost event. States that need you to act are never skipped.
-
-**Fields are always present, and `null` when they do not apply.** Every field in the field tables appears in the payload, except those marked Optional or "Present only when…". `failed_reason`, for example, has a value only on failure and is `null` otherwise rather than missing; empty array fields are `[]`. Handle the `null`; do not test for the key.
-
-## Read failure reasons
+### Read failure reasons
 
 Events that can report a failure carry a `failed_reason` object.
 
@@ -206,41 +192,22 @@ Events that can report a failure carry a `failed_reason` object.
 "failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
 ```
 
-`code` is a controlled enumeration and is what you branch on. Keep the full string and do not split it on the dot — the prefix is part of the value, not information you need to interpret.
-
-`message` is written for human operators and its wording can change, so display it but never match on it.
+`code` is a controlled enumeration and is what you branch on. `message` is written for human operators and its wording can change, so display it but never match on it.
 
 Each business page lists the codes that can appear on that object, grouped by the response they need: [Top-up](/payments/en/guides/events/top-up#failure-reasons), [Order](/payments/en/guides/events/orders#failure-reasons), [Refund](/payments/en/guides/events/refunds#failure-reasons), [Payout](/payments/en/guides/events/payouts#failure-reasons), [Bulk send](/payments/en/guides/events/bulk-send#batch-failure-reasons).
 
-### Report the business record ID
+### Read amounts
 
-When a failure needs investigation, supply the business record ID rather than a transaction ID: `transaction_id` for a top-up, or `order_id`, `refund_id`, `payout_id`, `bulk_send_id`, `bulk_send_item_id`. Every payload carries its own record ID, whereas a transaction ID is not present in refund or bulk send item payloads at all.
+**Amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`).
 
-For a payout, one `payout_id` can cover several outgoing transactions, so the record ID is what allows the whole request to be traced.
-
-## Read amounts
-
-All amounts are decimal strings, not numbers. Parse them with a decimal type.
-
-| Shape | Fields | Where it is used |
+| Shape | Example | Where it is used |
 | --- | --- | --- |
-| Asset amount | `amount`, `token_id`, `chain_id` | Most amount fields. |
-| Asset or fiat amount | `amount_type`, then `amount` with either `token_id` and `chain_id`, or `currency` | Fields that can be either crypto or fiat, such as the entries of `actual_payout_amounts`. Read `amount_type` first rather than inferring from the presence of `token_id`. |
-| Commission fee | `fee_amount` | Commission charged by Cobo, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. |
-
-```json
-{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }
-{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }
-{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }
-{ "fee_amount": "2.5" }
-```
+| Asset amount | `{ "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" }` | Most amount fields. |
+| Asset or fiat amount | `{ "amount_type": "Crypto", "amount": "300", "token_id": "TRON_USDT", "chain_id": "TRON" }`<br/>`{ "amount_type": "Fiat", "amount": "497.5", "currency": "USD" }` | Fields that can be either crypto or fiat, such as the entries of `actual_payout_amounts`. Use `amount_type` to tell which. |
+| Commission fee | `{ "fee_amount": "2.5" }` | Commission charged by Cobo, **denominated in USD**. It is taken from Fee Station, whose balance is in USD. |
 
 A field whose name is plural, such as `requested_amounts`, is an array and can span several tokens. A singular field is a single object covering one asset. Never add amounts across assets. Arrays group by `token_id`, so the same token symbol on two chains is two entries.
 
-**Amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`). Expected amounts never exceed two places to begin with; on-chain receipts are truncated with `ROUND_DOWN` and can therefore show fewer places than the chain does.
+## Set up your endpoint
 
-Webhook messages do not carry balances or fee breakdowns, so that the values you read are never stale relative to concurrent activity. To keep your own ledger current, call [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) or [Get developer balances](/payments/en/api-references/payment/get-developer-balance) when an event arrives. For fee detail, use the transaction query endpoints or [Generate reports](/payments/en/api-references/payment/generate-reports).
-
-## Test your endpoint
-
-Use [Trigger test webhook event](/payments/en/api-references/payment/trigger-test-webhook-event) to deliver a sample message to your registered endpoints.
+To set up a webhook endpoint and subscribe to events, see [Handle webhook events](/payments/en/developer-tools/webhook#handle-webhook-events).
