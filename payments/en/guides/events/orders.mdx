@@ -1,0 +1,374 @@
+---
+title: "Orders"
+lang: "en"
+---
+
+These events cover Order Mode, where each payment order has its own address, expiry, and expected amount. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | Type |
+| --- | --- | --- |
+| [`payment.order.updated`](#payment-order-updated) | A pay-in order's status changed: pending, processing, paid in full, underpaid, or expired. Also sent when a deposit needs your action, fails, or arrives after the order ended. | **Standard** |
+
+## `payment.order.updated`
+
+The main event for Order Mode.
+
+### Trigger conditions
+
+**One event per change of the order's `status`.** You also get one when `status` has not changed but a deposit needs your attention, and `notice_type` says why.
+
+| Trigger condition | `status` | `notice_type` | What to do |
+| --- | --- | --- | --- |
+| The order is created | `Pending` | `null` | Record the order and show the payer what to pay. |
+| The **first** deposit for this order is detected | `Processing` | `null` | Update progress. Do not release goods. |
+| A deposit enters `ActionRequired` | `Processing` | `PaymentUpdated` | Act on that entry's `message`. Those funds are held until you do. |
+| A deposit fails | `Processing` | `PaymentFailed` | Read that entry's `failed_reason.code`. Those funds neither count towards the order nor get credited; follow your own rules for asking the payer to pay again. |
+| Cumulative receipts reach the expected amount (less the tolerance, if one is set) | `Completed` (final) | `null` | The order is complete; release goods. |
+| The validity period ends with completed deposits that did not reach the threshold | `Underpaid` (final) | `null` | Handle as underpaid. Do not treat as fully paid. |
+| The validity period ends with no completed deposit, or the order is canceled | `Expired` (final) | `null` | Close the payment window. Create a new order to keep collecting. |
+| The order is already final and another deposit arrives **and clears screening** | final | `LatePaymentReceived` | The funds go to your developer account. Decide whether to refund them based on your own business rules. |
+| The order is already final and the late deposit **fails screening** | final | `PaymentFailed` | The funds will not be credited. Decide how to handle them based on the entry's `failed_reason.code` and your own business rules. |
+
+**Nothing fires** when the second and later deposits are detected, when a deposit enters screening, when a deposit clears screening, or when a late deposit has arrived but not finished screening.
+
+### Event content
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentOrderUpdate`. |
+| `order_id` | `string` | The order ID. |
+| `psp_order_code` | `string` | The order identifier for your own internal business order, exactly as you supplied it in `psp_order_code` when creating the order. |
+| `merchant_id` | `string` | The merchant ID. |
+| `merchant_order_code` | `string` | The downstream merchant's order reference, exactly as you supplied it in `merchant_order_code` when creating the order; `null` if you did not provide one. |
+| `receive_address` | `string` | The address the payer sends funds to. |
+| `expired_at` | `integer` | The order's expiration time, in Unix timestamp (seconds). |
+| `status` | `string` | The order's current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
+| `notice_type` | `string` | The deposit change this event reports:<br/>• `PaymentUpdated` — a deposit entered `ActionRequired`.<br/>• `PaymentFailed` — a deposit failed.<br/>• `LatePaymentReceived` — a late payment arrived and has cleared compliance screening. |
+| `requested_amount` | `object` | The total the order expects. |
+| `requested_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `requested_amount.token_id` | `string` | The token ID. |
+| `requested_amount.chain_id` | `string` | The chain ID. |
+| `credited_amount` | `object` | The total received and counted towards the order. It excludes deposits in compliance screening, rejected deposits, and late payments (entries with `is_late` `true`). |
+| `credited_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `credited_amount.token_id` | `string` | The token ID. |
+| `credited_amount.chain_id` | `string` | The chain ID. |
+| `outstanding_amount` | `object` | How much more the payer still owes = `requested_amount` − `credited_amount`. Its floor is `0`: it is `0` on overpayment and does not show how much was overpaid.<br/>• ⚠️ It can still be greater than `0` when `status` is `Completed` (the order completed within `amount_tolerance`). Cobo then treats the order as paid in full; whether to collect the difference from the payer is your decision. |
+| `outstanding_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `outstanding_amount.token_id` | `string` | The token ID. |
+| `outstanding_amount.chain_id` | `string` | The chain ID. |
+| `transactions` | `array` | Every deposit to the order so far. ⚠️ Excludes deposits below the dust threshold. |
+| `transactions.transaction_id` | `string` | The deposit's ID in Cobo. |
+| `transactions.tx_hash` | `string` | The deposit's on-chain transaction hash. |
+| `transactions.amount` | `object` | The deposit's amount. |
+| `transactions.amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `transactions.amount.token_id` | `string` | The token ID. |
+| `transactions.amount.chain_id` | `string` | The chain ID. |
+| `transactions.source_address` | `string` | The payer's on-chain address; `null` when it cannot be identified. |
+| `transactions.status` | `string` | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `transactions.is_late` | `boolean` | `true` means the deposit arrived after the order reached a final status, so it does not count towards `credited_amount`. |
+| `transactions.screening_mode` | `string` | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
+| `transactions.message` | `string` | What to do when `status` is `ActionRequired`; `null` otherwise.<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
+| `transactions.failed_reason` | `object` | Set when the deposit's `status` is `Failed`; `null` otherwise. |
+| `transactions.failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions.failed_reason.message` | `string` | The failure reason. |
+| `created_timestamp` | `integer` | When the order was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the order last changed status, in Unix timestamp (seconds).<br/>• ⚠️ A change to a deposit's status (such as a deposit failing) does not change the order's status, so it does not update this timestamp. |
+
+</div>
+
+### Failure reasons
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `transaction.rejected_by_screening_app` | Your own compliance team rejected this deposit in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected this deposit. | Raise it with Cobo. |
+| `transaction.failed` | Failed for any other reason. | Raise a case and quote the entry's `transaction_id`. |
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### The order is created
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Pending",
+  "notice_type": null,
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+#### The first deposit is detected
+
+Update progress. Do not release goods: the deposit is still in screening, so `credited_amount` is still `0`.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": null,
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "PendingScreening",
+      "screening_mode": "IntegratedVendor",
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+#### A deposit needs you to act
+
+`notice_type` is `PaymentUpdated` and the order `status` has not changed. Act on that entry's `message`; those funds stay held until you do. Other deposits keep accumulating normally.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": "PaymentUpdated",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "ActionRequired",
+      "screening_mode": "IntegratedVendor",
+      "message": "A manual compliance review by your team is required before these funds can be made available. Please complete it in the Screening App.",
+      "is_late": false,
+      "failed_reason": null
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689200
+}
+```
+
+#### A deposit failed
+
+`notice_type` is `PaymentFailed` and the order `status` has not changed. Those funds do not count towards `credited_amount`; use the entry's `failed_reason.code` to decide what to tell the payer.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Processing",
+  "notice_type": "PaymentFailed",
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Failed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": {
+        "code": "transaction.rejected_by_screening_app",
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
+      }
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689250
+}
+```
+
+#### The order is paid in full
+
+The order is complete; release the goods.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_001",
+  "psp_order_code": "psp_order_001",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0001",
+  "status": "Completed",
+  "notice_type": null,
+  "receive_address": "0xorder_addr_001",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "0", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep001",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
+    },
+    {
+      "transaction_id": "d1f2e3c4-1111-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep002",
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer001",
+      "status": "Completed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744690100
+}
+```
+
+#### The order expired underpaid
+
+Handle it as underpaid. `outstanding_amount` is the shortfall, and the second deposit was rejected so it never counted.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "notice_type": null,
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000002",
+      "tx_hash": "0xdep102",
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Failed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": {
+        "code": "transaction.rejected_by_screening_app",
+        "message": "This transaction was rejected by your compliance team in the Screening App. Please review the case in the Screening App and resubmit only after it has been cleared."
+      }
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744692600
+}
+```
+
+#### Money arrives after the order ended
+
+`notice_type` is `LatePaymentReceived` and `status` keeps its final value. The funds go to your developer account; decide whether to refund them based on your own business rules. **`credited_amount` does not change** — the late entry is `Completed` but does not count towards the order.
+
+```json
+{
+  "data_type": "PaymentOrderUpdate",
+  "order_id": "order_002",
+  "psp_order_code": "psp_order_002",
+  "merchant_id": "M1001",
+  "merchant_order_code": "shop_20260921_0002",
+  "status": "Underpaid",
+  "notice_type": "LatePaymentReceived",
+  "receive_address": "0xorder_addr_002",
+  "expired_at": 1744692600,
+  "requested_amount": { "amount": "102", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "credited_amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "outstanding_amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "transactions": [
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000001",
+      "tx_hash": "0xdep101",
+      "amount": { "amount": "60", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": false,
+      "failed_reason": null
+    },
+    {
+      "transaction_id": "d1f2e3c4-2222-4a2b-9c3d-000000000003",
+      "tx_hash": "0xdep103",
+      "amount": { "amount": "42", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "source_address": "0xpayer002",
+      "status": "Completed",
+      "screening_mode": null,
+      "message": null,
+      "is_late": true,
+      "failed_reason": null
+    }
+  ],
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744693900
+}
+```
+
+## Advanced events
+
+For the on-chain transaction detail behind each deposit to the order, subscribe to the advanced events `payment.order.status.updated`, `payment.transaction.completed`, `payment.transaction.failed`, and `payment.transaction.late`. See [Advanced events](/payments/en/guides/events/advanced).

@@ -1,0 +1,367 @@
+---
+title: "Bulk send"
+lang: "en"
+---
+
+Bulk send has two levels of events: one for the batch and one for each item in it. Subscribe to the batch event if you only need the outcome, and to the item event if you reconcile item by item. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | Type |
+| --- | --- | --- |
+| [`payment.bulk_send.updated`](#payment-bulk_send-updated) | A bulk send batch's status changed: created, validating, transferring, completed, partially completed, or failed, with amount and item-count summaries. | **Standard** |
+| [`payment.bulk_send.item.updated`](#payment-bulk_send-item-updated) | A bulk send item's status changed: pending, processing, completed, failed, or not executed. | **Standard** |
+
+## `payment.bulk_send.updated`
+
+The batch-level event.
+
+### Batch trigger conditions
+
+**One event per change of the batch's `status`.** Per-item progress is not here; it is in the item event.
+
+| Trigger condition | `status` | What to do |
+| --- | --- | --- |
+| The batch is created | `Pending` | Record the batch and wait. Sitting here does not necessarily mean validation is running; the batch may be waiting for approval, see below. |
+| The batch enters per-item validation | `Validating` | Wait. Which items will be rejected is not known yet. |
+| Validation passed and execution starts | `Transferring` | Wait. |
+| Every item succeeded | `Completed` (final) | Close the batch summary. Item completion is still reported by the item event. |
+| The batch result is settled and some items did not succeed | `PartiallyCompleted` (final) | Split by the two counts: `failed_item_count` is items whose funds moved, `not_executed_item_count` is items never submitted. |
+| The whole batch fails | `Failed` (final) | Read `failed_reason.code` — **a batch can fail before or after execution starts**, and only the code tells you whether funds moved. See [Batch failure reasons](#batch-failure-reasons). |
+
+In an organization with an approval workflow, a new batch waits for approval first. **Approval sends no event, and no field distinguishes waiting for validation from waiting for approval** — both are `Pending`. If a batch sits in `Pending` longer than usual, check the approval progress in Cobo Portal. The outcome is visible: once approved the batch moves on to `Validating`; if rejected or revoked it moves to `Failed`, and the items carry `failed_reason.code` `payment.app_workflow_approval_rejected` or `payment.app_workflow_approval_revoked`.
+
+### Batch event content
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentBulkSendUpdate`. |
+| `bulk_send_id` | `string` | The batch ID. |
+| `request_id` | `string` | **Optional.** The request ID you provided when creating the batch. |
+| `source_account` | `string` | The account the batch pays from: a merchant ID, or `developer`. |
+| `status` | `string` | The current batch status; see [Batch trigger conditions](#batch-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
+| `execution_mode` | `string` | The execution mode:<br/>• `Strict` — the whole batch stops when any item fails **validation**.<br/>• `Partial` — only the items that fail validation are held back; the rest continue.<br/>`Strict` governs validation only and **does not make the batch all-or-nothing on-chain** — if every item passes validation and one fails after submission, the batch ends `PartiallyCompleted`. |
+| `item_count` | `integer` | How many items the batch contains. |
+| `failed_item_count` | `integer` | Items submitted for execution that failed. Their funds were locked and fees charged, then released and refunded. Whether you can resend one as is depends on its `failed_reason.code`. |
+| `not_executed_item_count` | `integer` | Items never submitted for execution; their funds were not used. Resending without fixing the cause fails the same way. |
+| `requested_amounts` | `array` | The requested total across all items, grouped by `token_id`. The same token symbol on two chains is two entries and cannot be merged. |
+| `requested_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `requested_amounts.token_id` | `string` | The token ID. |
+| `requested_amounts.chain_id` | `string` | The chain ID. |
+| `completed_amounts` | `array` | The total for completed items, grouped by `token_id`. |
+| `completed_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `completed_amounts.token_id` | `string` | The token ID. |
+| `completed_amounts.chain_id` | `string` | The chain ID. |
+| `failed_amounts` | `array` | The total for items that did not succeed, grouped by `token_id`, combining items that were submitted and items that never were. Use `failed_item_count` and `not_executed_item_count` to tell them apart. |
+| `failed_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `failed_amounts.token_id` | `string` | The token ID. |
+| `failed_amounts.chain_id` | `string` | The chain ID. |
+| `description` | `string` | The note you wrote for the whole batch; `null` if none. |
+| `commission_fee` | `object` | The commission Cobo charged; `null` when none was charged. |
+| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD. It is a single total no matter how many tokens the batch spans. Reversals net off, so it can be `0` or negative. |
+| `failed_reason` | `object` | Set when `status` is `Failed`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code. See [Batch failure reasons](#batch-failure-reasons) for the values. |
+| `failed_reason.message` | `string` | The failure reason. |
+| `created_timestamp` | `integer` | When the batch was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the batch last changed status, in Unix timestamp (seconds). |
+
+</div>
+
+`failed_amounts` merges both kinds of unsuccessful item — those whose funds moved and those never submitted — into one figure per token. Use `failed_item_count` and `not_executed_item_count`, or the item events, to tell them apart.
+
+The batch event carries **no item list**. Per-item information only arrives through the item event, and the arrival order of the two is not guaranteed.
+
+### Batch failure reasons
+
+`failed_reason.code` is what you branch on, and the only way to tell whether funds moved — `status` alone does not distinguish it. A batch can also fail because the approval workflow rejected or revoked it; that reason is reported on the items.
+
+| `code` | What happened | Did funds move | What to do |
+| --- | --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | No item passed validation. | No | Fix the items, then create a new batch. |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` is `Strict` and one or more items failed validation, so the batch stopped. | No | Fix those items, then create a new batch. |
+| `payment.bulk_send_commission_fee_all_failed` | The commission fee could not be charged for any item. | Nothing was paid out | Fix Fee Station, then create a new batch. |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` is `Strict` and the fee failed for one or more items. | Nothing was paid out | Fix Fee Station, then create a new batch. |
+| `payment.bulk_send_strict_sweep_failed` | `execution_mode` is `Strict` and one or more sweep transactions failed. | Consolidation ran; nothing was paid out | Create a new batch. |
+| `payment.bulk_send_all_items_failed` | Not a single item succeeded — either all were submitted and failed, or none was ever submitted. | Check the two counts: `failed_item_count` above `0` means items were submitted and failed; `not_executed_item_count` equal to `item_count` means none was submitted | Read the per-item reasons in the item events, fix them, then create a new batch. |
+
+### Batch sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### The batch is accepted
+
+Record the batch and do not submit it again. Remember that `Pending` may also mean the batch is waiting for an approver.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Pending",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fee": null,
+  "failed_reason": null,
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744710000
+}
+```
+
+#### The batch completed
+
+Close the batch summary. Individual items are still confirmed by their own events.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_001",
+  "request_id": "request_bulk_001",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "Completed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 0,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "description": "September affiliate payouts",
+  "commission_fee": { "fee_amount": "0.6" },
+  "failed_reason": null,
+  "created_timestamp": 1744710000,
+  "updated_timestamp": 1744711200
+}
+```
+
+#### The batch is partially completed
+
+Split your handling by the two counts. Here one item's funds moved and failed, and one was never submitted — `failed_amounts` merges both into a single figure, so the counts are what tell them apart.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "execution_mode": "Loose",
+  "status": "PartiallyCompleted",
+  "item_count": 3,
+  "failed_item_count": 1,
+  "not_executed_item_count": 1,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [
+    { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "200.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fee": { "fee_amount": "0.2" },
+  "failed_reason": null,
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744713000
+}
+```
+
+#### Strict mode stopped the batch before execution
+
+No funds moved. Fix the reported items and create a new batch. Which items were at fault comes from the item events.
+
+```json
+{
+  "data_type": "PaymentBulkSendUpdate",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "execution_mode": "Strict",
+  "status": "Failed",
+  "item_count": 3,
+  "failed_item_count": 0,
+  "not_executed_item_count": 3,
+  "requested_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "completed_amounts": [],
+  "failed_amounts": [
+    { "amount": "300.00", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "description": "September affiliate payouts",
+  "commission_fee": null,
+  "failed_reason": {
+    "code": "payment.bulk_send_strict_validation_failed",
+    "message": "Cannot complete bulk send: one or more items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+## `payment.bulk_send.item.updated`
+
+The item-level event.
+
+### Item trigger conditions
+
+**One event per change of the item's `status`.**
+
+| Trigger condition | `status` | What to do |
+| --- | --- | --- |
+| The item is created with the batch, or passed validation but has not been submitted yet | `Pending` | Record the item. **This value covers two stages**, so sitting here does not mean it is stuck in validation. |
+| The item's transfer has been submitted | `Processing` | Wait for the result. Do not mark it complete. |
+| The transfer succeeded | `Completed` (final) | Save the amount and `tx_hash`, and close the item. |
+| The transfer was submitted and failed | `Failed` (final) | Locked funds were released and the fee was returned. Whether you can resend as-is depends on `failed_reason.code`. |
+| The item was never submitted | `NotExecuted` (final) | **No funds moved.** Read `failed_reason.code`; resending without fixing the cause fails again. |
+
+### Item event content
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentBulkSendItemUpdate`. |
+| `bulk_send_item_id` | `string` | The item ID, and the key you use to reconcile. |
+| `bulk_send_id` | `string` | The batch this item belongs to. |
+| `request_id` | `string` | **Optional.** The batch's request ID, identical for every item in it. Use `bulk_send_item_id` for per-item idempotency. |
+| `source_account` | `string` | The account the batch pays from. |
+| `status` | `string` | The item's current status; see [Item trigger conditions](#item-trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
+| `requested_amount` | `object` | The amount this item sends. An item completes or fails as a whole, so there are no separate completed and failed amounts. |
+| `requested_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `requested_amount.token_id` | `string` | The token ID. |
+| `requested_amount.chain_id` | `string` | The chain ID. |
+| `receiving_address` | `string` | The recipient's address. |
+| `tx_hash` | `string` | The on-chain hash of this item's transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
+| `description` | `string` | The note you wrote for this item; `null` if none. |
+| `failed_reason` | `object` | Set when `status` is `Failed` or `NotExecuted`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code. See [Item failure reasons](#item-failure-reasons) for the values. |
+| `failed_reason.message` | `string` | The failure reason. |
+| `created_timestamp` | `integer` | When the item was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the item last changed status, in Unix timestamp (seconds). |
+
+</div>
+
+### Item failure reasons
+
+`failed_reason.code` is what you branch on. These are the codes an item can carry.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `payment.bulk_send_invalid_address` | The receiving address is not valid. The `message` includes the address. | Correct it, then send the item again in a new batch. |
+| `payment.receiving_address_matches_source_address` | The receiving address is the same as the source address. | Correct it, then send the item again in a new batch. |
+| `payment.address_kya_failed` | The receiving address did not pass KYA screening. The `message` includes the address. | Do not send to this address again. |
+| `payment.strict_mode_other_items_validation_failed` | Nothing is wrong with this item. Another item failed validation under `Strict`. | Fix that item, then send this one again. |
+| `payment.strict_mode_other_sweep_tasks_failed` | Nothing is wrong with this item. Another sweep failed under `Strict`. | Send it again in a new batch. |
+| `payment.strict_mode_other_items_commission_fee_failed` | Nothing is wrong with this item. The fee failed for another item under `Strict`. | Fix Fee Station, then send it again. |
+| `payment.bulk_send_commission_fee_charge_failed` | The Fee Station balance is insufficient. | Add funds, then send it again. |
+| `payment.bulk_send_commission_fee_station_not_configured` | Fee Station is not configured. | Configure it, then send it again. |
+| `payment.bulk_send_commission_fee_charge_failed_unknown` | The fee could not be charged for another reason. | Check the Fee Station configuration and balance, then send it again. |
+| `payment.app_workflow_approval_rejected` | The approval workflow rejected the batch. | Ask the approver why, then send it again. |
+| `payment.app_workflow_approval_revoked` | The approval workflow was revoked. | Get the batch approved, then send it again. |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Update that policy in Cobo Portal, then send it again. |
+| `transaction.rejected_by_approval` | The transfer was rejected in your organization's approval process — by an approver, or by your callback server. | Confirm the reason with them, then send it again. |
+| `transaction.rejected_by_signer` | The transfer was declined during signing by a co-signer. | Confirm the reason with the co-signer, then send it again. |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then send it again. |
+| `payment.sweep_task_failed` | The sweep transaction that prepares the funds failed. | Send it again. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
+| `payment.batch_payouts_execution_failed` | The transfer failed and the cause could not be classified. | Do not retry. Raise it with Cobo. |
+| `transaction.failed` | The reason could not be classified. | Do not retry. Raise it with Cobo, quoting `bulk_send_item_id`. |
+
+### Item sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### An item completed
+
+Save the amount and `tx_hash`, and close that item against your own recipient record using `bulk_send_item_id`.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0001",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate001",
+  "tx_hash": "0xbulkitem001",
+  "description": "affiliate 001",
+  "failed_reason": null,
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712900
+}
+```
+
+#### An item failed after the transfer was submitted
+
+Funds moved and came back: locked funds were released and the fee was returned. Whether you can resend as-is depends on `failed_reason.code`.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0002",
+  "bulk_send_id": "bulk_002",
+  "request_id": "request_bulk_002",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate002",
+  "tx_hash": null,
+  "description": "affiliate 002",
+  "failed_reason": {
+    "code": "transaction.rejected_by_approval",
+    "message": "This transaction was rejected during your organization's approval process, either by an approver or by your callback server. Please confirm the reason with the relevant party before resubmitting."
+  },
+  "created_timestamp": 1744712000,
+  "updated_timestamp": 1744712950
+}
+```
+
+#### An item was never executed
+
+**No funds moved.** Fix the cause before resending, or it fails the same way. Here the item itself was fine and was not executed because another item in the batch failed under `Strict` mode.
+
+```json
+{
+  "data_type": "PaymentBulkSendItemUpdate",
+  "bulk_send_item_id": "bulk_item_0003",
+  "bulk_send_id": "bulk_003",
+  "request_id": "request_bulk_003",
+  "source_account": "developer",
+  "status": "NotExecuted",
+  "requested_amount": { "amount": "100.00", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "receiving_address": "0xaffiliate003",
+  "tx_hash": null,
+  "description": "affiliate 003",
+  "failed_reason": {
+    "code": "payment.strict_mode_other_items_validation_failed",
+    "message": "Cannot execute bulk send item: one or more other items failed validation when 'execution_mode' is 'Strict'."
+  },
+  "created_timestamp": 1744714000,
+  "updated_timestamp": 1744714100
+}
+```
+
+#### Resending failed items
+
+There is no retry on the original batch or item. Create a new batch, or a single payout for one recipient, and keep the original `bulk_send_id` and `bulk_send_item_id` in your own records — the new event does not carry a reference back to them.
+
+## Advanced events
+
+For the on-chain transaction detail of the batch and its items, subscribe to the advanced events `payment.bulk_send.status.updated` and `payment.bulk_send.item.status.updated`. See [Advanced events](/payments/en/guides/events/advanced#payment-bulk_send-status-updated).

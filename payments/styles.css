@@ -266,3 +266,44 @@ table:not(.six-columns-fixed-first-row-cn):not(.six-columns-fixed-first-row) td:
 .six-columns-fixed-first-row tr:first-child th {
   background-color: #1F32D6; /* Cobo Blue */
 }
+
+/* 事件字段表：字段/类型/必填性三列收窄，说明列吃掉剩余宽度 */
+.field-table table {
+  table-layout: fixed;
+}
+
+.field-table th,
+.field-table td {
+  min-width: 0;
+}
+
+.field-table th:nth-child(1),
+.field-table td:nth-child(1) {
+  width: 13rem;
+}
+
+.field-table th:nth-child(2),
+.field-table td:nth-child(2) {
+  width: 5.5rem;
+}
+
+.field-table th:nth-child(3),
+.field-table td:nth-child(3) {
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .field-table {
+    overflow-x: auto;
+  }
+
+  .field-table table {
+    min-width: 40rem;
+  }
+}
+
+/* 表格最后一列默认没有右内边距，文字会贴住右边框 */
+table th:last-child,
+table td:last-child {
+  padding-right: 12px !important;
+}

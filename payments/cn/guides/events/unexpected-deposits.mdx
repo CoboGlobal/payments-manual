@@ -1,0 +1,117 @@
+---
+title: "意外入金"
+lang: "zh-hans"
+---
+
+意外入金指非当前订单/充值计划内的交易，或非支付服务支持的币种充币。它不会被计入某个付款方或某笔订单。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## 本页的事件
+
+| 事件 | 通知什么 | 类型 |
+| --- | --- | --- |
+| [`payment.transaction.external.created`](#payment-transaction-external-created) | 检测到一笔意外入金。 | **标准事件** |
+| [`payment.transaction.external.completed`](#payment-transaction-external-completed) | 该笔意外入金通过合规筛查。 | **标准事件** |
+
+## `payment.transaction.external.created`
+
+### 事件触发条件
+
+检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）时触发。此时资金尚未入账，请建立一条待归属的记录。
+
+### 事件内容
+
+以下为关键字段，完整的交易字段清单见[交易字段](/payments/cn/guides/events/advanced#交易字段)。
+
+<div className="field-table">
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data_type` | `string` | 固定为 `PaymentTransaction`。 |
+| `transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
+| `status` | `string` | 交易状态。 |
+| `chain_id` | `string` | **选填**。这笔入金所在的链。 |
+| `token_id` | `string` | **选填**。这笔入金的币种。**币种不受支持正是它成为意外入金的常见原因之一**，所以这里可能出现您没有开通的 token。 |
+| `transaction_hash` | `string` | **选填**。链上交易哈希。 |
+| `source` | `object` | 资金来源，通常是一个外部地址。退回资金时使用。 |
+| `source.addresses` | `array` | 发送方地址列表。 |
+| `destination` | `object` | 资金去向。 |
+| `destination.address` | `string` | 收款地址。 |
+| `destination.amount` | `string` | 到账金额。 |
+| `destination.memo` | `string` | **选填**。备注，仅部分链有。 |
+| `created_timestamp` | `integer` | 这笔入金的创建时间，Unix 时间戳（毫秒）。 |
+| `updated_timestamp` | `integer` | 这笔入金最近一次状态更新时间，Unix 时间戳（毫秒）。 |
+
+</div>
+
+### 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Submitted",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "confirmed_num": 0,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730000000
+}
+```
+
+## `payment.transaction.external.completed`
+
+### 事件触发条件
+
+该笔意外入金通过合规筛查时触发。
+
+### 事件内容
+
+以下为关键字段，完整的交易字段清单见[交易字段](/payments/cn/guides/events/advanced#交易字段)。
+
+<div className="field-table">
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data_type` | `string` | 固定为 `PaymentTransaction`。 |
+| `transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
+| `status` | `string` | 交易状态。 |
+| `chain_id` | `string` | **选填**。这笔入金所在的链。 |
+| `token_id` | `string` | **选填**。这笔入金的币种。**币种不受支持正是它成为意外入金的常见原因之一**，所以这里可能出现您没有开通的 token。 |
+| `transaction_hash` | `string` | **选填**。链上交易哈希。 |
+| `source` | `object` | 资金来源，通常是一个外部地址。退回资金时使用。 |
+| `source.addresses` | `array` | 发送方地址列表。 |
+| `destination` | `object` | 资金去向。 |
+| `destination.address` | `string` | 收款地址。 |
+| `destination.amount` | `string` | 到账金额。 |
+| `destination.memo` | `string` | **选填**。备注，仅部分链有。 |
+| `created_timestamp` | `integer` | 这笔入金的创建时间，Unix 时间戳（毫秒）。 |
+| `updated_timestamp` | `integer` | 这笔入金最近一次状态更新时间，Unix 时间戳（毫秒）。 |
+
+</div>
+
+### 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Completed",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "confirmed_num": 19,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730600000
+}
+```

@@ -1,0 +1,117 @@
+---
+title: "Unexpected deposits"
+lang: "en"
+---
+
+An unexpected deposit is a transaction not within current orders/deposit plans, or a deposit in an unsupported token. It is not credited to any payer or order. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | Type |
+| --- | --- | --- |
+| [`payment.transaction.external.created`](#payment-transaction-external-created) | An unexpected deposit was detected. | **Standard** |
+| [`payment.transaction.external.completed`](#payment-transaction-external-completed) | The unexpected deposit cleared compliance screening. | **Standard** |
+
+## `payment.transaction.external.created`
+
+### Trigger conditions
+
+Fires when an unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens). The funds are not credited yet; record the deposit as unattributed.
+
+### Event content
+
+The key fields are below. For the complete list, see [Transaction fields](/payments/en/guides/events/advanced#transaction-fields).
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentTransaction`. |
+| `transaction_id` | `string` | The deposit's ID in Cobo. |
+| `status` | `string` | The transaction status. |
+| `chain_id` | `string` | **Optional.** The chain the deposit arrived on. |
+| `token_id` | `string` | **Optional.** The token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
+| `transaction_hash` | `string` | **Optional.** The on-chain hash. |
+| `source` | `object` | Where the funds came from, typically an external address. Use it if you return them. |
+| `source.addresses` | `array` | The sender addresses. |
+| `destination` | `object` | Where the funds went. |
+| `destination.address` | `string` | The receiving address. |
+| `destination.amount` | `string` | The amount received. |
+| `destination.memo` | `string` | **Optional.** The memo, on chains that use one. |
+| `created_timestamp` | `integer` | When the deposit was created, in Unix timestamp (milliseconds). |
+| `updated_timestamp` | `integer` | When the deposit last changed status, in Unix timestamp (milliseconds). |
+
+</div>
+
+### Sample events
+
+The sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Submitted",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "confirmed_num": 0,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730000000
+}
+```
+
+## `payment.transaction.external.completed`
+
+### Trigger conditions
+
+Fires when the unexpected deposit clears compliance screening.
+
+### Event content
+
+The key fields are below. For the complete list, see [Transaction fields](/payments/en/guides/events/advanced#transaction-fields).
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentTransaction`. |
+| `transaction_id` | `string` | The deposit's ID in Cobo. |
+| `status` | `string` | The transaction status. |
+| `chain_id` | `string` | **Optional.** The chain the deposit arrived on. |
+| `token_id` | `string` | **Optional.** The token the deposit arrived in. **An unsupported token is one of the common reasons a deposit ends up here**, so this can name a token you have not enabled. |
+| `transaction_hash` | `string` | **Optional.** The on-chain hash. |
+| `source` | `object` | Where the funds came from, typically an external address. Use it if you return them. |
+| `source.addresses` | `array` | The sender addresses. |
+| `destination` | `object` | Where the funds went. |
+| `destination.address` | `string` | The receiving address. |
+| `destination.amount` | `string` | The amount received. |
+| `destination.memo` | `string` | **Optional.** The memo, on chains that use one. |
+| `created_timestamp` | `integer` | When the deposit was created, in Unix timestamp (milliseconds). |
+| `updated_timestamp` | `integer` | When the deposit last changed status, in Unix timestamp (milliseconds). |
+
+</div>
+
+### Sample events
+
+The sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+```json
+{
+  "data_type": "PaymentTransaction",
+  "transaction_id": "7b3c9d1e-4444-4a5b-8c6d-000000000001",
+  "status": "Completed",
+  "chain_id": "TRON",
+  "token_id": "TRON_USDT",
+  "transaction_hash": "0xexternal001",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "confirmed_num": 19,
+  "confirming_threshold": 19,
+  "created_timestamp": 1744730000000,
+  "updated_timestamp": 1744730600000
+}
+```

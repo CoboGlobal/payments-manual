@@ -21,9 +21,9 @@ lang: "zh-hans"
 | ----- | ----- | ----- |
 | **资金管理** | (SDK v1.42.0) 新增虚拟账户银行转出能力：<br />・[Get bank account balance](/payments/en/api-references/payment/get-payment-bank-account-balance)：查询带 `VA` 标签的转出目的地银行账户余额。<br />・[Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal)：从 VA 映射的来源银行账户向目标银行账户发起银行转出。<br />・[List bank withdrawals](/payments/en/api-references/payment/list-bank-withdrawals) 和 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)：按分页、`request_id` 和状态查询银行转出，并获取包含来源/目标银行账户、银行交易手续费和状态时间线的详情。 | 2026-08-19 |
 | **转出目的地** | (SDK v1.42.0) 转出目的地元数据增强：<br />・[List destination entries](/payments/en/api-references/payment/list-destination-entries)：新增可选 `bank_account_tag` 过滤条件，当前支持 `VA`。<br />・转出目的地银行账户响应新增可空的 `tag` 字段，当前取值为 `VA`。<br />・Destination 和 DestinationDetail 响应新增 `source` 字段，支持 `Client` 和 `System` 枚举值。 | 2026-08-19 |
-| **Webhook** | (SDK v1.42.0) 新增 PaymentBankWithdrawal Webhook 数据和 `payment.bank_withdrawal.status.updated` 事件类型。详见 [状态与事件](/payments/cn/guides/status-and-events)。 | 2026-08-19 |
+| **Webhook** | (SDK v1.42.0) 新增 PaymentBankWithdrawal Webhook 数据和 `payment.bank_withdrawal.status.updated` 事件类型。详见 [状态与事件](/payments/cn/guides/events/overview)。 | 2026-08-19 |
 | **商户管理（不兼容变更）** | (SDK v1.42.0) [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)：公司附件 `file_id` 现在需传入上传文件 UUID（`uuid` 格式），不再接受上传后的 AWS 文件链接字符串。请使用 [Upload file](/payments/en/api-references/payment/upload-file) 返回的文件 ID。 | 2026-08-19 |
-| **Webhook** | (SDK v1.41.0) 新增 `payment.bulk_send.item.status.updated` Webhook 事件，用于通知单条批量下发项目的状态更新。事件负载新增 `PaymentBulkSendItem` 数据类型及对应事件数据 Schema、discriminator 映射和事件类型枚举值。详见 [状态与事件](/payments/cn/guides/status-and-events)。 | 2026-08-05 |
+| **Webhook** | (SDK v1.41.0) 新增 `payment.bulk_send.item.status.updated` Webhook 事件，用于通知单条批量下发项目的状态更新。事件负载新增 `PaymentBulkSendItem` 数据类型及对应事件数据 Schema、discriminator 映射和事件类型枚举值。详见 [状态与事件](/payments/cn/guides/events/overview)。 | 2026-08-05 |
 | **报表** | (SDK v1.41.0) [Generate reports](/payments/en/api-references/payment/generate-reports) 和 [List all reports](/payments/en/api-references/payment/list-all-reports)：`ReportExportFormat` 新增 `PDF`。PDF 导出仅支持余额快照报表。 | 2026-08-05 |
 
 
@@ -44,7 +44,7 @@ lang: "zh-hans"
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
-| **Webhook** | (SDK v1.38.0) 新增 Webhook 事件 `payment.account.balance.updated`（`PaymentAccountBalanceUpdate`），当支付账户某币种的可用余额发生变动时触发。负载包含账户信息（`source_account`、`source_id`、`source_type`）、`token_id`、变动金额 `amount`、`balance_before` / `balance_after`、`flow_direction` 及 `update_time`。详见 [Status and events](/payments/cn/guides/status-and-events)。<br />在 `payment.address.updated` Webhook 负载中新增 `merchant_id` 字段。 | 2026-06-25 |
+| **Webhook** | (SDK v1.38.0) 新增 Webhook 事件 `payment.account.balance.updated`（`PaymentAccountBalanceUpdate`），当支付账户某币种的可用余额发生变动时触发。负载包含账户信息（`source_account`、`source_id`、`source_type`）、`token_id`、变动金额 `amount`、`balance_before` / `balance_after`、`flow_direction` 及 `update_time`。详见 [Status and events](/payments/cn/guides/events/overview)。<br />在 `payment.address.updated` Webhook 负载中新增 `merchant_id` 字段。 | 2026-06-25 |
 | **资金管理** | (SDK v1.39.0) 划转（Allocation）状态追踪：<br />・[List all batch allocations](/payments/en/api-references/payment/list-all-batch-allocations) 和 [Create batch allocation](/payments/en/api-references/payment/create-batch-allocation)：响应新增 `status` 字段（`Pending`、`Processing`、`Completed`、`PartiallyCompleted`、`Failed`）。<br />・[Get batch allocation information](/payments/en/api-references/payment/get-batch-allocation-information)：响应新增 `status` 字段。<br />・[List all allocation items](/payments/en/api-references/payment/list-all-allocation-items)：响应条目新增 `status` 字段（`Pending`、`Transferring`、`Completed`、`Failed`）。 | 2026-06-24 |
 | **资金管理** | (SDK v1.37.0) 新增 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 操作，用于查询指定来源账户的余额变动记录。<br /><br />Bulk Send 功能增强：<br />・[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items)：响应中新增 `tx_hash` 字段，返回每条批量下发记录对应的链上交易哈希。<br />・[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends)、[Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information) 响应及 Bulk Send Webhook 通知（`payment.bulk_send.status.updated`）数据中新增 `commission_fee` 字段，返回本次批量下发所收取的手续费信息。 | 2026-06-09 |
 
@@ -145,7 +145,7 @@ lang: "zh-hans"
 | 功能       | 变更说明                                                                                | 发布时间       |
 | -------- | ----------------------------------------------------------------------------------- | ---------- |
 | **支持的链** | 新增支持 Solana 链。                                                                      | 2025-09-26 |
-| **收款**   | 订单模式新增支持 [payment.transaction.completed](/payments/cn/guides/status-and-events) 事件。 | 2025-09-05 |
+| **收款**   | 订单模式新增支持 [payment.transaction.completed](/payments/cn/guides/events/overview) 事件。 | 2025-09-05 |
 
 ## 2025 年 08 月
 
@@ -165,7 +165,7 @@ lang: "zh-hans"
 | **支付链接** | 新增支持通过 `developerName` 参数自定义收单页面底部的 "Powered by xxx" 字样。                                                                                                                                                                                                                                                                                                                  | 2025-07-30 |
 | **资金管理** | [Create settlement request](/payments/en/api-references/payment/create-settlement-request) 新增功能：当 `order_ids` 参数为空时，自动结算该商户的所有未结算订单。                                                                                                                                                                                                                                      | 2025-07-24 |
 | **收款**   | 新增支持充值模式，您可在 Web 界面：创建和管理充值地址、监控充值交易状态、导出充值记录。                                                                                                                                                                                                                                                                                                                            | 2025-07-10 |
-| **收款**   | (SDK v1.18.0) 新增充值模式相关操作：[Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers)。具体集成步骤请参考[获取充值地址](/payments/cn/guides/get-topup-addresses)。新增与充值模式相关的多个 [Webhook 事件](/payments/cn/guides/status-and-events)。                                                            | 2025-07-02 |
+| **收款**   | (SDK v1.18.0) 新增充值模式相关操作：[Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers)。具体集成步骤请参考[获取充值地址](/payments/cn/guides/get-topup-addresses)。新增与充值模式相关的多个 [Webhook 事件](/payments/cn/guides/events/overview)。                                                            | 2025-07-02 |
 
 ## 2025 年 06 月
 
