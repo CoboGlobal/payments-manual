@@ -9,7 +9,7 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.account.balance.updated`](#payment-account-balance-updated) | 某个账户在某个 token 上的可用余额发生变动，以及变动来源。各账户实际收到的金额只由此事件提供。 | 标准事件 |
+| [`payment.account.balance.updated`](#payment-account-balance-updated) | 某个账户在某个 token 上的可用余额发生变动，以及变动来源。各账户实际收到的金额只由此事件提供。 | **标准事件** |
 
 ## `payment.account.balance.updated`
 
@@ -26,7 +26,7 @@ lang: "zh-hans"
 | `data_type` | `string` | 固定为 `PaymentAccountBalanceUpdate`，用于反序列化 `data`。 |
 | `source_account` | `string` | 发生变动的账户。商户账户为商户 ID，开发者账户为 `developer`。 |
 | `source_id` | `string` | 引起本次变动的业务单据 ID，例如订单 ID。 |
-| `source_type` | `string` | 变动来源：<br/>• `OrderIn`：订单收款。<br/>• `LatePayment`：晚到款。<br/>• `TopUp`：充值。<br/>• `UnexceptedIn`：意外入金。<br/>• `RefundOut`：退款。<br/>• `Payout`：转出。<br/>• `UnexceptedOut`：意外出金。<br/>• `Allocation`：资金分配。<br/>• `BulkSend`：批量下发。<br/>• `SettlementNetwork`：结算网络。<br/>• `Init`：初始化。 |
+| `source_type` | `string` | 变动来源：<br/>• `OrderIn`：订单收款。<br/>• `LatePayment`：晚付金额。<br/>• `TopUp`：充值。<br/>• `UnexceptedIn`：意外入金。<br/>• `RefundOut`：退款。<br/>• `Payout`：转出。<br/>• `UnexceptedOut`：意外出金。<br/>• `Allocation`：资金分配。<br/>• `BulkSend`：批量下发。<br/>• `SettlementNetwork`：结算网络。<br/>• `Init`：初始化。 |
 | `token_id` | `string` | 发生变动的 token。 |
 | `amount` | `string` | 变动金额，截断至两位小数。 |
 | `amount_raw` | `string` | 同一笔变动金额，按该 token 自身的精度表示。 |

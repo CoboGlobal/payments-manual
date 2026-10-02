@@ -3,14 +3,14 @@ title: "意外入金"
 lang: "zh-hans"
 ---
 
-不属于任何入金计划、也不属于任何订单的入金，或者币种不受支持的入金，不会作为充值或订单收款处理，而是作为意外入金上报。它计入您的开发者余额，不计入某个付款方或某笔订单。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+意外入金指非当前订单/充值计划内的交易，或非支付服务支持的币种充币。它不会被计入某个付款方或某笔订单。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
 ## 本页的事件
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.transaction.external.created`](#payment-transaction-external) | 检测到一笔意外入金。 | 标准事件 |
-| [`payment.transaction.external.completed`](#payment-transaction-external) | 该笔入金通过合规筛查，已计入您的开发者余额。 | 标准事件 |
+| [`payment.transaction.external.created`](#payment-transaction-external) | 检测到一笔意外入金。 | **标准事件** |
+| [`payment.transaction.external.completed`](#payment-transaction-external) | 该笔入金通过合规筛查，已计入您的开发者余额。 | **标准事件** |
 
 ## `payment.transaction.external`
 
@@ -18,7 +18,7 @@ lang: "zh-hans"
 
 | 事件 | 触发时机 | 您该做什么 |
 | --- | --- | --- |
-| `payment.transaction.external.created` | 检测到一笔不属于任何入金计划或订单的入金，或者入金币种不受支持。 | 建立一条待归属的记录。**此时资金尚未入账。** |
+| `payment.transaction.external.created` | 检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。 | 建立一条待归属的记录。**此时资金尚未入账。** |
 | `payment.transaction.external.completed` | 该笔入金通过合规筛查，资金已计入您的开发者余额。 | 按您自己的规则处理这笔无法归属的资金——退回付款方、人工归属到某个付款方，或计入平台收入。 |
 
 这两个事件不会出现在任何订单的 `transactions` 数组里，也不会产生 `payment.topup.updated`。如果您需要核对流入自己地址的每一笔资金，这是唯一的来源。

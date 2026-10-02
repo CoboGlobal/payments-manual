@@ -9,25 +9,25 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.bulk_send.updated`](#payment-bulk_send-updated) | 一个批次的结果，以及金额和数量汇总。 | 标准事件 |
-| [`payment.bulk_send.item.updated`](#payment-bulk_send-item-updated) | 单个条目的结果，用于与您的收款人记录逐条对账。 | 标准事件 |
+| [`payment.bulk_send.updated`](#payment-bulk_send-updated) | 批量下发批次状态发生变更：已创建、校验中、执行中、完成、部分完成或失败，附带金额和条目数量汇总。 | **标准事件** |
+| [`payment.bulk_send.item.updated`](#payment-bulk_send-item-updated) | 批量下发条目状态发生变更：待执行、执行中、完成、失败或未执行。 | **标准事件** |
 
 ## `payment.bulk_send.updated`
 
-批次级事件，以 `bulk_send_id` 标识。
+批次级事件。
 
 ### 批次的事件触发条件
 
 **批次 `status` 每变化一次发一条事件。** 逐条进度不在这里，在条目事件里。
 
-| 什么时候会收到 | `status` | 您该做什么 |
+| 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
 | 批次创建成功 | `Pending` | 建立批次记录并等待。停在这里不一定是在校验，也可能在等审批，见下方说明。 |
 | 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
 | 校验通过，开始逐项执行 | `Transferring` | 等待。 |
-| 全部条目成功 | `Completed` | 关闭批次汇总。条目的完成仍以条目事件为准。 |
-| 批次结果确定，部分条目未成功 | `PartiallyCompleted` | 按两个计数分流：`failed_item_count` 为已提交执行但失败的条目，`not_executed_item_count` 为从未提交执行的条目。 |
-| 批次整体失败 | `Failed` | 读取 `failed_reason.code`——**执行前后都可能失败**，资金是否已被使用以它为准，见[批次的失败原因](#批次的失败原因)。 |
+| 全部条目成功 | `Completed`（终态） | 关闭批次汇总。条目的完成仍以条目事件为准。 |
+| 批次结果确定，部分条目未成功 | `PartiallyCompleted`（终态） | 按两个计数分流：`failed_item_count` 为已提交执行但失败的条目，`not_executed_item_count` 为从未提交执行的条目。 |
+| 批次整体失败 | `Failed`（终态） | 读取 `failed_reason.code`——**执行前后都可能失败**，资金是否已被使用以它为准，见[批次的失败原因](#批次的失败原因)。 |
 
 启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批」**，两者的 `status` 都是 `Pending`。批次在 `Pending` 停留时间较长时，请在 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
 
@@ -47,23 +47,23 @@ lang: "zh-hans"
 | `failed_item_count` | `integer` | 已提交执行但失败的条目数。这些条目的资金曾被锁定、手续费曾被扣收，现已释放和退回。能否直接重发取决于各条目的 `failed_reason.code`。 |
 | `not_executed_item_count` | `integer` | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式失败。 |
 | `requested_amounts` | `array` | 全部条目的请求金额合计，按 `token_id` 分组。同一币种在两条链上是两项，不能合并。 |
-| `requested_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `requested_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amounts.token_id` | `string` | 币种 ID。 |
 | `requested_amounts.chain_id` | `string` | 链 ID。 |
 | `completed_amounts` | `array` | 已完成条目的金额合计，按 `token_id` 分组。 |
-| `completed_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `completed_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `completed_amounts.token_id` | `string` | 币种 ID。 |
 | `completed_amounts.chain_id` | `string` | 链 ID。 |
 | `failed_amounts` | `array` | 未成功条目的金额合计，按 `token_id` 分组，已提交执行的与从未提交的合并计算。区分两者请看 `failed_item_count` 与 `not_executed_item_count`。 |
-| `failed_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `failed_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `failed_amounts.token_id` | `string` | 币种 ID。 |
 | `failed_amounts.chain_id` | `string` | 链 ID。 |
 | `description` | `string` | 您创建批次时填写的整批备注，未填写时为 `null`。 |
 | `commission_fee` | `object` | Cobo 收取的佣金，未产生时为 `null`。 |
-| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计，因此不带币种。批次跨多少种 token 都只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
+| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计。批次跨多少种 token 都只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
-| `failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[批次的失败原因](#批次的失败原因)。 |
-| `failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `failed_reason.code` | `string` | 失败原因代码。取值见[批次的失败原因](#批次的失败原因)。 |
+| `failed_reason.message` | `string` | 失败原因。 |
 | `created_timestamp` | `integer` | 该批次的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 该批次最近一次状态更新时间，Unix 时间戳（秒）。 |
 
@@ -215,19 +215,19 @@ lang: "zh-hans"
 
 ## `payment.bulk_send.item.updated`
 
-条目级事件，以 `bulk_send_item_id` 标识。
+条目级事件。
 
 ### 条目的事件触发条件
 
 **条目 `status` 每变化一次发一条事件。**
 
-| 什么时候会收到 | `status` | 您该做什么 |
+| 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
 | 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停留在此状态不代表仍在校验。 |
 | 该条目的转出已提交 | `Processing` | 等待结果，不要标记完成。 |
-| 转出成功 | `Completed` | 保存金额和 `tx_hash`，关闭该条目。 |
-| 转出已提交但失败 | `Failed` | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
-| 该条目从未提交执行 | `NotExecuted` | **资金未被使用。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
+| 转出成功 | `Completed`（终态） | 保存金额和 `tx_hash`，关闭该条目。 |
+| 转出已提交但失败 | `Failed`（终态） | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
+| 该条目从未提交执行 | `NotExecuted`（终态） | **资金未被使用。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
 
 ### 条目的事件内容
 
@@ -242,15 +242,15 @@ lang: "zh-hans"
 | `source_account` | `string` | 批次的付款账户。 |
 | `status` | `string` | 该条目的当前状态，含义见[条目的事件触发条件](#条目的事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
 | `requested_amount` | `object` | 该条目的请求下发金额。条目整体成功或整体失败，因此没有单独的已完成金额和失败金额。 |
-| `requested_amount.amount` | `string` | 金额，十进制字符串。 |
+| `requested_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amount.token_id` | `string` | 币种 ID。 |
 | `requested_amount.chain_id` | `string` | 链 ID。 |
 | `receiving_address` | `string` | 收款方地址。 |
 | `tx_hash` | `string` | 该条目转出交易的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
 | `description` | `string` | 您创建该条目时填写的备注，未填写时为 `null`。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 或 `NotExecuted` 时有值，其余情况为 `null`。 |
-| `failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[条目的失败原因](#条目的失败原因)。 |
-| `failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `failed_reason.code` | `string` | 失败原因代码。取值见[条目的失败原因](#条目的失败原因)。 |
+| `failed_reason.message` | `string` | 失败原因。 |
 | `created_timestamp` | `integer` | 该条目的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 该条目最近一次状态更新时间，Unix 时间戳（秒）。 |
 
@@ -362,6 +362,6 @@ lang: "zh-hans"
 
 原批次和原条目上都没有重试。请创建新的批次，或为单个收款人创建一笔转出，并在自己的记录里保留原 `bulk_send_id` 与 `bulk_send_item_id`——新事件不携带指回它们的引用。
 
-## 相关
+## 高级事件
 
-- `payment.bulk_send.status.updated` 与 `payment.bulk_send.item.status.updated` 返回的是批次和条目底层交易的细节，说明见[高级事件](/payments/cn/guides/events/advanced#payment-bulk_send-status-updated)。
+需要批次和条目的链上交易细节时，可订阅高级事件 `payment.bulk_send.status.updated` 和 `payment.bulk_send.item.status.updated`，参见[高级事件](/payments/cn/guides/events/advanced#payment-bulk_send-status-updated)。

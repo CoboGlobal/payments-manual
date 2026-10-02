@@ -301,3 +301,9 @@ table:not(.six-columns-fixed-first-row-cn):not(.six-columns-fixed-first-row) td:
     min-width: 40rem;
   }
 }
+
+/* 表格最后一列默认没有右内边距，文字会贴住右边框 */
+table th:last-child,
+table td:last-child {
+  padding-right: 12px !important;
+}

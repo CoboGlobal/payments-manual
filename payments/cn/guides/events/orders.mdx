@@ -9,33 +9,29 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.order.updated`](#payment-order-updated) | 一笔订单的收款结果：等待付款、某笔入金需要处理、已付清、少付、过期，或订单结束后收到晚到款。 | 标准事件 |
+| [`payment.order.updated`](#payment-order-updated) | 支付订单状态发生变更：待支付、处理中、已付清、少付或过期；某笔入金需要处理、失败，或在订单结束后到达时也会通知。 | **标准事件** |
 
 ## `payment.order.updated`
 
-订单模式的主事件，以 `order_id` 标识。
-
-**只有 `status` 为 `Completed` 时才能发货，不要自己比较金额。** 足额判定带容差（`amount_tolerance`），自行拿实收金额与应收金额比较，会把 Cobo 认定已付清的订单判成没付够。
+订单模式的主事件。
 
 ### 事件触发条件
 
 **订单 `status` 每变化一次发一条事件。** `status` 不变但某笔入金的状态需要通知您时，也会发一条，原因由 `notice_type` 给出。
 
-| 什么时候会收到 | `status` | `notice_type` | 您该做什么 |
+| 触发条件 | `status` | `notice_type` | 您该做什么 |
 | --- | --- | --- | --- |
 | 订单创建成功 | `Pending` | `null` | 建立订单记录，向付款方展示应付金额。 |
 | 检测到该订单的**第一笔**入金 | `Processing` | `null` | 更新进度，不要发货。 |
 | 某笔入金进入 `ActionRequired` | `Processing` | `PaymentUpdated` | 按该条目的 `message` 处理。处理完成前，这笔资金不会计入订单。 |
-| 某笔入金失败 | `Processing` | `PaymentFailed` | 读取该条目的 `failed_reason.code`。该笔资金不会计入订单，请按您的业务规则联系付款方重新付款。 |
-| 累计实收达到足额阈值。多付也走这一条，没有 `Overpaid` 状态 | `Completed` | `null` | 发货，以 `order_id` 作为幂等键。 |
-| 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid` | `null` | 进入少付处理，不要按足额订单发货。 |
-| 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired` | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 订单已是终态（或在这一条事件里刚进入终态），又收到一笔入金**且该笔通过合规筛查** | 终态 | `LatePaymentReceived` | 人工决定退款还是补发，不要重开原订单。 |
-| 订单已是终态，晚到的那笔**合规筛查未通过** | 终态 | `PaymentFailed` | 无需处理，该笔资金未入账。 |
+| 某笔入金失败 | `Processing` | `PaymentFailed` | 读取该条目的 `failed_reason.code`。该笔资金不会计入订单也不会入账，请按您的业务规则联系付款方重新付款。 |
+| 累计实收达到应付金额（如设置了容差金额，还会减去容差金额） | `Completed`（终态） | `null` | 订单已完成，可以发货。 |
+| 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid`（终态） | `null` | 进入少付处理，不要按足额订单发货。 |
+| 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired`（终态） | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
+| 订单已是终态，又收到一笔入金**且该笔通过合规筛查** | 终态 | `LatePaymentReceived` | 该笔资金会进入您的开发者账户。请根据您的业务规则决定是否退款。 |
+| 订单已是终态，晚到的那笔**合规筛查未通过** | 终态 | `PaymentFailed` | 该笔资金不会入账，请根据该条目的 `failed_reason.code` 和您的业务规则决定如何处理。 |
 
-**终态在有效期结束那一刻定下来，之后不再重算。** 因此您可能看到 `status` 为 `Expired`、`credited_amount` 为 `0`，而 `transactions` 里有一条 `Completed`——该笔入金在订单到期后才到达（`is_late` 为 `true`），不参与终态判定，也不计入 `credited_amount`。
-
-**这些情况不发事件**：检测到第二笔及以后的入金、入金进入合规筛查、入金顺利通过合规筛查（`credited_amount` 会变但不通知）、晚到款刚到达还没走完合规筛查。
+**这些情况不发事件**：检测到第二笔及以后的入金、入金进入合规筛查、入金顺利通过合规筛查、晚付金额刚到达还没走完合规筛查。
 
 ### 事件内容
 
@@ -44,67 +40,59 @@ lang: "zh-hans"
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `data_type` | `string` | 固定为 `PaymentOrderUpdate`。 |
-| `order_id` | `string` | 订单 ID，也是发货幂等使用的键。 |
-| `psp_order_code` | `string` | 您为该订单分配的参考编号。 |
-| `merchant_id` | `string` | 订单归属商户时为该商户的 ID，否则为 `null`。 |
-| `merchant_order_code` | `string` | 订单归属商户时为商户的参考编号，否则为 `null`。 |
+| `order_id` | `string` | 订单 ID。 |
+| `psp_order_code` | `string` | 您内部业务订单的标识，与创建订单时传入的 `psp_order_code` 一致。 |
+| `merchant_id` | `string` | 商户 ID。 |
+| `merchant_order_code` | `string` | 下游商户的订单编号，与创建订单时传入的 `merchant_order_code` 一致；未提供时为 `null`。 |
 | `receive_address` | `string` | 付款方转账的目标地址。 |
-| `expired_at` | `integer` | 付款窗口关闭时间，Unix 时间戳（秒）。 |
+| `expired_at` | `integer` | 订单过期时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 订单当前状态，含义见[事件触发条件](#事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
-| `notice_type` | `string` | 通知类型，说明本条事件涉及的入金变化：<br/>• `PaymentUpdated`：某笔入金进入 `ActionRequired`。<br/>• `PaymentFailed`：某笔入金失败。<br/>• `LatePaymentReceived`：晚到款通过合规筛查。<br/>不涉及上述变化时为 `null`。它有值时 `status` 通常不变，但也可能同时变化——**判断订单状态是否变化，只比较 `status`**。 |
-| `requested_amount` | `object` | 订单应收总额，**含您的手续费**，创建时确定、之后不变，用于向付款方展示。<br/>• ⚠️ **它不是发货阈值**：足额判定带容差，能否发货以 `status` 为 `Completed` 为准。 |
-| `requested_amount.amount` | `string` | 金额，十进制字符串。 |
+| `notice_type` | `string` | 通知类型，说明本条事件涉及的入金变化：<br/>• `PaymentUpdated`：某笔入金进入 `ActionRequired`。<br/>• `PaymentFailed`：某笔入金失败。<br/>• `LatePaymentReceived`：收到一笔晚付金额，且已经通过合规筛查。 |
+| `requested_amount` | `object` | 订单应收总额。 |
+| `requested_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amount.token_id` | `string` | 币种 ID。 |
 | `requested_amount.chain_id` | `string` | 链 ID。 |
-| `credited_amount` | `object` | 已收到并计入订单的总额，订单对账以它为准。<br/>• **它不包含**：合规筛查中的入金、等待您处理的入金、被拒绝的入金，以及订单结束后才到达的入金（条目 `is_late` 为 `true`）。<br/>• ⚠️ **不要自行对 `transactions` 求和**，晚到款会使结果偏大。<br/>• ⚠️ 它**包含将分给您的手续费，不是商户的入账金额**。各账户实际收到的金额见[余额变动](/payments/cn/guides/events/balances)。 |
-| `credited_amount.amount` | `string` | 金额，十进制字符串。 |
+| `credited_amount` | `object` | 已收到并计入订单的总额。不包含：合规筛查中的入金、被拒绝的入金，以及晚付金额（条目 `is_late` 为 `true`）。 |
+| `credited_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `credited_amount.token_id` | `string` | 币种 ID。 |
 | `credited_amount.chain_id` | `string` | 链 ID。 |
-| `outstanding_amount` | `object` | **付款方还需支付的金额**＝`requested_amount` − `credited_amount`（`requested_amount` 在查询接口中称为 `payable_amount`，即「应付 − 已收」）。<br/>• **用法：`status` 为 `Underpaid` 时，据此告知付款方差额。**<br/>• ⚠️ **不要用它判断是否少付**：`status` 为 `Completed` 时它仍可能大于 `0`（在 `amount_tolerance` 容差内完成），此时订单已按足额处理，是否向付款方追缴这部分差额由您自行决定。判断是否少付请以 `status` 为准。<br/>• 下限为 `0`，多付时为 `0`，**不反映多收的金额**。 |
-| `outstanding_amount.amount` | `string` | 金额，十进制字符串。 |
+| `outstanding_amount` | `object` | 付款方还需支付的金额＝`requested_amount` − `credited_amount`。下限为 `0`，多付时为 `0`，不反映多收的金额。<br/>• ⚠️ `status` 为 `Completed` 时该金额仍可能大于 `0`（即订单在 `amount_tolerance` 容差内完成），此时订单在 Cobo 处已按足额处理，是否向付款方追缴这部分差额由您自行决定。 |
+| `outstanding_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `outstanding_amount.token_id` | `string` | 币种 ID。 |
 | `outstanding_amount.chain_id` | `string` | 链 ID。 |
-| `transactions` | `array` | 该订单**至今的全部入金**，不是增量；无入金时为 `[]`。请整体替换本地副本，按 `transaction_id` upsert。<br/>• ⚠️ **低于粉尘阈值的入金不在数组中**，默认阈值为 `0.05`，各 token 的阈值见登记入金地址接口返回的 `min_amount`。 |
-| `transactions.transaction_id` | `string` | 该笔入金的 ID。 |
+| `transactions` | `array` | 该订单至今的全部入金。⚠️ 不包括低于粉尘阈值的入金。 |
+| `transactions.transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
 | `transactions.tx_hash` | `string` | 该笔入金的链上交易哈希。 |
 | `transactions.amount` | `object` | 该笔入金的金额。 |
-| `transactions.amount.amount` | `string` | 金额，十进制字符串。 |
+| `transactions.amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `transactions.amount.token_id` | `string` | 币种 ID。 |
 | `transactions.amount.chain_id` | `string` | 链 ID。 |
 | `transactions.source_address` | `string` | 付款方的链上地址，无法识别时为 `null`。 |
 | `transactions.status` | `string` | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
 | `transactions.is_late` | `boolean` | `true` 表示该笔入金在订单进入终态后才到达，不计入 `credited_amount`。 |
-| `transactions.screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在合规筛查中时为 `null`；合规筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
-| `transactions.message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `transactions.screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
+| `transactions.message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `transactions.failed_reason` | `object` | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
-| `transactions.failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
-| `transactions.failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `transactions.failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |
+| `transactions.failed_reason.message` | `string` | 失败原因。 |
 | `created_timestamp` | `integer` | 该订单的创建时间，Unix 时间戳（秒）。 |
-| `updated_timestamp` | `integer` | 该订单最近一次状态更新时间，Unix 时间戳（秒）。入金的新增和变化不会更新它，因此同一时间戳下可能收到 `transactions` 不同的多条事件：**只丢弃严格更早的事件，相等的不能丢**。 |
+| `updated_timestamp` | `integer` | 该订单最近一次状态更新时间，Unix 时间戳（秒）。<br/>• ⚠️ 入金的状态变化（例如某笔入金失败）不会改变订单状态，因此也不会更新此时间戳。 |
 
 </div>
 
-订单对象本身没有 `failed_reason`。订单不会「失败」，只会过期或少付；失败属于 `transactions` 里的某一笔入金。
-
-所有金额固定 2 位小数、去掉尾零。应付类金额本来就不超过 2 位，链上实收金额（`credited_amount`、条目的 `amount`）按 `ROUND_DOWN` 截断——付款方打 `103.0305`，事件里是 `103.03`。足额判定用的是未截断的原值，`status` 不受影响。
-
 ### 失败原因
-
-`failed_reason.code` 是您分支的依据。`transactions` 中的条目只可能携带下面三个。提交问题时要提供的 ID 是 `order_id`，不是条目的 `transaction_id`。
 
 | `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
 | `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。 | 到该应用查看原因。 |
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 | 与 Cobo 确认。 |
-| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供 `order_id`。 |
+| `transaction.failed` | 其他原因导致的失败。 | 提交问题并提供该条目的 `transaction_id`。 |
 
 ### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
 #### 订单已创建
-
-向付款方展示应付金额。`transactions` 为空，两个依赖到账的金额均为 `0`。
 
 ```json
 {
@@ -239,7 +227,7 @@ lang: "zh-hans"
 
 #### 订单已付清
 
-**发货。** 两笔入金通过合规筛查，合计达到阈值。以 `order_id` 作为幂等键，不要自己比较金额。
+订单已完成，可以发货。
 
 ```json
 {
@@ -286,7 +274,7 @@ lang: "zh-hans"
 
 #### 订单到期且少付
 
-按少付处理。`outstanding_amount` 是差额；第二笔入金被拒绝，因此从未计入。
+按少付处理。`outstanding_amount` 是差额；第二笔入金被拒绝，因此未计入。
 
 ```json
 {
@@ -336,7 +324,7 @@ lang: "zh-hans"
 
 #### 订单结束后又收到资金
 
-`notice_type` 为 `LatePaymentReceived`，`status` 保持终态。人工决定退款还是补发。**`credited_amount` 不变**——晚到款条目是 `Completed`，但不计入订单。
+`notice_type` 为 `LatePaymentReceived`，`status` 保持终态。该笔资金会进入您的开发者账户，请根据您的业务规则决定是否退款。**`credited_amount` 不变**——晚付金额条目是 `Completed`，但不计入订单。
 
 ```json
 {
@@ -381,6 +369,6 @@ lang: "zh-hans"
 }
 ```
 
-## 相关
+## 高级事件
 
-- 每笔入金背后的链上细节，以及原有的 `payment.order.status.updated` 事件，参见[高级事件](/payments/cn/guides/events/advanced)。
+需要订单每笔入金的链上交易细节时，可订阅高级事件 `payment.order.status.updated`、`payment.transaction.completed`、`payment.transaction.failed` 和 `payment.transaction.late`，参见[高级事件](/payments/cn/guides/events/advanced)。

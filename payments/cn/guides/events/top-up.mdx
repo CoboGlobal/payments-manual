@@ -3,37 +3,35 @@ title: "充值"
 lang: "zh-hans"
 ---
 
-本页覆盖充值模式：每个付款方有自己的入金地址，每笔入金单独跟踪。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+本页覆盖充值模式：每个付款方有自己的充值地址，每笔充值单独跟踪。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
 
 ## 本页的事件
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.topup.updated`](#payment-topup-updated) | 一笔充值的全过程：检测到、合规筛查中、完成或失败。 | 标准事件 |
-| [`payment.address.updated`](#payment-address-updated) | 某个付款方的入金地址被替换。除了您自己发起的更换，Cobo 也会主动更换地址。 | 标准事件 |
+| [`payment.topup.updated`](#payment-topup-updated) | 充值状态发生变更：已检测到、合规筛查中、需要处理、完成或失败。 | **标准事件** |
+| [`payment.address.updated`](#payment-address-updated) | 某个付款方的充值地址被替换。除了您自己发起的更换，Cobo 也会主动更换地址。 | **标准事件** |
 
 ## `payment.topup.updated`
 
-充值模式的主事件。一笔入金对应一个对象，以 `transaction_id` 标识。
-
-**只有 `status` 为 `Completed` 时才能入账**，没有第二个条件。
+充值模式的主事件。
 
 ### 事件触发条件
 
-**这笔充值的 `status` 每变化一次发一条事件。** `Completed` 与 `Failed` 是终态。
+**这笔充值的 `status` 每变化一次发一条事件。**
 
-| 什么时候会收到 | `status` | 可否入账 | 您该做什么 |
+| 触发条件 | `status` | 可否入账 | 您该做什么 |
 | --- | --- | --- | --- |
-| 入金地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理入金。 |
-| 该笔入金进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
+| 充值地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理充值。 |
+| 该笔充值进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
 | 合规筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
-| 合规筛查通过，且链上至少有一个确认 | `Completed` | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
-| 该笔入金被拒绝或失败 | `Failed` | ❌ | 读取 `failed_reason.code` 决定下一步。 |
+| 合规筛查通过，且链上至少有一个确认 | `Completed`（终态） | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
+| 该笔充值被拒绝或失败 | `Failed`（终态） | ❌ | 读取 `failed_reason.code` 决定下一步。 |
 
-**金额不超过粉尘阈值的入金不发事件**，各 token 的阈值见登记入金地址接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
+**金额不超过粉尘阈值的充值不发事件**，各 token 的阈值见 [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address) 或 [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses) 接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
 
 <Warning>
-  **中间状态可能不出现。** 一笔入金可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过合规筛查。请用每条事件里的 `status` 覆盖本地状态，不要校验状态迁移是否合法，也不要等 `PendingScreening` 再做什么。需要您动手的 `ActionRequired` 会一直停在那里，不会被跳过。
+  **中间状态可能不出现。** 例如，合规筛查通常很快完成，因此一笔充值可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过合规筛查。
 </Warning>
 
 ### 事件内容
@@ -43,47 +41,43 @@ lang: "zh-hans"
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `data_type` | `string` | 固定为 `PaymentTopUpUpdate`。 |
-| `transaction_id` | `string` | 这笔入金的 ID。入账幂等用它，调用 Cobo 合规接口时也传它。 |
-| `merchant_id` | `string` | 这笔入金记在哪个商户名下。 |
+| `transaction_id` | `string` | 这笔充值在 Cobo 系统中的 ID。 |
+| `merchant_id` | `string` | 这笔充值记在哪个商户名下。 |
 | `payer_id` | `string` | Cobo 分配的付款方 ID。 |
-| `custom_payer_id` | `string` | 您登记入金地址时提供的付款方 ID，未提供时为 `null`。 |
+| `custom_payer_id` | `string` | 您登记充值地址时提供的付款方 ID，未提供时为 `null`。 |
 | `status` | `string` | 当前状态，含义见[事件触发条件](#事件触发条件)：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `amount` | `object` | 这笔入金的金额，全程不变，失败时也保留。 |
-| `amount.amount` | `string` | 金额，十进制字符串。 |
+| `amount` | `object` | 这笔充值的金额，全程不变，失败时也保留。 |
+| `amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `amount.token_id` | `string` | 币种 ID。 |
 | `amount.chain_id` | `string` | 链 ID。 |
-| `tx_hash` | `string` | 链上交易哈希。Cobo 内部划转不上链，此时为 `null`，且不会后补。不要用它做幂等键。 |
-| `topup_address` | `string` | 收到这笔资金的入金地址，可据此确定对应的付款方和链。 |
-| `source_address` | `string` | 链上发送方，原路退回时作为转出目标。链上无法识别时为 `null`。 |
-| `screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo 的 KYT。<br/>• `IntegratedVendor`：Cobo 集成的第三方供应商。<br/>两种模式都可能需要您处理，**是否需要处理请看 `status`**。不在合规筛查中时为 `null`；合规筛查进行中也可能为 `null`，表示 Cobo 此次未查到供应商，不表示未配置供应商。 |
-| `message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。面向运营人员，**不要用于程序匹配**。固定文案：<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `tx_hash` | `string` | 链上交易哈希。 |
+| `topup_address` | `string` | 收到这笔资金的充值地址。 |
+| `source_address` | `string` | 链上发送方，原路退回时作为转出目标。 |
+| `screening_mode` | `string` | 这笔充值由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
+| `message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
-| `failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
-| `failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |
+| `failed_reason.message` | `string` | 失败原因。 |
 | `created_timestamp` | `integer` | 这笔充值的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 这笔充值最近一次状态更新时间，Unix 时间戳（秒）。 |
 
 </div>
 
-提交合规筛查结论时，调用 [Submit KYT screening decision](https://www.cobo.com/developers/v2/api-references/compliance/submit-kyt-screening-decision) 并传入本事件中的 `transaction_id`。资金退回、隔离、解冻同样按 `transaction_id` 定位，这些接口都不接受 `tx_hash`。
-
 ### 失败原因
-
-`failed_reason.code` 是您分支的依据。入金只可能携带下面三个。提交问题时要提供的 ID 是 `transaction_id`。
 
 | `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
-| `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔入金。 | 到该应用查看原因。 |
-| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔入金。 | 与 Cobo 确认。 |
-| `transaction.failed` | 其余全部情况，包括链上失败，以及因链重组而被回滚的入金。 | 提交问题并提供 `transaction_id`。 |
+| `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔充值。 | 到该应用查看原因。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔充值。 | 与 Cobo 确认。 |
+| `transaction.failed` | 其他原因导致的失败。 | 提交问题并提供 `transaction_id`。 |
 
 ### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
-#### 检测到一笔入金
+#### 检测到一笔充值
 
-把这笔入金标记为处理中，先不要入账。
+把这笔充值标记为处理中，先不要入账。
 
 ```json
 {
@@ -131,7 +125,7 @@ lang: "zh-hans"
 
 #### 合规筛查需要您处理
 
-把这笔入金放进人工队列，按 `message` 决定做哪件事。
+把这笔充值放进人工处理流程，按 `message` 决定做哪件事。
 
 ```json
 {
@@ -177,7 +171,7 @@ lang: "zh-hans"
 }
 ```
 
-#### 入金失败
+#### 充值失败
 
 停止任何自动入账，读取 `failed_reason.code`。本例是 Cobo 的合规检查拒绝，因此不要重发，先与 Cobo 解决。
 
@@ -206,7 +200,7 @@ lang: "zh-hans"
 
 ## `payment.address.updated`
 
-付款方的入金地址被替换时触发。请更新展示给该付款方的地址，并在旧地址仍可能收款期间继续接受其入金。
+付款方的充值地址被替换时触发。收到后，请在您的系统中把该付款方的充值地址更新为 `updated_address`。
 
 ### 地址事件内容
 
@@ -236,7 +230,6 @@ lang: "zh-hans"
 }
 ```
 
-## 相关
+## 高级事件
 
-- 需要确认数、链上交易手续费明细，以及每笔入金背后的链上细节时，订阅 `payment.transaction.created`、`payment.transaction.completed` 和 `payment.transaction.failed`。参见[高级事件](/payments/cn/guides/events/advanced)。
-- `payment.account.balance.updated` 汇报相应的余额变动。参见[余额变动](/payments/cn/guides/events/balances)。
+需要确认数、链上交易手续费明细等链上交易细节时，可订阅高级事件 `payment.transaction.created`、`payment.transaction.completed` 和 `payment.transaction.failed`，参见[高级事件](/payments/cn/guides/events/advanced)。

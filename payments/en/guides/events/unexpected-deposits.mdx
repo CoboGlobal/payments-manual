@@ -3,14 +3,14 @@ title: "Unexpected deposits"
 lang: "en"
 ---
 
-A deposit that belongs to no deposit plan and no order, or that arrives in a token Cobo does not support, is not handled as a top-up or as order collection. It is reported as an unexpected deposit and credited to your developer balance, not to a payer or an order. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+An unexpected deposit is a transaction not within current orders/deposit plans, or a deposit in an unsupported token. It is not credited to any payer or order. Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
 
 ## Events on this page
 
 | Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.transaction.external.created`](#payment-transaction-external) | An unexpected deposit was detected. | Standard |
-| [`payment.transaction.external.completed`](#payment-transaction-external) | It cleared screening and was credited to your developer balance. | Standard |
+| [`payment.transaction.external.created`](#payment-transaction-external) | An unexpected deposit was detected. | **Standard** |
+| [`payment.transaction.external.completed`](#payment-transaction-external) | It cleared screening and was credited to your developer balance. | **Standard** |
 
 ## `payment.transaction.external`
 
@@ -18,7 +18,7 @@ A deposit that belongs to no deposit plan and no order, or that arrives in a tok
 
 | Event | Fires when | What to do |
 | --- | --- | --- |
-| `payment.transaction.external.created` | A deposit arrives that belongs to no deposit plan and no order, or is in an unsupported token. | Record it as unattributed. **The funds are not credited yet.** |
+| `payment.transaction.external.created` | An unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens). | Record it as unattributed. **The funds are not credited yet.** |
 | `payment.transaction.external.completed` | That deposit cleared compliance screening and was credited to your developer balance. | Apply your own rule for unattributable funds — return them to the sender, attribute them to a payer manually, or book them as platform income. |
 
 Neither event appears in any order's `transactions` array, and neither produces a `payment.topup.updated`. If you need to account for every transfer arriving at your addresses, this is the only source.

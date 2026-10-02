@@ -11,26 +11,26 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.payout.updated`](#payment-payout-updated) | 一笔资金转出的结果：处理中、已完成、部分完成、失败，或被收款银行拒绝。 | 标准事件 |
-| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | 从您的某个虚拟账户提现法币到银行账户的状态变更。 | 标准事件 |
+| [`payment.payout.updated`](#payment-payout-updated) | 资金转出状态发生变更：已受理、准备资金、转出中、完成、部分完成、失败或被收款银行退回。 | **标准事件** |
+| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | 从您的某个虚拟账户提现法币到银行账户的状态变更。 | **标准事件** |
 
 ## `payment.payout.updated`
 
-资金转出的主事件，以 `payout_id` 标识。
+资金转出的主事件。
 
 ### 事件触发条件
 
 **这笔转出的 `status` 每变化一次发一条事件。** 转出交易的中间变化（某笔完成、失败、获得 `tx_hash`）不单独通知。
 
-| 什么时候会收到 | `status` | 是否终态 | 您该做什么 |
-| --- | --- | --- | --- |
-| 转出请求被受理 | `Pending` | 否 | 记录本次转出，不要重复提交。 |
-| 开始准备资金（归集、跨链兑换、扣佣金） | `Preparing` | 否 | 等待。 |
-| 开始执行转出交易 | `Transferring` | 否 | 等待。即使部分转出交易已完成，也不能关闭付款。 |
-| 全部转出成功 | `Completed` | 是 | 关闭本次转出。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
-| 有一部分没有成功 | `PartiallyCompleted` | 是 | 按 `failed_amounts` 的金额另建一笔转出补发，不要重复支付已成功的部分。 |
-| 全部没有成功 | `Failed` | 是 | 读取 `failed_reason.code` 并处理，不要原地重试。 |
-| 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 否 | 记录一次被拒、通知运营核对收款账户信息，然后继续等这个 `payout_id` 的后续事件。 |
+| 触发条件 | `status` | 您该做什么 |
+| --- | --- | --- |
+| 转出请求被受理 | `Pending` | 记录本次转出，不要重复提交。 |
+| 开始准备资金（归集、跨链兑换、扣佣金） | `Preparing` | 等待。 |
+| 开始执行转出交易 | `Transferring` | 等待。即使部分转出交易已完成，也不能关闭付款。 |
+| 全部转出成功 | `Completed`（终态） | 关闭本次转出。这表示 Cobo 已完成转账，不表示收款方平台已经入账。 |
+| 有一部分没有成功 | `PartiallyCompleted`（终态） | 按 `failed_amounts` 的金额另建一笔转出补发，不要重复支付已成功的部分。 |
+| 全部没有成功 | `Failed`（终态） | 读取 `failed_reason.code` 并处理，不要原地重试。 |
+| 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 记录一次被拒、通知运营核对收款账户信息，然后继续等这个 `payout_id` 的后续事件。 |
 
 <Warning>
   **`RejectedByBank` 不是终态。** 银行拒绝后可以换一个收款账户重试，这笔转出会回到 `Transferring`，并可能最终 `Completed`。在它到达 `Completed`、`PartiallyCompleted` 或 `Failed` 之前：不要关闭付款或标记失败，不要另建一笔转出重发（会造成重复付款），也不要把此时的 `failed_reason` 当作最终结论。
@@ -60,35 +60,35 @@ lang: "zh-hans"
 | `initiator` | `string` | 转出发起方，通常是 API key。 |
 | `remark` | `string` | 您创建转出时填写的备注，未填写时为 `null`。 |
 | `requested_amounts` | `array` | **源侧**：您请求转出的金额，按币种分组，创建时确定。 |
-| `requested_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `requested_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amounts.token_id` | `string` | 币种 ID。 |
 | `requested_amounts.chain_id` | `string` | 链 ID。 |
 | `failed_amounts` | `array` | **源侧**：未转出的部分，与 `requested_amounts` 同口径，到终态时成功金额等于两者之差。<br/>• ⚠️ **不要用 `transactions` 核对它**：转出项可能在任何转出交易产生之前就失败（归集、跨链兑换、佣金扣收），此时数组中没有对应条目。 |
-| `failed_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `failed_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `failed_amounts.token_id` | `string` | 币种 ID。 |
 | `failed_amounts.chain_id` | `string` | 链 ID。 |
 | `actual_payout_amounts` | `array` | **交付侧**：收款方实际收到的金额，**仅在 `status` 为 `Completed` 或 `PartiallyCompleted` 时有值**，其余情况为 `[]`。加密货币转出按实际转出的币种每种一项；Off-Ramp 只有一项。<br/>• ⚠️ **不要与源侧金额相减**：跨链兑换和法币结算会使两侧不是同一种资产。 |
 | `actual_payout_amounts.amount_type` | `string` | 金额类型，先读它再读其余字段：<br/>• `Crypto`：加密货币。<br/>• `Fiat`：法币（Off-Ramp 打到银行账户）。 |
-| `actual_payout_amounts.amount` | `string` | 金额，十进制字符串。 |
+| `actual_payout_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `actual_payout_amounts.token_id` | `string` | 币种 ID。仅 `amount_type` 为 `Crypto` 时出现。 |
 | `actual_payout_amounts.chain_id` | `string` | 链 ID。仅 `amount_type` 为 `Crypto` 时出现。 |
 | `actual_payout_amounts.currency` | `string` | 法币币种，例如 `USD`。仅 `amount_type` 为 `Fiat` 时出现。 |
 | `commission_fee` | `object` | Cobo 收取的佣金，未产生时为 `null`。 |
-| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计，因此不带币种。跨多个币种转出也只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
+| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计。跨多个币种转出也只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
 | `transactions` | `array` | 该笔转出的全部转出交易，不是增量；无交易时为 `[]`。 |
 | `transactions.transaction_id` | `string` | 转出交易 ID，按它 upsert。**不要用 `tx_hash` 识别条目**——未广播时它为 `null`，拆分为多笔时无法区分。 |
 | `transactions.amount` | `object` | 该笔交易实际转出的金额。经过跨链兑换后，币种可能与 `requested_amounts` 中的源币种不同。 |
-| `transactions.amount.amount` | `string` | 金额，十进制字符串。 |
+| `transactions.amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `transactions.amount.token_id` | `string` | 币种 ID。 |
 | `transactions.amount.chain_id` | `string` | 链 ID。 |
 | `transactions.tx_hash` | `string` | 链上交易哈希，广播前为 `null`。 |
 | `transactions.result` | `string` | 该笔交易的结果：<br/>• `Completed`：已成功转出。<br/>• `Failed`：未成功，金额计入 `failed_amounts`。<br/>尚无结果时为 `null`。 |
 | `transactions.failed_reason` | `object` | `result` 为 `Failed` 时有值，其余情况为 `null`。 |
-| `transactions.failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
-| `transactions.failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `transactions.failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |
+| `transactions.failed_reason.message` | `string` | 失败原因。 |
 | `failed_reason` | `object` | `status` 为 `Failed`、`RejectedByBank` 或 `PartiallyCompleted` 时有值，其余情况为 `null`。 |
-| `failed_reason.code` | `string` | 失败原因代码，按它分支。取值见[失败原因](#失败原因)。 |
-| `failed_reason.message` | `string` | 面向运营人员的说明，不要用于程序匹配。 |
+| `failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |
+| `failed_reason.message` | `string` | 失败原因。 |
 | `created_timestamp` | `integer` | 该次转出的创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 该次转出最近一次状态更新时间，Unix 时间戳（秒）。 |
 
@@ -369,6 +369,6 @@ lang: "zh-hans"
 
 完整说明请参见 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。
 
-## 相关
+## 高级事件
 
-- `payment.payout.status.updated` 返回的是这次转出底层交易的细节，说明见[高级事件](/payments/cn/guides/events/advanced#payment-payout-status-updated)。
+需要资金转出的链上交易细节时，可订阅高级事件 `payment.payout.status.updated`，参见[高级事件](/payments/cn/guides/events/advanced#payment-payout-status-updated)。

@@ -9,21 +9,21 @@ These events track a refund order from creation to completion. Read [Events over
 
 | Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.refund.updated`](#payment-refund-updated) | A refund order's result: created, completed, or failed with nothing returned. | Standard |
+| [`payment.refund.updated`](#payment-refund-updated) | A refund order's status changed: pending, completed, or failed. | **Standard** |
 
 ## `payment.refund.updated`
 
-The primary refund event, identified by `refund_id`.
+The main refund event.
 
 ### Trigger conditions
 
 **One event per change of this refund order's `status`.** Only the three values below appear in events.
 
-| When you receive it | `status` | What to do |
+| Trigger condition | `status` | What to do |
 | --- | --- | --- |
 | The refund order is ready to execute — created through a refund link, or by your own call to the create-refund API | `Pending` | Record the refund and wait. |
-| The refund completes | `Completed` | Reconcile and close it, using `refund_id` as the idempotency key. |
-| The refund fails and **nothing was returned** | `Failed` | Read `failed_reason.code` and handle it. |
+| The refund completes | `Completed` (final) | Reconcile and close it, using `refund_id` as the idempotency key. |
+| The refund fails and **nothing was returned** | `Failed` (final) | Read `failed_reason.code` and handle it. |
 
 ### Event content
 
@@ -32,24 +32,24 @@ The primary refund event, identified by `refund_id`.
 | Field | Type | Description |
 | --- | --- | --- |
 | `data_type` | `string` | Always `PaymentRefundUpdate`. |
-| `refund_id` | `string` | The refund order ID, and the key you use for reconciliation idempotency. |
+| `refund_id` | `string` | The refund order ID. |
 | `order_id` | `string` | The pay-in order this refund returns funds for; `null` when the refund is not tied to an order. |
 | `merchant_id` | `string` | The merchant this refund belongs to; `null` if none. |
 | `status` | `string` | The current status. Only these values appear in events:<br/>• `Pending`<br/>• `Completed`<br/>• `Failed`<br/>The query APIs expose more values, so keep deserialization tolerant, but branch on these three. |
 | `request_id` | `string` | The request ID you provided when creating the refund. A refund created through a refund link inherits the request ID you gave the link, or the link ID if you gave none. |
 | `to_address` | `string` | Where the funds are returned. For a refund link, the payer entered this address. |
 | `requested_amount` | `object` | The amount to return, matching the `payable_amount` you passed when creating the refund. A refund either fully succeeds or fully fails, so on `Completed` this is also the amount returned. |
-| `requested_amount.amount` | `string` | The amount, as a decimal string. |
+| `requested_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `requested_amount.token_id` | `string` | The token ID. |
 | `requested_amount.chain_id` | `string` | The chain ID. |
 | `tx_hash` | `string` | The on-chain hash of the refund transfer. `null` before it is broadcast; on failure, `null` means it never reached the chain and a value means it did but failed. |
 | `refund_type` | `string` | Which balance funds the refund:<br/>• `Merchant` — the merchant balance.<br/>• `Psp` — the developer balance. |
 | `initiator` | `string` | Who started the refund, usually an API key. A refund created through a refund link inherits the API key that created the link. |
 | `commission_fee` | `object` | The commission Cobo charged; `null` when none was charged. |
-| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. Reversals net off, so it can be `0` or negative. |
+| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD. Reversals net off, so it can be `0` or negative. |
 | `failed_reason` | `object` | Set when `status` is `Failed`; `null` otherwise. |
-| `failed_reason.code` | `string` | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
-| `failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | The failure reason. |
 | `created_timestamp` | `integer` | When the refund order was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | When the refund order last changed status, in Unix timestamp (seconds). |
 
@@ -179,6 +179,6 @@ The fee could not be charged. Top up Fee Station and create the refund again.
 }
 ```
 
-## Related
+## Advanced events
 
-- `payment.refund.status.updated` returns detail about this refund's underlying transaction and is documented in [Advanced events](/payments/en/guides/events/advanced#payment-refund-status-updated).
+For the refund's on-chain transaction detail, subscribe to the advanced event `payment.refund.status.updated`. See [Advanced events](/payments/en/guides/events/advanced#payment-refund-status-updated).

@@ -52,7 +52,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
       <td rowSpan={5}>**订单**</td>
       <td>[`payment.order.updated`](/payments/cn/guides/events/orders#payment-order-updated)</td>
       <td>**标准事件**</td>
-      <td>支付订单状态发生变更：待支付、处理中、已付清、少付或过期；某笔订单支付需要处理、失败，或在订单结束后到达时也会通知。</td>
+      <td>支付订单状态发生变更：待支付、处理中、已付清、少付或过期；某笔入金需要处理、失败，或在订单结束后到达时也会通知。</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/cn/guides/events/advanced#payment-order-status-updated)</td>
@@ -62,17 +62,17 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.late`](/payments/cn/guides/events/advanced#payment-transaction-late)</td>
       <td>高级事件</td>
-      <td>订单进入终态后又收到一笔通过合规筛查的支付。</td>
+      <td>订单进入终态后又收到一笔通过合规筛查的入金。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.completed`](/payments/cn/guides/events/advanced#payment-transaction-completed)</td>
       <td>高级事件</td>
-      <td>一笔订单支付通过合规筛查，附带链上交易细节。</td>
+      <td>订单的一笔入金通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔订单支付未通过合规筛查，附带链上交易细节。</td>
+      <td>订单的一笔入金未通过合规筛查，附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
@@ -184,7 +184,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 字段表中的字段始终出现在 payload 里，不适用时为 `null`，空数组为 `[]`。标注「选填」或「仅……时出现」的字段除外。
 
-### 读取失败原因
+### 失败原因
 
 可能汇报失败的事件会携带一个 `failed_reason` 对象。
 
@@ -196,9 +196,9 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 每个业务页面会列出该对象上可能出现的 code，并按需要采取的处理方式分组：[充值](/payments/cn/guides/events/top-up#失败原因)、[订单](/payments/cn/guides/events/orders#失败原因)、[退款](/payments/cn/guides/events/refunds#失败原因)、[资金转出](/payments/cn/guides/events/payouts#失败原因)、[批量下发](/payments/cn/guides/events/bulk-send#批次的失败原因)。
 
-### 读取金额
+### 金额
 
-**金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。
+**除特殊说明外，金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。
 
 | 结构 | 示例 | 用在哪 |
 | --- | --- | --- |

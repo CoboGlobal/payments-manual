@@ -11,26 +11,26 @@ For batch payouts, see [Bulk send events](/payments/en/guides/events/bulk-send).
 
 | Event | What it notifies you of | Type |
 | --- | --- | --- |
-| [`payment.payout.updated`](#payment-payout-updated) | A payout's result: in progress, completed, partially completed, failed, or rejected by the receiving bank. | Standard |
-| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | A fiat withdrawal from one of your virtual accounts to a bank account changed status. | Standard |
+| [`payment.payout.updated`](#payment-payout-updated) | A payout's status changed: accepted, preparing funds, transferring, completed, partially completed, failed, or returned by the receiving bank. | **Standard** |
+| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | A fiat withdrawal from one of your virtual accounts to a bank account changed status. | **Standard** |
 
 ## `payment.payout.updated`
 
-The primary payout event, identified by `payout_id`.
+The main payout event.
 
 ### Trigger conditions
 
 **One event per change of this payout's `status`.** Progress inside the outgoing transactions — one completing, failing, or getting its `tx_hash` — is not notified separately.
 
-| When you receive it | `status` | Final | What to do |
-| --- | --- | --- | --- |
-| The payout request is accepted | `Pending` | No | Record it and do not submit it again. |
-| Fund preparation starts — consolidation, cross-chain conversion, commission | `Preparing` | No | Wait. |
-| The outgoing transactions start executing | `Transferring` | No | Wait. Do not close the payment even if some outgoing transactions have completed. |
-| Everything was paid out | `Completed` | Yes | Close the payout. This means Cobo completed the transfer, not that the recipient's platform has credited it. |
-| Part of it did not go through | `PartiallyCompleted` | Yes | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
-| None of it went through | `Failed` | Yes | Read `failed_reason.code` and handle it. Do not retry in place. |
-| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | No | Record the rejection, have your team check the recipient's bank details, and keep waiting for further events on this `payout_id`. |
+| Trigger condition | `status` | What to do |
+| --- | --- | --- |
+| The payout request is accepted | `Pending` | Record it and do not submit it again. |
+| Fund preparation starts — consolidation, cross-chain conversion, commission | `Preparing` | Wait. |
+| The outgoing transactions start executing | `Transferring` | Wait. Do not close the payment even if some outgoing transactions have completed. |
+| Everything was paid out | `Completed` (final) | Close the payout. This means Cobo completed the transfer, not that the recipient's platform has credited it. |
+| Part of it did not go through | `PartiallyCompleted` (final) | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
+| None of it went through | `Failed` (final) | Read `failed_reason.code` and handle it. Do not retry in place. |
+| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Record the rejection, have your team check the recipient's bank details, and keep waiting for further events on this `payout_id`. |
 
 <Warning>
   **`RejectedByBank` is not final.** After a rejection the payout can be retried against another bank account, returning to `Transferring` and possibly reaching `Completed`. Until it reaches `Completed`, `PartiallyCompleted`, or `Failed`: do not close the payment or mark it failed, do not create another payout to resend it (that double-pays), and do not treat the current `failed_reason` as the outcome.
@@ -60,35 +60,35 @@ The primary payout event, identified by `payout_id`.
 | `initiator` | `string` | Who started the payout, usually an API key. |
 | `remark` | `string` | The note you wrote when creating the payout; `null` if none. |
 | `requested_amounts` | `array` | **Source side**: what you asked to pay out, grouped by token and fixed at creation. |
-| `requested_amounts.amount` | `string` | The amount, as a decimal string. |
+| `requested_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `requested_amounts.token_id` | `string` | The token ID. |
 | `requested_amounts.chain_id` | `string` | The chain ID. |
 | `failed_amounts` | `array` | **Source side**: the part that was not paid out, in the same terms as `requested_amounts`; at a final status the amount that succeeded is the difference.<br/>• ⚠️ **Do not reconcile it against `transactions`** — a payout item can fail before any outgoing transaction exists (consolidation, cross-chain conversion, commission), leaving no matching entry. |
-| `failed_amounts.amount` | `string` | The amount, as a decimal string. |
+| `failed_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `failed_amounts.token_id` | `string` | The token ID. |
 | `failed_amounts.chain_id` | `string` | The chain ID. |
 | `actual_payout_amounts` | `array` | **Delivery side**: what the recipient actually received. **It has values only when `status` is `Completed` or `PartiallyCompleted`**, and is `[]` otherwise. A crypto payout has one entry per token actually sent; an Off-Ramp payout has a single entry.<br/>• ⚠️ **Do not subtract it from the source-side amounts** — conversion and fiat settlement mean the two sides are different assets. |
 | `actual_payout_amounts.amount_type` | `string` | The amount type. Read it before the other fields:<br/>• `Crypto` — crypto.<br/>• `Fiat` — fiat, for Off-Ramp to a bank account. |
-| `actual_payout_amounts.amount` | `string` | The amount, as a decimal string. |
+| `actual_payout_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `actual_payout_amounts.token_id` | `string` | The token ID. Present only when `amount_type` is `Crypto`. |
 | `actual_payout_amounts.chain_id` | `string` | The chain ID. Present only when `amount_type` is `Crypto`. |
 | `actual_payout_amounts.currency` | `string` | The fiat currency, for example `USD`. Present only when `amount_type` is `Fiat`. |
 | `commission_fee` | `object` | The commission Cobo charged; `null` when none was charged. |
-| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD, so it carries no token. It is a single total even across tokens. Reversals net off, so it can be `0` or negative. |
+| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD. It is a single total even across tokens. Reversals net off, so it can be `0` or negative. |
 | `transactions` | `array` | Every outgoing transaction for this payout, not the change since the last event; `[]` when there are none. |
 | `transactions.transaction_id` | `string` | The outgoing transaction ID; upsert by it. **Do not identify entries by `tx_hash`** — it is `null` before broadcast and cannot tell split transfers apart. |
 | `transactions.amount` | `object` | The amount this transaction actually sent. After cross-chain conversion it can be in a different token from `requested_amounts`. |
-| `transactions.amount.amount` | `string` | The amount, as a decimal string. |
+| `transactions.amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `transactions.amount.token_id` | `string` | The token ID. |
 | `transactions.amount.chain_id` | `string` | The chain ID. |
 | `transactions.tx_hash` | `string` | The on-chain transaction hash; `null` before broadcast. |
 | `transactions.result` | `string` | The transaction's result:<br/>• `Completed` — sent successfully.<br/>• `Failed` — did not go through; the amount counts in `failed_amounts`.<br/>`null` while there is no result yet. |
 | `transactions.failed_reason` | `object` | Set when `result` is `Failed`; `null` otherwise. |
-| `transactions.failed_reason.code` | `string` | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
-| `transactions.failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `transactions.failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions.failed_reason.message` | `string` | The failure reason. |
 | `failed_reason` | `object` | Set when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. |
-| `failed_reason.code` | `string` | The failure code to branch on. See [Failure reasons](#failure-reasons) for the values. |
-| `failed_reason.message` | `string` | An explanation for human operators. Never match on it. |
+| `failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | The failure reason. |
 | `created_timestamp` | `integer` | When the payout was created, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | When the payout last changed status, in Unix timestamp (seconds). |
 
@@ -369,6 +369,6 @@ Fires when a bank withdrawal changes status. A bank withdrawal moves fiat out of
 
 For full details, see [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id).
 
-## Related
+## Advanced events
 
-- `payment.payout.status.updated` returns detail about this payout's underlying transaction and is documented in [Advanced events](/payments/en/guides/events/advanced#payment-payout-status-updated).
+For the payout's on-chain transaction detail, subscribe to the advanced event `payment.payout.status.updated`. See [Advanced events](/payments/en/guides/events/advanced#payment-payout-status-updated).

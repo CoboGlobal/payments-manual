@@ -52,7 +52,7 @@ Events come in two kinds:
       <td rowSpan={5}>**Orders**</td>
       <td>[`payment.order.updated`](/payments/en/guides/events/orders#payment-order-updated)</td>
       <td>**Standard**</td>
-      <td>A pay-in order's status changed: pending, processing, paid in full, underpaid, or expired. Also sent when an order payment needs your action, fails, or arrives after the order ended.</td>
+      <td>A pay-in order's status changed: pending, processing, paid in full, underpaid, or expired. Also sent when a deposit needs your action, fails, or arrives after the order ended.</td>
     </tr>
     <tr>
       <td>[`payment.order.status.updated`](/payments/en/guides/events/advanced#payment-order-status-updated)</td>
@@ -67,12 +67,12 @@ Events come in two kinds:
     <tr>
       <td>[`payment.transaction.completed`](/payments/en/guides/events/advanced#payment-transaction-completed)</td>
       <td>Advanced</td>
-      <td>An order payment cleared compliance screening, with on-chain transaction detail.</td>
+      <td>A deposit to the order cleared compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>
       <td>Advanced</td>
-      <td>An order payment did not clear compliance screening, with on-chain transaction detail.</td>
+      <td>A deposit to the order did not clear compliance screening, with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Unexpected deposits**</td>
@@ -184,7 +184,7 @@ A top-up has no separate `topup_id`. Its record ID is `transaction_id`, because 
 
 Every field in the field tables is always present in the payload: `null` when it does not apply, `[]` for an empty array. Fields marked Optional or "Present only when…" are the exception.
 
-### Read failure reasons
+### Failure reasons
 
 Events that can report a failure carry a `failed_reason` object.
 
@@ -196,9 +196,9 @@ Events that can report a failure carry a `failed_reason` object.
 
 Each business page lists the codes that can appear on that object, grouped by the response they need: [Top-up](/payments/en/guides/events/top-up#failure-reasons), [Order](/payments/en/guides/events/orders#failure-reasons), [Refund](/payments/en/guides/events/refunds#failure-reasons), [Payout](/payments/en/guides/events/payouts#failure-reasons), [Bulk send](/payments/en/guides/events/bulk-send#batch-failure-reasons).
 
-### Read amounts
+### Amounts
 
-**Amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`).
+**Unless stated otherwise, amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`).
 
 | Shape | Example | Where it is used |
 | --- | --- | --- |

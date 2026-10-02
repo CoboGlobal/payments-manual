@@ -17,7 +17,7 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 |
 | --- | --- |
-| [`payment.transaction.created`](#payment-transaction-created) | 入金地址收到一笔新的入金。仅充值模式。 |
+| [`payment.transaction.created`](#payment-transaction-created) | 充值地址收到一笔新的充值。仅充值模式。 |
 | [`payment.transaction.completed`](#payment-transaction-completed) | 一笔入金通过合规筛查并已入账。 |
 | [`payment.transaction.failed`](#payment-transaction-failed) | 一笔入金未通过合规筛查。 |
 | [`payment.transaction.late`](#payment-transaction-late) | 订单进入终态后，又收到一笔通过合规筛查的入金。 |
@@ -29,7 +29,7 @@ lang: "zh-hans"
 
 ## `payment.transaction.created`
 
-**触发条件：** 入金地址收到一笔新的入金。仅充值模式。同一个事实也会通过 [`payment.topup.updated`](/payments/cn/guides/events/top-up) 的 `status` 为 `Detected` 送达。
+**触发条件：** 充值地址收到一笔新的充值。仅充值模式。同一个事实也会通过 [`payment.topup.updated`](/payments/cn/guides/events/top-up) 的 `status` 为 `Detected` 送达。
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
