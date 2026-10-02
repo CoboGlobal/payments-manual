@@ -29,7 +29,7 @@ lang: "zh-hans"
 | 批次结果确定，部分条目未成功 | `PartiallyCompleted`（终态） | 按两个计数分流：`failed_item_count` 为已提交执行但失败的条目，`not_executed_item_count` 为从未提交执行的条目。 |
 | 批次整体失败 | `Failed`（终态） | 读取 `failed_reason.code`——**执行前后都可能失败**，资金是否已被使用以它为准，见[批次的失败原因](#批次的失败原因)。 |
 
-启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批」**，两者的 `status` 都是 `Pending`。批次在 `Pending` 停留时间较长时，请在 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
+启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批**」，两者的 `status` 都是 `Pending`。批次在 `Pending` 停留时间较长时，请在 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
 
 ### 批次的事件内容
 
@@ -39,10 +39,10 @@ lang: "zh-hans"
 | --- | --- | --- |
 | `data_type` | `string` | 固定为 `PaymentBulkSendUpdate`。 |
 | `bulk_send_id` | `string` | 批次 ID。 |
-| `request_id` | `string` | **选填。**您创建批次时提供的请求 ID。 |
+| `request_id` | `string` | **选填**。您创建批次时提供的请求 ID。 |
 | `source_account` | `string` | 批次的付款账户：商户账户为商户 ID，开发者账户为 `developer`。 |
 | `status` | `string` | 批次当前状态，含义见[批次的事件触发条件](#批次的事件触发条件)：<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
-| `execution_mode` | `string` | 执行模式：<br/>• `Strict`：只要有条目**校验**不通过，整批都不执行。<br/>• `Partial`：只隔离未通过校验的条目，其余继续执行。<br/>`Strict` 只作用于校验阶段，**不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次为 `PartiallyCompleted`。 |
+| `execution_mode` | `string` | 执行模式：<br/>• `Strict`：只要有条目**校验**不通过，整批都不执行。<br/>• `Partial`：只隔离未通过校验的条目，其余继续执行。<br/>`Strict` 只作用于校验阶段**，不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次为 `PartiallyCompleted`。 |
 | `item_count` | `integer` | 批次包含的条目数。 |
 | `failed_item_count` | `integer` | 已提交执行但失败的条目数。这些条目的资金曾被锁定、手续费曾被扣收，现已释放和退回。能否直接重发取决于各条目的 `failed_reason.code`。 |
 | `not_executed_item_count` | `integer` | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式失败。 |
@@ -238,7 +238,7 @@ lang: "zh-hans"
 | `data_type` | `string` | 固定为 `PaymentBulkSendItemUpdate`。 |
 | `bulk_send_item_id` | `string` | 条目 ID，也是对账使用的键。 |
 | `bulk_send_id` | `string` | 该条目所属的批次 ID。 |
-| `request_id` | `string` | **选填。**批次的请求 ID，同一批次下所有条目相同。逐条幂等请用 `bulk_send_item_id`。 |
+| `request_id` | `string` | **选填**。批次的请求 ID，同一批次下所有条目相同。逐条幂等请用 `bulk_send_item_id`。 |
 | `source_account` | `string` | 批次的付款账户。 |
 | `status` | `string` | 该条目的当前状态，含义见[条目的事件触发条件](#条目的事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
 | `requested_amount` | `object` | 该条目的请求下发金额。条目整体成功或整体失败，因此没有单独的已完成金额和失败金额。 |

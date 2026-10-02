@@ -76,14 +76,14 @@ Events come in two kinds:
     </tr>
     <tr>
       <td rowSpan={2}>**Unexpected deposits**</td>
-      <td>[`payment.transaction.external.created`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
+      <td>[`payment.transaction.external.created`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external-created)</td>
       <td>**Standard**</td>
       <td>An unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens).</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.external.completed`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external)</td>
+      <td>[`payment.transaction.external.completed`](/payments/en/guides/events/unexpected-deposits#payment-transaction-external-completed)</td>
       <td>**Standard**</td>
-      <td>That deposit cleared screening and was credited to your developer balance.</td>
+      <td>The unexpected deposit cleared compliance screening.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Refunds**</td>

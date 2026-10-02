@@ -76,14 +76,14 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
-      <td>[`payment.transaction.external.created`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
+      <td>[`payment.transaction.external.created`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external-created)</td>
       <td>**标准事件**</td>
       <td>检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。</td>
     </tr>
     <tr>
-      <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external)</td>
+      <td>[`payment.transaction.external.completed`](/payments/cn/guides/events/unexpected-deposits#payment-transaction-external-completed)</td>
       <td>**标准事件**</td>
-      <td>该笔入金通过合规筛查，已计入您的开发者余额。</td>
+      <td>该笔意外入金通过合规筛查。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**退款**</td>

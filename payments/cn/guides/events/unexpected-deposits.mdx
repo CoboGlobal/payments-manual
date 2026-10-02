@@ -9,57 +9,43 @@ lang: "zh-hans"
 
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
-| [`payment.transaction.external.created`](#payment-transaction-external) | 检测到一笔意外入金。 | **标准事件** |
-| [`payment.transaction.external.completed`](#payment-transaction-external) | 该笔入金通过合规筛查，已计入您的开发者余额。 | **标准事件** |
+| [`payment.transaction.external.created`](#payment-transaction-external-created) | 检测到一笔意外入金。 | **标准事件** |
+| [`payment.transaction.external.completed`](#payment-transaction-external-completed) | 该笔意外入金通过合规筛查。 | **标准事件** |
 
-## `payment.transaction.external`
+## `payment.transaction.external.created`
 
 ### 事件触发条件
 
-| 事件 | 触发时机 | 您该做什么 |
-| --- | --- | --- |
-| `payment.transaction.external.created` | 检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）。 | 建立一条待归属的记录。**此时资金尚未入账。** |
-| `payment.transaction.external.completed` | 该笔入金通过合规筛查，资金已计入您的开发者余额。 | 按您自己的规则处理这笔无法归属的资金——退回付款方、人工归属到某个付款方，或计入平台收入。 |
-
-这两个事件不会出现在任何订单的 `transactions` 数组里，也不会产生 `payment.topup.updated`。如果您需要核对流入自己地址的每一笔资金，这是唯一的来源。
+检测到一笔意外入金（非当前订单/充值计划内的交易，或非支付服务支持的币种充币）时触发。此时资金尚未入账，请建立一条待归属的记录。
 
 ### 事件内容
+
+以下为关键字段，完整的交易字段清单见[交易字段](/payments/cn/guides/events/advanced#交易字段)。
 
 <div className="field-table">
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `data_type` | `string` | 固定为 `PaymentTransaction`，用于反序列化 `data`。 |
-| `transaction_id` | `string` | 该笔入金的交易 ID。联系支持时提供它。 |
-| `status` | `string` | 交易状态：<br/>• `created` 事件：处理中的状态，例如 `Submitted`。<br/>• `completed` 事件：`Completed`。 |
-| `chain_id` | `string` | **选填。**这笔入金所在的链。 |
-| `token_id` | `string` | **选填。**这笔入金的币种。**币种不受支持正是它成为意外入金的常见原因之一**，所以这里可能出现您没有开通的 token。 |
-| `transaction_hash` | `string` | **选填。**链上交易哈希。广播前可能为空。 |
+| `data_type` | `string` | 固定为 `PaymentTransaction`。 |
+| `transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
+| `status` | `string` | 交易状态。 |
+| `chain_id` | `string` | **选填**。这笔入金所在的链。 |
+| `token_id` | `string` | **选填**。这笔入金的币种。**币种不受支持正是它成为意外入金的常见原因之一**，所以这里可能出现您没有开通的 token。 |
+| `transaction_hash` | `string` | **选填**。链上交易哈希。 |
 | `source` | `object` | 资金来源，通常是一个外部地址。退回资金时使用。 |
-| `source.source_type` | `string` | 来源类型，外部地址入金为 `DepositFromAddress`。 |
 | `source.addresses` | `array` | 发送方地址列表。 |
 | `destination` | `object` | 资金去向。 |
-| `destination.destination_type` | `string` | 去向类型，入金到地址为 `DepositToAddress`。 |
-| `destination.wallet_id` | `string` | 收款钱包 ID。 |
 | `destination.address` | `string` | 收款地址。 |
 | `destination.amount` | `string` | 到账金额。 |
-| `destination.memo` | `string` | **选填。**备注，仅部分链有。 |
-| `confirmed_num` | `integer` | **选填。**该交易已获得的确认数。 |
-| `confirming_threshold` | `integer` | **选填。**该链认定交易安全所需的确认数。 |
+| `destination.memo` | `string` | **选填**。备注，仅部分链有。 |
 | `created_timestamp` | `integer` | 这笔入金的创建时间，Unix 时间戳（毫秒）。 |
 | `updated_timestamp` | `integer` | 这笔入金最近一次状态更新时间，Unix 时间戳（毫秒）。 |
 
 </div>
 
-完整的交易字段清单见[高级事件](/payments/cn/guides/events/advanced#交易字段)——上表是与意外入金处理有关的那些。
-
 ### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
-
-#### 检测到一笔意外入金
-
-先记录，不要入账。
 
 ```json
 {
@@ -78,9 +64,40 @@ lang: "zh-hans"
 }
 ```
 
-#### 意外入金已计入开发者余额
+## `payment.transaction.external.completed`
 
-资金已经在您的开发者余额里，按您自己的规则处理。
+### 事件触发条件
+
+该笔意外入金通过合规筛查时触发。
+
+### 事件内容
+
+以下为关键字段，完整的交易字段清单见[交易字段](/payments/cn/guides/events/advanced#交易字段)。
+
+<div className="field-table">
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data_type` | `string` | 固定为 `PaymentTransaction`。 |
+| `transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
+| `status` | `string` | 交易状态。 |
+| `chain_id` | `string` | **选填**。这笔入金所在的链。 |
+| `token_id` | `string` | **选填**。这笔入金的币种。**币种不受支持正是它成为意外入金的常见原因之一**，所以这里可能出现您没有开通的 token。 |
+| `transaction_hash` | `string` | **选填**。链上交易哈希。 |
+| `source` | `object` | 资金来源，通常是一个外部地址。退回资金时使用。 |
+| `source.addresses` | `array` | 发送方地址列表。 |
+| `destination` | `object` | 资金去向。 |
+| `destination.address` | `string` | 收款地址。 |
+| `destination.amount` | `string` | 到账金额。 |
+| `destination.memo` | `string` | **选填**。备注，仅部分链有。 |
+| `created_timestamp` | `integer` | 这笔入金的创建时间，Unix 时间戳（毫秒）。 |
+| `updated_timestamp` | `integer` | 这笔入金最近一次状态更新时间，Unix 时间戳（毫秒）。 |
+
+</div>
+
+### 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
 ```json
 {
@@ -98,7 +115,3 @@ lang: "zh-hans"
   "updated_timestamp": 1744730600000
 }
 ```
-
-## 相关
-
-- 资金计入开发者余额时，对应的余额变动见[余额变动](/payments/cn/guides/events/balances)。

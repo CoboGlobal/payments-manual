@@ -67,7 +67,7 @@ lang: "zh-hans"
 | `failed_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `failed_amounts.token_id` | `string` | 币种 ID。 |
 | `failed_amounts.chain_id` | `string` | 链 ID。 |
-| `actual_payout_amounts` | `array` | **交付侧**：收款方实际收到的金额，**仅在 `status` 为 `Completed` 或 `PartiallyCompleted` 时有值**，其余情况为 `[]`。加密货币转出按实际转出的币种每种一项；Off-Ramp 只有一项。<br/>• ⚠️ **不要与源侧金额相减**：跨链兑换和法币结算会使两侧不是同一种资产。 |
+| `actual_payout_amounts` | `array` | **交付侧**：收款方实际收到的金额**，仅在 `status` 为 `Completed` 或 `PartiallyCompleted` 时有值**，其余情况为 `[]`。加密货币转出按实际转出的币种每种一项；Off-Ramp 只有一项。<br/>• ⚠️ **不要与源侧金额相减**：跨链兑换和法币结算会使两侧不是同一种资产。 |
 | `actual_payout_amounts.amount_type` | `string` | 金额类型，先读它再读其余字段：<br/>• `Crypto`：加密货币。<br/>• `Fiat`：法币（Off-Ramp 打到银行账户）。 |
 | `actual_payout_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `actual_payout_amounts.token_id` | `string` | 币种 ID。仅 `amount_type` 为 `Crypto` 时出现。 |

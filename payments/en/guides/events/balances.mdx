@@ -23,7 +23,7 @@ It is also how you see **what each account actually received**. An order's `cred
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `data_type` | `string` | Always `PaymentAccountBalanceUpdate`. Use it to deserialize `data`. |
+| `data_type` | `string` | Always `PaymentAccountBalanceUpdate`. |
 | `source_account` | `string` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
 | `source_id` | `string` | The ID of the business record that caused the change, such as the order ID. |
 | `source_type` | `string` | What caused the change:<br/>• `OrderIn` — an order payment.<br/>• `LatePayment` — a late payment.<br/>• `TopUp` — a top-up.<br/>• `UnexceptedIn` — an unexpected deposit.<br/>• `RefundOut` — a refund.<br/>• `Payout` — a payout.<br/>• `UnexceptedOut` — an unexpected outgoing payment.<br/>• `Allocation` — an allocation.<br/>• `BulkSend` — a bulk send.<br/>• `SettlementNetwork` — the settlement network.<br/>• `Init` — initialization. |
