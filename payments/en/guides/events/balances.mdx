@@ -25,11 +25,11 @@ It is also how you see **what each account actually received**. An order's `cred
 | --- | --- | --- |
 | `data_type` | `string` | Always `PaymentAccountBalanceUpdate`. |
 | `source_account` | `string` | Which account moved. For a merchant account this is the merchant ID; for the developer account it is `developer`. |
-| `source_id` | `string` | The ID of the business record that caused the change, such as the order ID. |
-| `source_type` | `string` | What caused the change:<br/>• `OrderIn` — an order payment.<br/>• `LatePayment` — a late payment.<br/>• `TopUp` — a top-up.<br/>• `UnexceptedIn` — an unexpected deposit.<br/>• `RefundOut` — a refund.<br/>• `Payout` — a payout.<br/>• `UnexceptedOut` — an unexpected outgoing payment.<br/>• `Allocation` — an allocation.<br/>• `BulkSend` — a bulk send.<br/>• `SettlementNetwork` — the settlement network.<br/>• `Init` — initialization. |
+| `source_id` | `string` | The ID of the business record that caused the change: the order ID, refund ID, payout ID, bulk send item ID, or, for top-ups and unexpected deposits, the transaction ID. |
+| `source_type` | `string` | What caused the change:<br/>• `OrderIn` — an order payment (including late payments after the order reached a final status).<br/>• `TopUp` — a top-up.<br/>• `UnexceptedIn` — an unexpected deposit.<br/>• `RefundOut` — a refund.<br/>• `Payout` — a payout.<br/>• `UnexceptedOut` — an unexpected outgoing payment.<br/>• `Allocation` — an allocation.<br/>• `BulkSend` — a bulk send.<br/>• `SettlementNetwork` — the settlement network.<br/>• `OnRampIn` — a fiat on-ramp deposit. |
 | `token_id` | `string` | The token whose balance changed. |
 | `amount` | `string` | The change, truncated to two decimal places. |
-| `amount_raw` | `string` | The same change, in the token's own precision. |
+| `amount_raw` | `string` | The same change, in the token's own precision, without padded zeros (for example `100`, `0.123456`). |
 | `balance_before` | `string` | The balance before the change, truncated to two decimal places. |
 | `balance_before_raw` | `string` | The balance before the change, in the token's own precision. |
 | `balance_after` | `string` | The balance after the change, truncated to two decimal places. |
@@ -55,11 +55,11 @@ One order settlement produces one event per account. The two together add up to 
   "source_type": "OrderIn",
   "token_id": "ETH_USDC",
   "amount": "100.00",
-  "amount_raw": "100.000000",
+  "amount_raw": "100",
   "balance_before": "1250.00",
-  "balance_before_raw": "1250.000000",
+  "balance_before_raw": "1250",
   "balance_after": "1350.00",
-  "balance_after_raw": "1350.000000",
+  "balance_after_raw": "1350",
   "flow_direction": "in",
   "update_time": 1744690100
 }
@@ -73,11 +73,11 @@ One order settlement produces one event per account. The two together add up to 
   "source_type": "OrderIn",
   "token_id": "ETH_USDC",
   "amount": "2.00",
-  "amount_raw": "2.000000",
+  "amount_raw": "2",
   "balance_before": "830.00",
-  "balance_before_raw": "830.000000",
+  "balance_before_raw": "830",
   "balance_after": "832.00",
-  "balance_after_raw": "832.000000",
+  "balance_after_raw": "832",
   "flow_direction": "in",
   "update_time": 1744690100
 }
@@ -95,11 +95,11 @@ One order settlement produces one event per account. The two together add up to 
   "source_type": "Payout",
   "token_id": "ETH_USDC",
   "amount": "500.00",
-  "amount_raw": "500.000000",
+  "amount_raw": "500",
   "balance_before": "832.00",
-  "balance_before_raw": "832.000000",
+  "balance_before_raw": "832",
   "balance_after": "332.00",
-  "balance_after_raw": "332.000000",
+  "balance_after_raw": "332",
   "flow_direction": "out",
   "update_time": 1744700600
 }

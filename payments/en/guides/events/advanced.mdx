@@ -13,13 +13,13 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 | --- | --- |
 | [`payment.transaction.created`](#payment-transaction-created) | A deposit address received a new deposit. Top-up Mode. |
 | [`payment.transaction.completed`](#payment-transaction-completed) | A deposit cleared screening and was credited. |
-| [`payment.transaction.failed`](#payment-transaction-failed) | A deposit did not clear screening. |
+| [`payment.transaction.failed`](#payment-transaction-failed) | A deposit failed or was rejected. |
 | [`payment.transaction.late`](#payment-transaction-late) | A screened deposit arrived after its order reached a final state. |
 | [`payment.order.status.updated`](#payment-order-status-updated) | An order's transaction detail. |
 | [`payment.refund.status.updated`](#payment-refund-status-updated) | A refund's transaction detail. |
 | [`payment.payout.status.updated`](#payment-payout-status-updated) | A payout's transaction detail. |
 | [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | A batch's transaction detail. |
-| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | An item's transaction detail. |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | An item's transaction detail when it reaches a final status. |
 
 ## `payment.transaction.created`
 
@@ -57,7 +57,7 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 
 ## `payment.transaction.failed`
 
-**Trigger condition:** a deposit fails compliance screening. Both pay-in modes.
+**Trigger condition:** a deposit failed or was rejected, for example because it did not clear compliance screening. Both pay-in modes.
 
 **Event content:** the shared [transaction fields](#transaction-fields), plus the fields below.
 
@@ -113,7 +113,7 @@ Delivered alongside [`payment.order.updated`](/payments/en/guides/events/orders)
 | `payable_currency` | `string` | **Optional.** The ID of the cryptocurrency used for payment. |
 | `chain_id` | `string` | The ID of the blockchain network. |
 | `payable_amount` | `string` | The cryptocurrency amount to be paid for this order. |
-| `exchange_rate` | `string` | The exchange rate between `payable_currency` and `pricing_currency`. |
+| `exchange_rate` | `string` | **Optional.** The exchange rate between `payable_currency` and `pricing_currency`, returned only when `payable_amount` was not provided when creating the order. |
 | `amount_tolerance` | `string` | **Optional.** The allowed amount deviation. |
 | `receive_address` | `string` | The recipient wallet address. |
 | `status` | `string` | The current order status. One of:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Expired`<br/>• `Underpaid` |
@@ -154,6 +154,7 @@ Delivered alongside [`payment.refund.updated`](/payments/en/guides/events/refund
 | `merchant_fee_amount` | `string` | **Optional.** The developer fee amount to charge the merchant. |
 | `merchant_fee_token_id` | `string` | **Optional.** The ID of the cryptocurrency used for the developer fee. |
 | `commission_fee` | `object` | **Optional.** Commission fee details. |
+| `failed_reason` | `string` | **Optional.** Free-text reason the refund failed. |
 | `created_timestamp` | `integer` | The creation time, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | The last update time, in Unix timestamp (seconds). |
 | `transactions` | `array` | **Optional.** An array of payment transactions associated with this refund, each using the [transaction fields](#transaction-fields). |
@@ -184,6 +185,7 @@ Delivered alongside [`payment.payout.updated`](/payments/en/guides/events/payout
 | `actual_payout_amount` | `string` | **Optional.** The actual amount delivered to the recipient. |
 | `commission_fees` | `array` | **Optional.** An array of commission fees for this payout. |
 | `remark` | `string` | **Optional.** A note or comment about the payout. |
+| `failed_reason` | `string` | **Optional.** Free-text reason the payout failed. |
 | `status` | `string` | The current payout status. One of:<br/>• `Pending`<br/>• `Preparing`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed`<br/>• `RejectedByBank` |
 | `created_timestamp` | `integer` | The creation time, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | The last update time, in Unix timestamp (seconds). |
@@ -211,6 +213,8 @@ Delivered alongside [`payment.bulk_send.updated`](/payments/en/guides/events/bul
 | `description` | `string` | **Optional.** The description for the entire bulk send batch. |
 | `execution_mode` | `string` | The execution mode. |
 | `status` | `string` | The current bulk send status. |
+| `failed_reason` | `string` | **Optional.** Free-text reason the batch failed. |
+| `commission_fee` | `object` | **Optional.** The commission Cobo charged, `{ "fee_amount" }`, in USD. |
 | `created_timestamp` | `integer` | The creation time, in Unix timestamp (seconds). |
 | `updated_timestamp` | `integer` | The last update time, in Unix timestamp (seconds). |
 
@@ -222,7 +226,7 @@ For full details, see [Get bulk send information](/payments/en/api-references/pa
 
 Delivered alongside [`payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send). Reports detail about the item's underlying transaction, including `validation_status` and `tx_hash`.
 
-**Trigger condition:** the status of a single bulk send item changes. Use it to track item-level execution results, especially when a batch completes partially or individual items fail validation or transfer.
+**Trigger condition:** a single bulk send item reaches a final status (`Completed`, `Failed`, `NotExecuted`). No event is sent for `Pending` or `Processing`.
 
 **Event content:**
 
@@ -304,9 +308,9 @@ These fields appear in all `payment.transaction.*` events. Not every field is po
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
-    "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
-    "source": { "source_type": "DepositFromAddress" },
-    "destination": { "destination_type": "DepositToAddress" },
+    "transaction_hash": "0x239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
+    "source": { "source_type": "DepositFromAddress", "addresses": ["0x9f8e7d6c5b4a39281706f5e4d3c2b1a0f9e8d7c6"] },
+    "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d", "amount": "1.5" },
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",

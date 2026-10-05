@@ -13,13 +13,13 @@ lang: "zh-hans"
 | --- | --- |
 | [`payment.transaction.created`](#payment-transaction-created) | 充值地址收到一笔新的充值。仅充值模式。 |
 | [`payment.transaction.completed`](#payment-transaction-completed) | 一笔入金通过合规筛查并已入账。 |
-| [`payment.transaction.failed`](#payment-transaction-failed) | 一笔入金未通过合规筛查。 |
+| [`payment.transaction.failed`](#payment-transaction-failed) | 一笔入金失败或被拒绝。 |
 | [`payment.transaction.late`](#payment-transaction-late) | 订单进入终态后，又收到一笔通过合规筛查的入金。 |
 | [`payment.order.status.updated`](#payment-order-status-updated) | 订单的交易信息。 |
 | [`payment.refund.status.updated`](#payment-refund-status-updated) | 退款的交易信息。 |
 | [`payment.payout.status.updated`](#payment-payout-status-updated) | 转出的交易信息。 |
 | [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | 批次的交易信息。 |
-| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | 条目的交易信息。 |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | 条目进入终态时的交易信息。 |
 
 ## `payment.transaction.created`
 
@@ -57,7 +57,7 @@ lang: "zh-hans"
 
 ## `payment.transaction.failed`
 
-**触发条件：** 一笔入金未通过合规筛查。两种收款模式都有。
+**触发条件：** 一笔入金失败或被拒绝，例如合规筛查未通过。两种收款模式都有。
 
 **事件内容：** 共用[交易字段](#交易字段)，外加以下字段。
 
@@ -113,7 +113,7 @@ lang: "zh-hans"
 | `payable_currency` | `string` | **选填**。用于付款的加密货币 ID。 |
 | `chain_id` | `string` | 区块链网络 ID。 |
 | `payable_amount` | `string` | 该订单需支付的加密货币金额。 |
-| `exchange_rate` | `string` | `payable_currency` 与 `pricing_currency` 之间的汇率。 |
+| `exchange_rate` | `string` | **选填**。`payable_currency` 与 `pricing_currency` 之间的汇率，仅在创建订单时未传 `payable_amount` 时返回。 |
 | `amount_tolerance` | `string` | **选填**。允许的金额偏差。 |
 | `receive_address` | `string` | 收款钱包地址。 |
 | `status` | `string` | 当前订单状态，取值：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Expired`<br/>• `Underpaid` |
@@ -154,6 +154,7 @@ lang: "zh-hans"
 | `merchant_fee_amount` | `string` | **选填**。向商户收取的开发者手续费金额。 |
 | `merchant_fee_token_id` | `string` | **选填**。开发者手续费使用的加密货币 ID。 |
 | `commission_fee` | `object` | **选填**。佣金明细。 |
+| `failed_reason` | `string` | **选填**。退款失败的原因文本。 |
 | `created_timestamp` | `integer` | 创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 最近更新时间，Unix 时间戳（秒）。 |
 | `transactions` | `array` | **选填**。与该退款关联的支付交易数组，元素为[交易字段](#交易字段)。 |
@@ -184,6 +185,7 @@ lang: "zh-hans"
 | `actual_payout_amount` | `string` | **选填**。收款方实际收到的金额。 |
 | `commission_fees` | `array` | **选填**。本次转出的佣金数组。 |
 | `remark` | `string` | **选填**。转出备注。 |
+| `failed_reason` | `string` | **选填**。转出失败的原因文本。 |
 | `status` | `string` | 当前转出状态，取值：<br/>• `Pending`<br/>• `Preparing`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed`<br/>• `RejectedByBank` |
 | `created_timestamp` | `integer` | 创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 最近更新时间，Unix 时间戳（秒）。 |
@@ -211,6 +213,8 @@ lang: "zh-hans"
 | `description` | `string` | **选填**。整个批次的描述。 |
 | `execution_mode` | `string` | 执行模式。 |
 | `status` | `string` | 当前批量下发状态。 |
+| `failed_reason` | `string` | **选填**。批次失败的原因文本。 |
+| `commission_fee` | `object` | **选填**。Cobo 收取的佣金，`{ "fee_amount" }`，单位为美元。 |
 | `created_timestamp` | `integer` | 创建时间，Unix 时间戳（秒）。 |
 | `updated_timestamp` | `integer` | 最近更新时间，Unix 时间戳（秒）。 |
 
@@ -222,7 +226,7 @@ lang: "zh-hans"
 
 与 [`payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send) 同时投递，返回的是该条目底层交易的细节，包括 `validation_status` 和 `tx_hash`。
 
-**触发条件：** 单个批量下发条目的状态变更。可用于跟踪条目级执行结果，尤其是批次部分完成、或个别条目校验失败或转账失败时。
+**触发条件：** 单个批量下发条目进入终态（`Completed`、`Failed`、`NotExecuted`）。`Pending` 和 `Processing` 不发事件。
 
 **事件内容：**
 
@@ -304,9 +308,9 @@ lang: "zh-hans"
     "status": "Submitted",
     "chain_id": "ETH",
     "token_id": "ETH_USDT",
-    "transaction_hash": "239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
-    "source": { "source_type": "DepositFromAddress" },
-    "destination": { "destination_type": "DepositToAddress" },
+    "transaction_hash": "0x239861be9a4afe080c359b7fe4a1d035945ec46256b1a0f44d1267c71de8ec28",
+    "source": { "source_type": "DepositFromAddress", "addresses": ["0x9f8e7d6c5b4a39281706f5e4d3c2b1a0f9e8d7c6"] },
+    "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0x1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d", "amount": "1.5" },
     "created_timestamp": 1701396866000,
     "updated_timestamp": 1701396866000,
     "acquiring_type": "TopUp",

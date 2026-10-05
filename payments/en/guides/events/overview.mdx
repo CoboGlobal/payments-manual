@@ -46,7 +46,7 @@ Events come in two kinds:
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>
       <td>Advanced</td>
-      <td>A top-up deposit did not clear compliance screening, with on-chain transaction detail.</td>
+      <td>A top-up deposit failed or was rejected (for example, did not clear compliance screening), with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={5}>**Orders**</td>
@@ -72,7 +72,7 @@ Events come in two kinds:
     <tr>
       <td>[`payment.transaction.failed`](/payments/en/guides/events/advanced#payment-transaction-failed)</td>
       <td>Advanced</td>
-      <td>A deposit to the order did not clear compliance screening, with on-chain transaction detail.</td>
+      <td>A deposit to the order failed or was rejected (for example, did not clear compliance screening), with on-chain transaction detail.</td>
     </tr>
     <tr>
       <td rowSpan={2}>**Unexpected deposits**</td>
@@ -132,7 +132,7 @@ Events come in two kinds:
     <tr>
       <td>[`payment.bulk_send.item.status.updated`](/payments/en/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>Advanced</td>
-      <td>A bulk send item's status changed.</td>
+      <td>A bulk send item reached a final status: `Completed`, `Failed`, or `NotExecuted`.</td>
     </tr>
     <tr>
       <td rowSpan={1}>**Balances**</td>
@@ -198,7 +198,7 @@ Each business page lists the codes that can appear on that object, grouped by th
 
 ### Amounts
 
-**Unless stated otherwise, amounts carry at most two decimal places, with trailing zeros stripped** (`100.00` is sent as `100`).
+**Unless stated otherwise, amounts carry at most two decimal places (extra digits truncated, not rounded), with trailing zeros stripped** (`100.00` is sent as `100`).
 
 | Shape | Example | Where it is used |
 | --- | --- | --- |

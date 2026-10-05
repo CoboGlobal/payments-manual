@@ -46,7 +46,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>一笔充值未通过合规筛查，附带链上交易细节。</td>
+      <td>一笔充值失败或被拒绝（例如合规筛查未通过），附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={5}>**订单**</td>
@@ -72,7 +72,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.transaction.failed`](/payments/cn/guides/events/advanced#payment-transaction-failed)</td>
       <td>高级事件</td>
-      <td>订单的一笔入金未通过合规筛查，附带链上交易细节。</td>
+      <td>订单的一笔入金失败或被拒绝（例如合规筛查未通过），附带链上交易细节。</td>
     </tr>
     <tr>
       <td rowSpan={2}>**意外入金**</td>
@@ -132,7 +132,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
     <tr>
       <td>[`payment.bulk_send.item.status.updated`](/payments/cn/guides/events/advanced#payment-bulk_send-item-status-updated)</td>
       <td>高级事件</td>
-      <td>批量下发条目状态发生变更。</td>
+      <td>批量下发条目进入终态：`Completed`、`Failed` 或 `NotExecuted`。</td>
     </tr>
     <tr>
       <td rowSpan={1}>**余额**</td>
@@ -198,7 +198,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 ### 金额
 
-**除特殊说明外，金额固定 2 位小数，去掉尾零**（`100.00` 输出 `100`）。
+**除特殊说明外，金额固定 2 位小数（多余位数截断，不四舍五入），去掉尾零**（`100.00` 输出 `100`）。
 
 | 结构 | 示例 | 用在哪 |
 | --- | --- | --- |

@@ -16,7 +16,7 @@ An unexpected deposit is a transaction not within current orders/deposit plans, 
 
 ### Trigger conditions
 
-Fires when an unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens). The funds are not credited yet; record the deposit as unattributed.
+Fires when an unexpected deposit is detected (transactions not within current orders/deposit plans, or deposits in unsupported tokens). The funds are not credited yet; record the deposit as unattributed. Deposits at or below the dust threshold (default 0.05) do not produce events.
 
 ### Event content
 
@@ -54,9 +54,9 @@ The sample shows the `data` object only. The envelope around it is the same for 
   "status": "Submitted",
   "chain_id": "TRON",
   "token_id": "TRON_USDT",
-  "transaction_hash": "0xexternal001",
-  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
-  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "transaction_hash": "7f3c2a9d5e1b4c6f8a0d2e4b6c8a0f1d3b5e7c9a1d3f5b7e9c1a3d5f7b9e1c3a",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["TUnknownSender9x8w7v6u5t4s3r2q1p0o9n8m"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "TTopUpAddrM1001UserAbc7k6j5h4g3f2d1s0a", "amount": "35" },
   "confirmed_num": 0,
   "confirming_threshold": 19,
   "created_timestamp": 1744730000000,
@@ -106,9 +106,9 @@ The sample shows the `data` object only. The envelope around it is the same for 
   "status": "Completed",
   "chain_id": "TRON",
   "token_id": "TRON_USDT",
-  "transaction_hash": "0xexternal001",
-  "source": { "source_type": "DepositFromAddress", "addresses": ["0xunknown_sender"] },
-  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "0xtopup_addr_M1001_user_abc", "amount": "35" },
+  "transaction_hash": "7f3c2a9d5e1b4c6f8a0d2e4b6c8a0f1d3b5e7c9a1d3f5b7e9c1a3d5f7b9e1c3a",
+  "source": { "source_type": "DepositFromAddress", "addresses": ["TUnknownSender9x8w7v6u5t4s3r2q1p0o9n8m"] },
+  "destination": { "destination_type": "DepositToAddress", "wallet_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479", "address": "TTopUpAddrM1001UserAbc7k6j5h4g3f2d1s0a", "amount": "35" },
   "confirmed_num": 19,
   "confirming_threshold": 19,
   "created_timestamp": 1744730000000,
