@@ -13,7 +13,7 @@ lang: "zh-hans"
 
 ## `payment.account.balance.updated`
 
-某个 Payments 账户在某个 token 上的可用余额发生变化时触发。内部记账应当使用这个事件，因为事件刻意不携带余额。
+某个 Payments 账户在某个 token 上的可用余额发生变化时触发。
 
 它也是您了解**每个账户实际收到多少**的途径。例如订单的 `credited_amount` 包含将要分给您的开发者手续费，因此它不是商户的入账金额。一笔订单结算会为涉及的每个账户各产生一条余额事件。
 
@@ -39,15 +39,13 @@ lang: "zh-hans"
 
 </div>
 
-如果您希望主动查询而不是等待事件，可以调用 `GET /payments/balance_changes` 并把 `source_id` 设为业务单据 ID，响应模型与本事件的 `data` 一致。
-
 ### 示例事件
 
 以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
 
 #### 一笔订单同时给商户和开发者入账
 
-一笔订单结算会为每个账户各产生一条事件。两条相加等于订单的 `credited_amount`，这也是该字段不等于商户入账金额的原因。
+一笔订单结算会为每个账户各产生一条事件。两条相加等于订单的 `credited_amount`。
 
 ```json
 {
@@ -87,7 +85,7 @@ lang: "zh-hans"
 
 #### 一笔转出从开发者账户扣出
 
-`flow_direction` 为 `out`，`source_id` 是 payout ID，因此可以把这笔变动关联回转出事件。
+`flow_direction` 为 `out`，`source_id` 是 payout ID。
 
 ```json
 {
@@ -109,7 +107,7 @@ lang: "zh-hans"
 
 ## 保持自己账本的实时性
 
-Webhook 消息不携带实时余额和手续费明细，以保证您读到的数值不会因为并发活动而失真。
+Webhook 消息不携带实时余额，以保证您读到的数值不会因为并发活动而失真。
 
 - **随事件更新余额：** 收到 Webhook 时调用 [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 或 [Get developer balances](/payments/en/api-references/payment/get-developer-balance)。
 - **核对手续费：** 使用交易查询接口或 [Generate reports](/payments/en/api-references/payment/generate-reports)。

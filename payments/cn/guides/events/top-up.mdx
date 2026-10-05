@@ -10,7 +10,7 @@ lang: "zh-hans"
 | 事件 | 通知什么 | 类型 |
 | --- | --- | --- |
 | [`payment.topup.updated`](#payment-topup-updated) | 充值状态发生变更：已检测到、合规筛查中、需要处理、完成或失败。 | **标准事件** |
-| [`payment.address.updated`](#payment-address-updated) | 某个付款方的充值地址被替换。除了您自己发起的更换，Cobo 也会主动更换地址。 | **标准事件** |
+| [`payment.address.updated`](#payment-address-updated) | 您通过更新充值地址接口替换了某个付款方的充值地址。 | **标准事件** |
 
 ## `payment.topup.updated`
 
@@ -200,7 +200,7 @@ lang: "zh-hans"
 
 ## `payment.address.updated`
 
-付款方的充值地址被替换时触发。收到后，请在您的系统中把该付款方的充值地址更新为 `updated_address`。
+您通过 [Update top-up address](/payments/en/api-references/payment/update-top-up-address) 接口替换某个付款方的充值地址后触发。收到后，请在您的系统中把该付款方的充值地址更新为 `updated_address`。
 
 ### 地址事件内容
 

@@ -27,9 +27,9 @@ lang: "zh-hans"
 | 某笔入金失败 | `Processing` | `PaymentFailed` | 读取该条目的 `failed_reason.code`。该笔资金不会计入订单也不会入账，请按您的业务规则联系付款方重新付款。 |
 | 累计实收达到应付金额（如设置了容差金额，还会减去容差金额） | `Completed`（终态） | `null` | 订单已完成，可以发货。 |
 | 有效期结束那一刻有已完成入账，但未达阈值 | `Underpaid`（终态） | `null` | 进入少付处理，不要按足额订单发货。 |
-| 有效期结束那一刻没有任何已完成入账，或订单被撤销 | `Expired`（终态） | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
-| 订单已是终态，又收到一笔入金**且该笔通过合规筛查** | 终态 | `LatePaymentReceived` | 该笔资金会进入您的开发者账户。请根据您的业务规则决定是否退款。 |
-| 订单已是终态，晚到的那笔**合规筛查未通过** | 终态 | `PaymentFailed` | 该笔资金不会入账，请根据该条目的 `failed_reason.code` 和您的业务规则决定如何处理。 |
+| 有效期结束那一刻没有任何已完成入账 | `Expired`（终态） | `null` | 关闭付款窗口。需要继续收款时创建新订单。 |
+| 订单已是终态，又收到一笔入金**且该笔通过合规筛查** | 终态 | `LatePaymentReceived` | 该笔资金会进入您的开发者账户（Starter 套餐下进入商户账户）。请根据您的业务规则决定是否退款。 |
+| 订单已是终态，晚到的那笔**入金失败**（例如合规筛查未通过） | 终态 | `PaymentFailed` | 该笔资金不会入账，请根据该条目的 `failed_reason.code` 和您的业务规则决定如何处理。 |
 
 **这些情况不发事件**：检测到第二笔及以后的入金、入金进入合规筛查、入金顺利通过合规筛查、晚付金额刚到达还没走完合规筛查。
 
@@ -48,11 +48,11 @@ lang: "zh-hans"
 | `expired_at` | `integer` | 订单过期时间，Unix 时间戳（秒）。 |
 | `status` | `string` | 订单当前状态，含义见[事件触发条件](#事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
 | `notice_type` | `string` | 通知类型，说明本条事件涉及的入金变化：<br/>• `PaymentUpdated`：某笔入金进入 `ActionRequired`。<br/>• `PaymentFailed`：某笔入金失败。<br/>• `LatePaymentReceived`：收到一笔晚付金额，且已经通过合规筛查。 |
-| `requested_amount` | `object` | 订单应收总额。 |
+| `requested_amount` | `object` | 订单应收总额，即订单的 `payable_amount`。 |
 | `requested_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amount.token_id` | `string` | 币种 ID。 |
 | `requested_amount.chain_id` | `string` | 链 ID。 |
-| `credited_amount` | `object` | 已收到并计入订单的总额。不包含：合规筛查中的入金、被拒绝的入金，以及晚付金额（条目 `is_late` 为 `true`）。 |
+| `credited_amount` | `object` | 已收到并计入订单的总额。不包含：尚未完成的入金（检测中或合规筛查中）、被拒绝的入金，以及晚付金额（条目 `is_late` 为 `true`）。 |
 | `credited_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `credited_amount.token_id` | `string` | 币种 ID。 |
 | `credited_amount.chain_id` | `string` | 链 ID。 |
@@ -60,7 +60,7 @@ lang: "zh-hans"
 | `outstanding_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `outstanding_amount.token_id` | `string` | 币种 ID。 |
 | `outstanding_amount.chain_id` | `string` | 链 ID。 |
-| `transactions` | `array` | 该订单至今的全部入金。⚠️ 不包括低于粉尘阈值的入金。 |
+| `transactions` | `array` | 该订单至今的全部入金。⚠️ 不包括金额不超过粉尘阈值的入金。 |
 | `transactions.transaction_id` | `string` | 该笔入金在 Cobo 系统中的 ID。 |
 | `transactions.tx_hash` | `string` | 该笔入金的链上交易哈希。 |
 | `transactions.amount` | `object` | 该笔入金的金额。 |
@@ -69,7 +69,7 @@ lang: "zh-hans"
 | `transactions.amount.chain_id` | `string` | 链 ID。 |
 | `transactions.source_address` | `string` | 付款方的链上地址，无法识别时为 `null`。 |
 | `transactions.status` | `string` | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `transactions.is_late` | `boolean` | `true` 表示该笔入金在订单进入终态后才到达，不计入 `credited_amount`。 |
+| `transactions.is_late` | `boolean` | `true` 表示该笔入金在订单进入终态后才完成入账，不计入 `credited_amount`。 |
 | `transactions.screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
 | `transactions.message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `transactions.failed_reason` | `object` | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
@@ -182,7 +182,7 @@ lang: "zh-hans"
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744689200
+  "updated_timestamp": 1744689100
 }
 ```
 
@@ -221,7 +221,7 @@ lang: "zh-hans"
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744689250
+  "updated_timestamp": 1744689100
 }
 ```
 
@@ -324,7 +324,7 @@ lang: "zh-hans"
 
 #### 订单结束后又收到资金
 
-`notice_type` 为 `LatePaymentReceived`，`status` 保持终态。该笔资金会进入您的开发者账户，请根据您的业务规则决定是否退款。**`credited_amount` 不变**——晚付金额条目是 `Completed`，但不计入订单。
+`notice_type` 为 `LatePaymentReceived`，`status` 保持终态。该笔资金会进入您的开发者账户（Starter 套餐下进入商户账户），请根据您的业务规则决定是否退款。**`credited_amount` 不变**——晚付金额条目是 `Completed`，但不计入订单。
 
 ```json
 {
@@ -365,7 +365,7 @@ lang: "zh-hans"
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744693900
+  "updated_timestamp": 1744692600
 }
 ```
 

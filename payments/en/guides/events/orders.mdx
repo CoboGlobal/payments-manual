@@ -23,13 +23,13 @@ The main event for Order Mode.
 | --- | --- | --- | --- |
 | The order is created | `Pending` | `null` | Record the order and show the payer what to pay. |
 | The **first** deposit for this order is detected | `Processing` | `null` | Update progress. Do not release goods. |
-| A deposit enters `ActionRequired` | `Processing` | `PaymentUpdated` | Act on that entry's `message`. Those funds are held until you do. |
+| A deposit enters `ActionRequired` | `Processing` | `PaymentUpdated` | Act on that entry's `message`. Those funds do not count towards the order until you do. |
 | A deposit fails | `Processing` | `PaymentFailed` | Read that entry's `failed_reason.code`. Those funds neither count towards the order nor get credited; follow your own rules for asking the payer to pay again. |
 | Cumulative receipts reach the expected amount (less the tolerance, if one is set) | `Completed` (final) | `null` | The order is complete; release goods. |
 | The validity period ends with completed deposits that did not reach the threshold | `Underpaid` (final) | `null` | Handle as underpaid. Do not treat as fully paid. |
-| The validity period ends with no completed deposit, or the order is canceled | `Expired` (final) | `null` | Close the payment window. Create a new order to keep collecting. |
-| The order is already final and another deposit arrives **and clears screening** | final | `LatePaymentReceived` | The funds go to your developer account. Decide whether to refund them based on your own business rules. |
-| The order is already final and the late deposit **fails screening** | final | `PaymentFailed` | The funds will not be credited. Decide how to handle them based on the entry's `failed_reason.code` and your own business rules. |
+| The validity period ends with no completed deposit | `Expired` (final) | `null` | Close the payment window. Create a new order to keep collecting. |
+| The order is already final and another deposit arrives **and clears screening** | final | `LatePaymentReceived` | The funds go to your developer account (to the merchant account on a Starter package). Decide whether to refund them based on your own business rules. |
+| The order is already final and the late deposit **fails** (for example, fails screening) | final | `PaymentFailed` | The funds will not be credited. Decide how to handle them based on the entry's `failed_reason.code` and your own business rules. |
 
 **Nothing fires** when the second and later deposits are detected, when a deposit enters screening, when a deposit clears screening, or when a late deposit has arrived but not finished screening.
 
@@ -48,11 +48,11 @@ The main event for Order Mode.
 | `expired_at` | `integer` | The order's expiration time, in Unix timestamp (seconds). |
 | `status` | `string` | The order's current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Underpaid`<br/>• `Expired` |
 | `notice_type` | `string` | The deposit change this event reports:<br/>• `PaymentUpdated` — a deposit entered `ActionRequired`.<br/>• `PaymentFailed` — a deposit failed.<br/>• `LatePaymentReceived` — a late payment arrived and has cleared compliance screening. |
-| `requested_amount` | `object` | The total the order expects. |
+| `requested_amount` | `object` | The total the order expects, which is the order's `payable_amount`. |
 | `requested_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `requested_amount.token_id` | `string` | The token ID. |
 | `requested_amount.chain_id` | `string` | The chain ID. |
-| `credited_amount` | `object` | The total received and counted towards the order. It excludes deposits in compliance screening, rejected deposits, and late payments (entries with `is_late` `true`). |
+| `credited_amount` | `object` | The total received and counted towards the order. It excludes deposits not yet completed (detected or in compliance screening), rejected deposits, and late payments (entries with `is_late` `true`). |
 | `credited_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `credited_amount.token_id` | `string` | The token ID. |
 | `credited_amount.chain_id` | `string` | The chain ID. |
@@ -60,7 +60,7 @@ The main event for Order Mode.
 | `outstanding_amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
 | `outstanding_amount.token_id` | `string` | The token ID. |
 | `outstanding_amount.chain_id` | `string` | The chain ID. |
-| `transactions` | `array` | Every deposit to the order so far. ⚠️ Excludes deposits below the dust threshold. |
+| `transactions` | `array` | Every deposit to the order so far. ⚠️ Excludes deposits whose amount does not exceed the dust threshold. |
 | `transactions.transaction_id` | `string` | The deposit's ID in Cobo. |
 | `transactions.tx_hash` | `string` | The deposit's on-chain transaction hash. |
 | `transactions.amount` | `object` | The deposit's amount. |
@@ -69,7 +69,7 @@ The main event for Order Mode.
 | `transactions.amount.chain_id` | `string` | The chain ID. |
 | `transactions.source_address` | `string` | The payer's on-chain address; `null` when it cannot be identified. |
 | `transactions.status` | `string` | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
-| `transactions.is_late` | `boolean` | `true` means the deposit arrived after the order reached a final status, so it does not count towards `credited_amount`. |
+| `transactions.is_late` | `boolean` | `true` means the deposit completed after the order reached a final status, so it does not count towards `credited_amount`. |
 | `transactions.screening_mode` | `string` | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
 | `transactions.message` | `string` | What to do when `status` is `ActionRequired`; `null` otherwise.<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `transactions.failed_reason` | `object` | Set when the deposit's `status` is `Failed`; `null` otherwise. |
@@ -182,7 +182,7 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744689200
+  "updated_timestamp": 1744689100
 }
 ```
 
@@ -221,7 +221,7 @@ Update progress. Do not release goods: the deposit is still in screening, so `cr
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744689250
+  "updated_timestamp": 1744689100
 }
 ```
 
@@ -324,7 +324,7 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
 
 #### Money arrives after the order ended
 
-`notice_type` is `LatePaymentReceived` and `status` keeps its final value. The funds go to your developer account; decide whether to refund them based on your own business rules. **`credited_amount` does not change** — the late entry is `Completed` but does not count towards the order.
+`notice_type` is `LatePaymentReceived` and `status` keeps its final value. The funds go to your developer account (to the merchant account on a Starter package); decide whether to refund them based on your own business rules. **`credited_amount` does not change** — the late entry is `Completed` but does not count towards the order.
 
 ```json
 {
@@ -365,7 +365,7 @@ Handle it as underpaid. `outstanding_amount` is the shortfall, and the second de
     }
   ],
   "created_timestamp": 1744689000,
-  "updated_timestamp": 1744693900
+  "updated_timestamp": 1744692600
 }
 ```
 

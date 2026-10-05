@@ -3,15 +3,9 @@ title: "高级事件"
 lang: "zh-hans"
 ---
 
-高级事件汇报的是底层链上交易的细节，只在您需要关心这些细节时才需要订阅，例如确认数、链上交易手续费明细、区块信息，或替换（丢弃、重发、加速）情况——比如向付款方展示转账进度，或核对 gas 支出。
-
-支付业务自己的事件已经告诉您能否入账、能否发货、能否关闭转出；高级事件位于它下面一层，暴露背后的细节。**判断请用该笔支付业务自己的事件，高级事件只用于对账。**
+高级事件汇报的是底层链上交易的细节，只在您需要关心这些细节时才需要订阅，例如确认数、链上交易手续费明细、区块信息，或替换（丢弃、重发、加速）情况。
 
 请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
-
-<Note>
-  不要让同一个不可逆动作被两个事件各触发一次。入账、发货、关闭付款三件事各自选定一个来源，另一个仅用于对账。
-</Note>
 
 ## 本页的事件
 
@@ -21,11 +15,11 @@ lang: "zh-hans"
 | [`payment.transaction.completed`](#payment-transaction-completed) | 一笔入金通过合规筛查并已入账。 |
 | [`payment.transaction.failed`](#payment-transaction-failed) | 一笔入金未通过合规筛查。 |
 | [`payment.transaction.late`](#payment-transaction-late) | 订单进入终态后，又收到一笔通过合规筛查的入金。 |
-| [`payment.order.status.updated`](#payment-order-status-updated) | 订单的交易信息，与 `payment.order.updated` 同时投递。 |
-| [`payment.refund.status.updated`](#payment-refund-status-updated) | 退款的交易信息，与 `payment.refund.updated` 同时投递。 |
-| [`payment.payout.status.updated`](#payment-payout-status-updated) | 转出的交易信息，与 `payment.payout.updated` 同时投递。 |
-| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | 批次的交易信息，与 `payment.bulk_send.updated` 同时投递。 |
-| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | 条目的交易信息，与 `payment.bulk_send.item.updated` 同时投递。 |
+| [`payment.order.status.updated`](#payment-order-status-updated) | 订单的交易信息。 |
+| [`payment.refund.status.updated`](#payment-refund-status-updated) | 退款的交易信息。 |
+| [`payment.payout.status.updated`](#payment-payout-status-updated) | 转出的交易信息。 |
+| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | 批次的交易信息。 |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | 条目的交易信息。 |
 
 ## `payment.transaction.created`
 
@@ -258,10 +252,6 @@ lang: "zh-hans"
 ## 交易字段
 
 以下字段出现在所有 `payment.transaction.*` 事件中。并非每个字段在每种场景下都有值。
-
-<Note>
-  本节只覆盖与支付场景最相关的字段。完整的交易字段及其含义，请参见 [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information)。
-</Note>
 
 - `transaction_id`（string，UUID，必填）—— 交易 ID。
 - `cobo_id`（string，选填）—— 用于追踪交易的 Cobo ID。

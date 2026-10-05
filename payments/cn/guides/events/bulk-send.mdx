@@ -22,14 +22,12 @@ lang: "zh-hans"
 
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
-| 批次创建成功 | `Pending` | 建立批次记录并等待。停在这里不一定是在校验，也可能在等审批，见下方说明。 |
-| 批次进入逐项校验 | `Validating` | 等待。此时还不知道哪些条目会被拒。 |
-| 校验通过，开始逐项执行 | `Transferring` | 等待。 |
-| 全部条目成功 | `Completed`（终态） | 关闭批次汇总。条目的完成仍以条目事件为准。 |
+| 批次创建成功 | `Pending` | 建立批次记录并等待。<br/>⚠️ 如果您的组织启用了审批流，批次会先在此状态等待审批。审批过程不发事件，如果批次长时间停留在 `Pending`，请在 Cobo Portal 查看审批进度。 |
+| 批次进入逐项校验（如启用了审批流，则在审批通过后） | `Validating` | 等待。 |
+| 校验通过，开始准备资金并逐项执行 | `Transferring` | 等待。 |
+| 全部条目成功 | `Completed`（终态） | 在您的系统中将该批次标记为已完成。 |
 | 批次结果确定，部分条目未成功 | `PartiallyCompleted`（终态） | 按两个计数分流：`failed_item_count` 为已提交执行但失败的条目，`not_executed_item_count` 为从未提交执行的条目。 |
-| 批次整体失败 | `Failed`（终态） | 读取 `failed_reason.code`——**执行前后都可能失败**，资金是否已被使用以它为准，见[批次的失败原因](#批次的失败原因)。 |
-
-启用了审批流的组织，批次创建后会先等审批。**审批过程不发事件，事件里也没有字段能区分「等校验」和「等审批**」，两者的 `status` 都是 `Pending`。批次在 `Pending` 停留时间较长时，请在 Cobo Portal 查看审批进度。审批的结果是可见的：通过后批次继续走到 `Validating`；被拒或被撤销时批次进入 `Failed`，条目的 `failed_reason.code` 为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。
+| 批次整体失败 | `Failed`（终态） | 读取 `failed_reason.code`——**执行前后都可能失败**，见[批次的失败原因](#批次的失败原因)。<br/>审批被拒绝或被撤销时，批次也会进入此状态，批次和条目的 `failed_reason.code` 均为 `payment.app_workflow_approval_rejected` 或 `payment.app_workflow_approval_revoked`。 |
 
 ### 批次的事件内容
 
@@ -38,15 +36,15 @@ lang: "zh-hans"
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `data_type` | `string` | 固定为 `PaymentBulkSendUpdate`。 |
-| `bulk_send_id` | `string` | 批次 ID。 |
-| `request_id` | `string` | **选填**。您创建批次时提供的请求 ID。 |
-| `source_account` | `string` | 批次的付款账户：商户账户为商户 ID，开发者账户为 `developer`。 |
+| `bulk_send_id` | `string` | 批量下发 ID。 |
+| `request_id` | `string` | **选填**。请求 ID。 |
+| `source_account` | `string` | 付款账户：<br/>• 商户账户：值为商户 ID，例如 `M1001`。<br/>• 开发者账户：值为 `developer`。 |
 | `status` | `string` | 批次当前状态，含义见[批次的事件触发条件](#批次的事件触发条件)：<br/>• `Pending`<br/>• `Validating`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed` |
-| `execution_mode` | `string` | 执行模式：<br/>• `Strict`：只要有条目**校验**不通过，整批都不执行。<br/>• `Partial`：只隔离未通过校验的条目，其余继续执行。<br/>`Strict` 只作用于校验阶段**，不保证上链后全部成功或全部失败**——全部条目通过校验、提交转出后个别失败时，批次为 `PartiallyCompleted`。 |
+| `execution_mode` | `string` | 批次如何处理条目校验失败：<br/>• `Strict`：任一条目校验失败，所有条目都不执行，全部标记为 `NotExecuted`，批次失败。<br/>• `Partial`：校验失败只影响对应条目，这些条目标记为 `NotExecuted`，其余已通过校验的条目正常执行。<br/>无论哪种模式，资金归集失败时整个批次都会失败。 |
 | `item_count` | `integer` | 批次包含的条目数。 |
 | `failed_item_count` | `integer` | 已提交执行但失败的条目数。这些条目的资金曾被锁定、手续费曾被扣收，现已释放和退回。能否直接重发取决于各条目的 `failed_reason.code`。 |
 | `not_executed_item_count` | `integer` | 从未提交执行的条目数，这些条目的资金未被使用。不修正原因就重发会以同样方式失败。 |
-| `requested_amounts` | `array` | 全部条目的请求金额合计，按 `token_id` 分组。同一币种在两条链上是两项，不能合并。 |
+| `requested_amounts` | `array` | 全部条目的请求金额合计，按 `token_id` 分组。 |
 | `requested_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amounts.token_id` | `string` | 币种 ID。 |
 | `requested_amounts.chain_id` | `string` | 链 ID。 |
@@ -58,9 +56,9 @@ lang: "zh-hans"
 | `failed_amounts.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `failed_amounts.token_id` | `string` | 币种 ID。 |
 | `failed_amounts.chain_id` | `string` | 链 ID。 |
-| `description` | `string` | 您创建批次时填写的整批备注，未填写时为 `null`。 |
+| `description` | `string` | 整个批次的描述。 |
 | `commission_fee` | `object` | Cobo 收取的佣金，未产生时为 `null`。 |
-| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计。批次跨多少种 token 都只给出一个总额。退费冲抵后可能为 `0` 或负数。 |
+| `commission_fee.fee_amount` | `string` | 佣金金额，**单位为美元**。佣金从 Fee Station 扣，余额按美元计。批次涉及多个币种时，此处为各币种佣金的合计。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
 | `failed_reason.code` | `string` | 失败原因代码。取值见[批次的失败原因](#批次的失败原因)。 |
 | `failed_reason.message` | `string` | 失败原因。 |
@@ -69,22 +67,22 @@ lang: "zh-hans"
 
 </div>
 
-`failed_amounts` 把两类未成功条目——已提交执行的和从未提交的——按 token 合并为一个金额。要区分它们，请使用 `failed_item_count` 与 `not_executed_item_count`，或查看条目事件。
-
 批次事件**不携带条目列表**。逐条信息只通过条目事件送达，且两者的到达顺序不作保证。
 
 ### 批次的失败原因
 
-`failed_reason.code` 是您分支的依据，也是判断资金是否已被使用的唯一依据——`status` 本身无法区分。批次也可能因为审批被拒绝或被撤销而失败，该原因汇报在条目上。
+请根据 `failed_reason.code` 决定如何处理。批次也可能因为审批被拒绝或被撤销而失败。
 
-| `code` | 发生了什么 | 资金是否已被使用 | 怎么处理 |
-| --- | --- | --- | --- |
-| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 没有 | 修正条目后创建新批次。 |
-| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 没有 | 修正那些条目后创建新批次。 |
-| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
-| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 没有付款 | 处理 Fee Station 后创建新批次。 |
-| `payment.bulk_send_strict_sweep_failed` | `execution_mode` 为 `Strict` 且有归集交易失败。 | 已归集，未付款 | 创建新批次。 |
-| `payment.bulk_send_all_items_failed` | 一个成功的条目都没有——可能全部提交后失败，也可能一笔都没提交。 | 看两个计数：`failed_item_count` 大于 `0` 表示有条目提交过并失败；`not_executed_item_count` 等于 `item_count` 表示一笔都没提交 | 逐条读条目事件的原因，修正后创建新批次。 |
+| `code` | 发生了什么 | 怎么处理 |
+| --- | --- | --- |
+| `payment.bulk_send_no_valid_items` | 没有任何条目通过校验。 | 修正条目后创建新批次。 |
+| `payment.bulk_send_strict_validation_failed` | `execution_mode` 为 `Strict` 且有条目未通过校验，批次因此中止。 | 修正那些条目后创建新批次。 |
+| `payment.bulk_send_commission_fee_all_failed` | 所有条目的佣金都未能扣收。 | 处理 Fee Station 后创建新批次。 |
+| `payment.bulk_send_strict_commission_fee_failed` | `execution_mode` 为 `Strict` 且有条目的佣金扣收失败。 | 处理 Fee Station 后创建新批次。 |
+| `payment.sweep_task_failed` | 批量下发前的资金归集失败，所有条目均未执行。 | 创建新批次。 |
+| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后创建新批次。 |
+| `payment.app_workflow_approval_revoked` | 审批被撤销。 | 创建新批次并重新审批。 |
+| `payment.bulk_send_all_items_failed` | 已提交执行的条目全部失败。 | 逐条读条目事件的原因，修正后创建新批次。 |
 
 ### 批次的示例事件
 
@@ -100,7 +98,7 @@ lang: "zh-hans"
   "bulk_send_id": "bulk_001",
   "request_id": "request_bulk_001",
   "source_account": "developer",
-  "execution_mode": "Loose",
+  "execution_mode": "Partial",
   "status": "Pending",
   "item_count": 3,
   "failed_item_count": 0,
@@ -120,7 +118,7 @@ lang: "zh-hans"
 
 #### 批次完成
 
-关闭批次汇总。各条目仍以自己的事件为准。
+在您的系统中将该批次标记为已完成。
 
 ```json
 {
@@ -128,7 +126,7 @@ lang: "zh-hans"
   "bulk_send_id": "bulk_001",
   "request_id": "request_bulk_001",
   "source_account": "developer",
-  "execution_mode": "Loose",
+  "execution_mode": "Partial",
   "status": "Completed",
   "item_count": 3,
   "failed_item_count": 0,
@@ -150,7 +148,7 @@ lang: "zh-hans"
 
 #### 批次部分完成
 
-按两个计数分流处理。本例有一个条目已提交执行但失败，另一个从未提交——`failed_amounts` 把两者合并成一个数，所以只能靠计数区分。
+按两个计数分流处理。本例有一个条目已提交执行但失败，另一个从未提交。
 
 ```json
 {
@@ -158,7 +156,7 @@ lang: "zh-hans"
   "bulk_send_id": "bulk_002",
   "request_id": "request_bulk_002",
   "source_account": "developer",
-  "execution_mode": "Loose",
+  "execution_mode": "Partial",
   "status": "PartiallyCompleted",
   "item_count": 3,
   "failed_item_count": 1,
@@ -182,7 +180,7 @@ lang: "zh-hans"
 
 #### Strict 模式在执行前中止了批次
 
-未使用任何资金。修正出错的条目后创建新批次，出错条目见条目事件。
+本例中，有条目未通过校验，因此 `Strict` 模式下整个批次在执行前中止，所有条目都未执行，资金未被使用。请根据条目事件找到未通过校验的条目，修正后创建新批次。
 
 ```json
 {
@@ -223,9 +221,9 @@ lang: "zh-hans"
 
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
-| 条目随批次创建，或校验通过但尚未提交转出 | `Pending` | 建立条目记录。**这个值覆盖两个阶段**，停留在此状态不代表仍在校验。 |
+| 条目已创建，等待校验或执行 | `Pending` | 建立条目记录并等待。 |
 | 该条目的转出已提交 | `Processing` | 等待结果，不要标记完成。 |
-| 转出成功 | `Completed`（终态） | 保存金额和 `tx_hash`，关闭该条目。 |
+| 转出成功 | `Completed`（终态） | 保存金额和 `tx_hash`，并在您的系统中将该条目标记为已完成。 |
 | 转出已提交但失败 | `Failed`（终态） | 锁定资金已释放、手续费已退回。能否原样重发取决于 `failed_reason.code`。 |
 | 该条目从未提交执行 | `NotExecuted`（终态） | **资金未被使用。** 读取 `failed_reason.code`，不修正原因就重发会再次失败。 |
 
@@ -236,18 +234,18 @@ lang: "zh-hans"
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `data_type` | `string` | 固定为 `PaymentBulkSendItemUpdate`。 |
-| `bulk_send_item_id` | `string` | 条目 ID，也是对账使用的键。 |
+| `bulk_send_item_id` | `string` | 批量下发条目 ID。 |
 | `bulk_send_id` | `string` | 该条目所属的批次 ID。 |
-| `request_id` | `string` | **选填**。批次的请求 ID，同一批次下所有条目相同。逐条幂等请用 `bulk_send_item_id`。 |
-| `source_account` | `string` | 批次的付款账户。 |
+| `request_id` | `string` | **选填**。所属批次的请求 ID。 |
+| `source_account` | `string` | 付款账户：<br/>• 商户账户：值为商户 ID，例如 `M1001`。<br/>• 开发者账户：值为 `developer`。 |
 | `status` | `string` | 该条目的当前状态，含义见[条目的事件触发条件](#条目的事件触发条件)：<br/>• `Pending`<br/>• `Processing`<br/>• `Completed`<br/>• `Failed`<br/>• `NotExecuted` |
-| `requested_amount` | `object` | 该条目的请求下发金额。条目整体成功或整体失败，因此没有单独的已完成金额和失败金额。 |
+| `requested_amount` | `object` | 向收款方发送的金额。 |
 | `requested_amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
 | `requested_amount.token_id` | `string` | 币种 ID。 |
 | `requested_amount.chain_id` | `string` | 链 ID。 |
-| `receiving_address` | `string` | 收款方地址。 |
-| `tx_hash` | `string` | 该条目转出交易的链上哈希。尚未广播时为 `null`；失败时为 `null` 表示从未上链，有值表示已上链但失败。 |
-| `description` | `string` | 您创建该条目时填写的备注，未填写时为 `null`。 |
+| `receiving_address` | `string` | 收款地址。 |
+| `tx_hash` | `string` | 该条目的链上交易哈希。 |
+| `description` | `string` | 该条目的备注。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 或 `NotExecuted` 时有值，其余情况为 `null`。 |
 | `failed_reason.code` | `string` | 失败原因代码。取值见[条目的失败原因](#条目的失败原因)。 |
 | `failed_reason.message` | `string` | 失败原因。 |
@@ -258,29 +256,26 @@ lang: "zh-hans"
 
 ### 条目的失败原因
 
-`failed_reason.code` 是您分支的依据。下面是条目可能携带的 code。
+请根据 `failed_reason.code` 决定如何处理。下面是条目可能携带的 code。
 
 | `code` | 发生了什么 | 怎么处理 |
 | --- | --- | --- |
-| `payment.bulk_send_invalid_address` | 收款地址不合法，`message` 中包含该地址。 | 修正后在新批次中重发该条目。 |
-| `payment.receiving_address_matches_source_address` | 收款地址与付款地址相同。 | 修正后在新批次中重发该条目。 |
-| `payment.address_kya_failed` | 收款地址未通过 KYA 合规筛查，`message` 中包含该地址。 | 不要再向该地址发送。 |
+| `payment.bulk_send_invalid_address` | 收款地址不合法，或与付款地址相同。 | 修正后在新批次中重发该条目。 |
+| `payment.address_kya_failed` | 收款地址未通过 KYA 合规筛查。 | 不要再向该地址发送。 |
 | `payment.strict_mode_other_items_validation_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目未通过校验。 | 修正那个条目后重发本条目。 |
-| `payment.strict_mode_other_sweep_tasks_failed` | 该条目本身没有问题。`Strict` 模式下有别的归集失败。 | 在新批次中重发。 |
 | `payment.strict_mode_other_items_commission_fee_failed` | 该条目本身没有问题。`Strict` 模式下有别的条目佣金扣收失败。 | 处理 Fee Station 后重发。 |
 | `payment.bulk_send_commission_fee_charge_failed` | Fee Station 余额不足。 | 充值后重发。 |
-| `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。 | 配置后重发。 |
-| `payment.bulk_send_commission_fee_charge_failed_unknown` | 佣金因其他原因扣收失败。 | 检查 Fee Station 的配置与余额，然后重发。 |
-| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后重发。 |
-| `payment.app_workflow_approval_revoked` | 审批流被撤销。 | 让批次通过审批，然后重发。 |
+| `payment.bulk_send_commission_fee_station_not_configured` | 未配置 Fee Station。 | 联系 Cobo，配置完成后重发。 |
+| `payment.app_workflow_approval_rejected` | 审批流拒绝了该批次。 | 向审批人确认原因，然后创建新批次。 |
+| `payment.app_workflow_approval_revoked` | 审批被撤销。 | 创建新批次并重新审批。 |
+| `payment.sweep_task_failed` | 批量下发前的资金归集失败，所有条目均未执行。 | 在新批次中重发。 |
+| `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 不要重试，联系 Cobo。 |
 | `transaction.rejected_by_policy` | 这笔转账命中了您自己配置的交易策略。 | 在 Cobo Portal 中调整该策略，然后重发。 |
 | `transaction.rejected_by_approval` | 这笔转账在您组织的审批环节被拒绝——审批人拒绝，或您的回调服务器拒绝。 | 向对方确认原因，然后重发。 |
 | `transaction.rejected_by_signer` | 这笔转账在签名环节被拒绝——co-signer 拒绝签名。 | 向 co-signer 确认原因，然后重发。 |
 | `transaction.rejected_by_screening_app` | 您的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔转账。 | 到该应用查看原因，然后重发。 |
-| `payment.sweep_task_failed` | 准备资金的归集交易失败。 | 重发。 |
 | `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔转账。 | 不要重试，联系 Cobo。 |
-| `payment.batch_payouts_execution_failed` | 转账失败且原因无法归类。 | 不要重试，联系 Cobo。 |
-| `transaction.failed` | 原因无法归类。 | 不要重试，联系 Cobo 并提供 `bulk_send_item_id`。 |
+| `transaction.failed` | 原因无法归类。 | 联系 Cobo 并提供 `bulk_send_item_id`。 |
 
 ### 条目的示例事件
 
@@ -288,7 +283,7 @@ lang: "zh-hans"
 
 #### 某个条目完成
 
-保存金额和 `tx_hash`，并用 `bulk_send_item_id` 关联回您自己的收款人记录后关闭该条目。
+保存金额和 `tx_hash`，通过 `bulk_send_item_id` 关联到您系统中的收款人记录，并将该条目标记为已完成。
 
 ```json
 {
@@ -357,10 +352,6 @@ lang: "zh-hans"
   "updated_timestamp": 1744714100
 }
 ```
-
-#### 重发失败的条目
-
-原批次和原条目上都没有重试。请创建新的批次，或为单个收款人创建一笔转出，并在自己的记录里保留原 `bulk_send_id` 与 `bulk_send_item_id`——新事件不携带指回它们的引用。
 
 ## 高级事件
 

@@ -3,15 +3,9 @@ title: "Advanced events"
 lang: "en"
 ---
 
-Advanced events report detail about the underlying on-chain transaction. You only need to subscribe when that detail matters to you — confirmation counts, on-chain transaction fee breakdowns, block information, or replacement (drop, resend, speed-up) information, for example to show a payer the progress of their transfer or to reconcile gas spend.
-
-The event for that payment business already tells you whether you can credit funds, release goods, or close a payout; an advanced event sits one level below that, exposing the detail behind it. **Drive the decision from that business's own event and use the advanced one for reconciliation only.**
+Advanced events report detail about the underlying on-chain transaction. You only need to subscribe when that detail matters to you — confirmation counts, on-chain transaction fee breakdowns, block information, or replacement (drop, resend, speed-up) information.
 
 Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
-
-<Note>
-  Do not let one irreversible action be triggered by two events. Pick one source for each of crediting funds, releasing goods, and closing a payout; use the other for reconciliation only.
-</Note>
 
 ## Events on this page
 
@@ -21,11 +15,11 @@ Read [Events overview](/payments/en/guides/events/overview) first for the envelo
 | [`payment.transaction.completed`](#payment-transaction-completed) | A deposit cleared screening and was credited. |
 | [`payment.transaction.failed`](#payment-transaction-failed) | A deposit did not clear screening. |
 | [`payment.transaction.late`](#payment-transaction-late) | A screened deposit arrived after its order reached a final state. |
-| [`payment.order.status.updated`](#payment-order-status-updated) | An order's transaction detail, alongside `payment.order.updated`. |
-| [`payment.refund.status.updated`](#payment-refund-status-updated) | A refund's transaction detail, alongside `payment.refund.updated`. |
-| [`payment.payout.status.updated`](#payment-payout-status-updated) | A payout's transaction detail, alongside `payment.payout.updated`. |
-| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | A batch's transaction detail, alongside `payment.bulk_send.updated`. |
-| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | An item's transaction detail, alongside `payment.bulk_send.item.updated`. |
+| [`payment.order.status.updated`](#payment-order-status-updated) | An order's transaction detail. |
+| [`payment.refund.status.updated`](#payment-refund-status-updated) | A refund's transaction detail. |
+| [`payment.payout.status.updated`](#payment-payout-status-updated) | A payout's transaction detail. |
+| [`payment.bulk_send.status.updated`](#payment-bulk_send-status-updated) | A batch's transaction detail. |
+| [`payment.bulk_send.item.status.updated`](#payment-bulk_send-item-status-updated) | An item's transaction detail. |
 
 ## `payment.transaction.created`
 
@@ -258,10 +252,6 @@ To test delivery to your registered webhook endpoints, use [Trigger test webhook
 ## Transaction fields
 
 These fields appear in all `payment.transaction.*` events. Not every field is populated in every scenario.
-
-<Note>
-  This section covers the fields most relevant to payment scenarios. For the complete list of transaction fields and their meanings, see [Get transaction information](https://www.cobo.com/developers/v2/api-references/transactions/get-transaction-information).
-</Note>
 
 - `transaction_id` (string, UUID, required) — The transaction ID.
 - `cobo_id` (string, optional) — The Cobo ID used to track a transaction.

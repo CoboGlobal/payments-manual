@@ -10,7 +10,7 @@ This page covers Top-up Mode: each payer has their own deposit address, and ever
 | Event | What it notifies you of | Type |
 | --- | --- | --- |
 | [`payment.topup.updated`](#payment-topup-updated) | A top-up's status changed: detected, in compliance screening, action required, completed, or failed. | **Standard** |
-| [`payment.address.updated`](#payment-address-updated) | A payer's deposit address was replaced. Besides replacements you request, Cobo also replaces addresses on its own. | **Standard** |
+| [`payment.address.updated`](#payment-address-updated) | You replaced a payer's deposit address via the update top-up address API. | **Standard** |
 
 ## `payment.topup.updated`
 
@@ -200,7 +200,7 @@ Stop any automatic crediting and read `failed_reason.code`. Here Cobo's complian
 
 ## `payment.address.updated`
 
-Fires when a payer's deposit address is replaced. When you receive it, update that payer's deposit address in your system to `updated_address`.
+Fires after you replace a payer's deposit address via [Update top-up address](/payments/en/api-references/payment/update-top-up-address). When you receive it, update that payer's deposit address in your system to `updated_address`.
 
 ### Address event content
 
