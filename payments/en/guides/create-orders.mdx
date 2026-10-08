@@ -385,12 +385,14 @@ For isolated or frozen funds:
 
 ### Minimum Deposit Threshold
 
-To optimize your account costs and prevent situations where the collection fee exceeds the transaction value, a dust amount threshold is applied. Transactions with a value **equal to or below 0.05 USDT** (or equivalent) are not processed for automatic credit, do not count toward the order's received amount, and do not trigger a webhook notification.
+A dust amount threshold prevents the collection fee from exceeding the transaction value. The threshold varies by token and is a token amount, not USD. A transaction **at or below its token's threshold** is not credited, does not count toward the order's received amount, and sends no webhook notification.
 
-For example:
+Call [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) to get each token's `deposit_threshold`.
 
-| Transaction amount | Credited | Webhook sent |
+For example, when the threshold is 0.05:
+
+| Token amount | Credited | Webhook sent |
 |---|---|---|
-| 0.06 USDT | Yes | Yes |
-| **0.05 USDT** | **No** | **No** |
-| 0.04 USDT | No | No |
+| 0.06 | Yes | Yes |
+| **0.05** | **No** | **No** |
+| 0.04 | No | No |
