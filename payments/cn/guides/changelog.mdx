@@ -5,12 +5,18 @@ lang: "zh-hans"
 
 ## 2026 年 10 月
 
+<div className="changelog-table">
+
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
 | **Webhook** | (SDK v1.45.0) 新增 6 个标准 Webhook 事件，覆盖各支付业务对象的状态更新和关键节点通知：<br />・[`payment.topup.updated`](/payments/cn/guides/events/top-up)：充值<br />・[`payment.order.updated`](/payments/cn/guides/events/orders)：订单<br />・[`payment.refund.updated`](/payments/cn/guides/events/refunds)：退款<br />・[`payment.payout.updated`](/payments/cn/guides/events/payouts)：资金转出<br />・[`payment.bulk_send.updated` 和 `payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send)：批量下发的批次和条目<br />事件包含业务状态、相关金额和结构统一的失败原因（`failed_reason.code` 和 `failed_reason.message`）。<br />原有的 `payment.transaction.*` 和 `*.status.updated` 事件仍会发送，现归为高级事件；如需链上交易细节，可继续订阅。详见[事件概述](/payments/cn/guides/events/overview)。 | 2026-10-14 |
 
+</div>
+
 
 ## 2026 年 09 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -21,8 +27,12 @@ lang: "zh-hans"
 | **支持的链** | (SDK v1.43.0) [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) 响应中新增 `confirming_threshold` 和 `deposit_threshold` 字段，用于返回支持代币的确认阈值和充值阈值。 | 2026-09-02 |
 | **转出目的地** | (SDK v1.43.0) 银行账户负载新增 `bank_city` 和 `routing_value` 字段，`holder_type` 新增支持 `Personal`。受影响的接口：<br />・[Create destination](/payments/en/api-references/payment/create-destination)、[Get destination information](/payments/en/api-references/payment/get-destination-information)、[Create destination entry](/payments/en/api-references/payment/create-destination-entry)、[List destination entries](/payments/en/api-references/payment/list-destination-entries)、[Get destination entry information](/payments/en/api-references/payment/get-destination-entry-information)、[Update destination entry](/payments/en/api-references/payment/update-destination-entry) 和 [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id)。 | 2026-09-02 |
 
+</div>
+
 
 ## 2026 年 08 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -33,8 +43,12 @@ lang: "zh-hans"
 | **Webhook** | (SDK v1.41.0) 新增 `payment.bulk_send.item.status.updated` Webhook 事件，用于通知单条批量下发项目的状态更新。事件负载新增 `PaymentBulkSendItem` 数据类型及对应事件数据 Schema、discriminator 映射和事件类型枚举值。详见 [状态与事件](/payments/cn/guides/events/overview)。 | 2026-08-05 |
 | **报表** | (SDK v1.41.0) [Generate reports](/payments/en/api-references/payment/generate-reports) 和 [List all reports](/payments/en/api-references/payment/list-all-reports)：`ReportExportFormat` 新增 `PDF`。PDF 导出仅支持余额快照报表。 | 2026-08-05 |
 
+</div>
+
 
 ## 2026 年 07 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -46,8 +60,12 @@ lang: "zh-hans"
 | **收款** | (SDK v1.40.0) 支付交易详情新增 `failed_reason` 和 `sub_status` 字段。受影响的响应包括 [List payers](/payments/en/api-references/payment/list-payers)、[List payer transactions](/payments/en/api-references/payment/list-payer-transactions)，以及订单、退款、结算、转出等负载中嵌入的交易数据。 | 2026-07-22 |
 | **资金管理** | (SDK v1.39.0) Bulk Send：`PaymentBulkSendItemValidationStatus` 枚举新增 `NotExecuted` 取值。[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items) 响应中的 `validation_status` 可返回该值，表示该条目的校验未执行（例如在 `Strict` 模式下其他条目校验失败、整批在验证阶段被拒绝时）。 | 2026-07-01 |
 
+</div>
+
 
 ## 2026 年 06 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -55,8 +73,12 @@ lang: "zh-hans"
 | **资金管理** | (SDK v1.39.0) 划转（Allocation）状态追踪：<br />・[List all batch allocations](/payments/en/api-references/payment/list-all-batch-allocations) 和 [Create batch allocation](/payments/en/api-references/payment/create-batch-allocation)：响应新增 `status` 字段（`Pending`、`Processing`、`Completed`、`PartiallyCompleted`、`Failed`）。<br />・[Get batch allocation information](/payments/en/api-references/payment/get-batch-allocation-information)：响应新增 `status` 字段。<br />・[List all allocation items](/payments/en/api-references/payment/list-all-allocation-items)：响应条目新增 `status` 字段（`Pending`、`Transferring`、`Completed`、`Failed`）。 | 2026-06-24 |
 | **资金管理** | (SDK v1.37.0) 新增 [List balance changes](/payments/en/api-references/payment/list-balance-changes) 操作，用于查询指定来源账户的余额变动记录。<br /><br />Bulk Send 功能增强：<br />・[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items)：响应中新增 `tx_hash` 字段，返回每条批量下发记录对应的链上交易哈希。<br />・[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends)、[Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information) 响应及 Bulk Send Webhook 通知（`payment.bulk_send.status.updated`）数据中新增 `commission_fee` 字段，返回本次批量下发所收取的手续费信息。 | 2026-06-09 |
 
+</div>
+
 
 ## 2026 年 05 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -64,16 +86,24 @@ lang: "zh-hans"
 | **资金管理（不兼容变更）** | (SDK v1.35.0) 以下已废弃的银行账户 API 操作已被永久移除，请改用[转出目的地](/payments/en/api-references/payment/create-destination)相关操作：<br />  - 查询银行账户列表（`GET /payments/bank_accounts`）<br />  - 更新银行账户（`PUT /payments/bank_accounts/{bank_account_id}`） | 2026-05-12 |
 | **收款** | (SDK v1.35.0) 充值模式付款方功能增强：<br />・[List payers](/payments/en/api-references/payment/list-payers) 响应新增 `custom_payer_id` 字段，即商户侧的用户唯一标识。<br />・新增 [List payer transactions](/payments/en/api-references/payment/list-payer-transactions) 操作，支持分页查询指定付款方的链上充值交易记录，可按 `custom_payer_id`、`merchant_id`、`token_id`、`transaction_hash` 等过滤。[List payers](/payments/en/api-references/payment/list-payers) 响应中的 `transactions` 字段已废弃，将在未来版本中移除。当前版本起，该字段最多返回最近 200 条交易，不再返回全部记录。 | 2026-05-12 |
 
+</div>
+
 
 ## 2026 年 04 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
 | **资金管理** | (SDK v1.34.0) OffRamp 转出新增虚拟账户（VA）路由支持：<br />・[Estimate fees](/payments/en/api-references/payment/estimate-fees)：请求体新增 `transfer_via_va` 字段。设置为 `true` 表示通过虚拟账户转出至银行账户，`false` 表示直接转入银行账户。<br />・`RecipientInfo` Schema：转出响应中新增 `transfer_via_va` 字段，标识该笔转出是否通过虚拟账户路由。 | 2026-04-07 |
 | **退款** | (SDK v1.34.0) [Create refund link](/payments/en/api-references/payment/create-refund-link) 新增可选字段 `order_id`。您现在可以通过 `order_id` 或 `transaction_id` 指定要退款的订单；此前仅支持 `transaction_id`。 | 2026-04-07 |
 
+</div>
+
 
 ## 2026 年 03 月
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | ----- | ----- | ----- |
@@ -83,10 +113,14 @@ lang: "zh-hans"
 | **转出目的地** | **(SDK v1.32.0)** Payout Destination 管理功能优化：<br />・**Create destination**：request 中新增 `bank_accounts[].country`、`bank_accounts[].city`；`bank_accounts[].intermediary_bank_info.bank_address` 变为选填<br />・**Get destination detail**：response 中新增 `bank_accounts[].country`、`bank_accounts[].city`<br />・**Create destination entry**：request 中新增 `bank_accounts[].country`、`bank_accounts[].city`；`bank_accounts[].intermediary_bank_info.bank_address` 变为选填<br />・**List destination entries**：response 中新增 `bank_accounts[].country`、`bank_accounts[].city`<br />・**Get destination entry information**：response 中新增 `bank_account.country`、`bank_account.city`<br />・**Update destination entry**：response 中新增 `bank_account.country`、`bank_account.city`；request 中 `bank_account.intermediary_bank_info.bank_address` 变为选填 | 2026-03-12 |
 | **报表** | **(SDK v1.32.0)** `Generate reports` 接口 新增报表类型枚举值 BulkSend，支持生成 Bulk Send 报表 | 2026-03-12 |
 
+</div>
+
 
 ## 2026 年 02 月
 
 本文记录 Cobo 支付解决方案的全部重要更新与即将上线的功能，助您及时掌握产品动态与升级信息。
+
+<div className="changelog-table">
 
 | 功能 | 变更说明 | 发布时间 |
 | :---- | :---- | :---- |
@@ -96,7 +130,11 @@ lang: "zh-hans"
 | **支持的链** | (SDK v1.31.0) 新增查询支持的代币：[List supported tokens](/payments/en/api-references/payment/list-supported-tokens)。 | 2026-02-05 |
 | **收款** | 创建支付订单时新增金额参数组合校验规则。使用 `pricing_currency`、`pricing_amount`、`payable_currency` 字段时，必须符合以下两种组合之一：<br /><br />**方式一：按定价金额创建订单**<br />　- 必填：`pricing_currency`、`pricing_amount`、`payable_currency`<br />　- 不可填写：`payable_amount`<br /><br />**方式二：按实际支付金额创建订单**<br />　- 必填：`payable_currency`、`payable_amount`<br />　- 不可填写：`pricing_currency`、`pricing_amount`<br /><br />注意：`payable_currency` 在所有情况下均为必填。同时填写两种方式的参数，或不符合以上任一组合的请求，将被拒绝。<br /><br />涉及的 API 操作：[Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) | 2026-02-05 |
 
+</div>
+
 ## 2026 年 01 月
+
+<div className="changelog-table">
 
 | 功能               | 变更说明   | 发布时间       |
 | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------- |
@@ -109,7 +147,11 @@ lang: "zh-hans"
 | **资金管理**         | （SDK v1.30.0） 为提升参数命名一致性与结果可读性，以下划转资金（Allocation）操作中的字段名称已更新，请您同步调整请求参数与返回结果的解析逻辑： <br /><br />  - [Create batch allocation](/payments/en/api-references/payment/create-batch-allocation) 操作中的 `allocation_requests` 字段更新为 `allocation_params`。 <br />  - [Get batch allocation information](/payments/en/api-references/payment/get-batch-allocation-information) 中的返回字段 `allocation_records` 已更名为 `allocation_items`。 <br />   - **List all allocation records** 操作更名为 [List all allocation items](/payments/en/api-references/payment/list-all-allocation-items)，返回中的字段 `allocation_record_id` 更名为 `allocation_item_id`。  <br /><br />请您尽快完成字段名称更新，以确保资金划转相关功能在后续版本中的兼容性。                                                                                                                                                                                                                                                                                                                               | 2026-01-22 |
 | **转出目的地**        | (SDK v1.30.0) 以下操作已废弃，请使用转出目的地（[Destination](/payments/en/api-references/payment/create-destination)）相关操作。<br />  -`List all bank accounts`<br />  -[Create crypto address](/payments/en/api-references/payment/create-crypto-address)<br />  -[Delete crypto address](/payments/en/api-references/payment/delete-crypto-address)<br />  -[List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 2026-01-22 |
 
+</div>
+
 ## 2025 年 12 月
+
+<div className="changelog-table">
 
 | 功能        | 变更说明                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 发布时间       |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -125,7 +167,11 @@ lang: "zh-hans"
 | **交易对手方** | 新增[交易对手方](/payments/cn/guides/counterparties)功能，用于管理付款方信息。 目前已支持通过 Payments App 操作，API 即将开放。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 2025-12-03 |
 | **转出目的地** | 新增[转出目的地](/payments/cn/guides/destinations)功能，用于集中管理资金转出时的目的地信息。 目前已支持通过 Payments App 操作，API 即将开放。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 2025-12-03 |
 
+</div>
+
 ## 2025 年 11 月
+
+<div className="changelog-table">
 
 | 功能            | 变更说明                                                                                                                                                                         | 发布时间       |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -134,7 +180,11 @@ lang: "zh-hans"
 | **SDK & API** | (SDK v1.27.0) [Get Access Token](/v2/api-references/oauth/get-access-token) 和 [Refresh Access Token](/v2/api-references/oauth/refresh-access-token) 操作已废弃。                   | 2025-11-26 |
 | **退款**        | (SDK v1.26.0) 新增 [Create refund link](/payments/en/api-references/payment/create-refund-link) 操作，用于创建退款链接。`RefundStatus` Schema 新增 `AddressPending` 和 `AddressSubmitted` 状态。 | 2025-11-12 |
 
+</div>
+
 ## 2025 年 10 月
+
+<div className="changelog-table">
 
 | 功能       | 变更说明                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | 发布时间       |
 | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -147,14 +197,22 @@ lang: "zh-hans"
 | **收款**   | (SDK v1.24.0) - [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 操作新增 `custom_exchange_rate` 字段：支持自定义汇率。<br />- `merchant_id` 字段在 [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[Update top-up address](/payments/en/api-references/payment/update-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers) 操作中变更为可选。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 2025-10-15 |
 | **资金管理** | 为了简化结算流程，提升用户体验，我们对 Payments API 进行了优化，取消了可结算余额、强制归集等概念和相关操作：<br /><br />**废弃的操作：**<br />- 可结算余额查询：[Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances)<br />- 支付钱包余额查询：[List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)<br />- 强制归集操作：`Create forced sweep`、`List forced sweeps`<br /><br />**废弃的字段：**<br />- [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) 和 [Get developer balance](/payments/en/api-references/payment/get-developer-balance) 中的 `available_balance` 字段<br />- [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) 中的 `use_dedicated_address` 字段<br /><br /><Warning>         上述操作及字段仅为兼容旧版本而保留，不建议在新实现中继续使用。   </Warning> | 2025-10-01 |
 
+</div>
+
 ## 2025 年 09 月
+
+<div className="changelog-table">
 
 | 功能       | 变更说明                                                                                | 发布时间       |
 | -------- | ----------------------------------------------------------------------------------- | ---------- |
 | **支持的链** | 新增支持 Solana 链。                                                                      | 2025-09-26 |
 | **收款**   | 订单模式新增支持 [payment.transaction.completed](/payments/cn/guides/events/overview) 事件。 | 2025-09-05 |
 
+</div>
+
 ## 2025 年 08 月
+
+<div className="changelog-table">
 
 | 功能       | 变更说明                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 发布时间       |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
@@ -163,7 +221,11 @@ lang: "zh-hans"
 | **退款**   | (SDK v1.21.0) 新增退款相关操作：[Update refund order](/payments/en/api-references/payment/update-refund-order)、[Cancel refund order](/payments/en/api-references/payment/cancel-refund-order)。                                                                                                                                                                                                                                                                                                                                                                                    | 2025-08-13 |
 | **支付链接** | - 新增支持通过第三方钱包进行支付，支持 EVM 和 Tron 链主流钱包。<br />- 新增支持通过 `cryptoAmount` 参数直接以加密货币指定订单金额。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 2025-08-11 |
 
+</div>
+
 ## 2025 年 07 月
+
+<div className="changelog-table">
 
 | 功能       | 变更说明                                                                                                                                                                                                                                                                                                                                                                      | 发布时间       |
 | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -174,7 +236,11 @@ lang: "zh-hans"
 | **收款**   | 新增支持充值模式，您可在 Web 界面：创建和管理充值地址、监控充值交易状态、导出充值记录。                                                                                                                                                                                                                                                                                                                            | 2025-07-10 |
 | **收款**   | (SDK v1.18.0) 新增充值模式相关操作：[Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address)、[List payers](/payments/en/api-references/payment/list-payers)。具体集成步骤请参考[获取充值地址](/payments/cn/guides/get-topup-addresses)。新增与充值模式相关的多个 [Webhook 事件](/payments/cn/guides/events/overview)。                                                            | 2025-07-02 |
 
+</div>
+
 ## 2025 年 06 月
+
+<div className="changelog-table">
 
 | 功能         | 变更说明                                                                                                                                                                                                              | 发布时间       |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -185,3 +251,5 @@ lang: "zh-hans"
 | **支付链接**   | (SDK v1.17.0) 新增以下操作，用于完成 Checkout SDK 的 OAuth 认证：[Get Access Token](/v2/api-references/oauth/get-access-token)、[Refresh Access Token](/v2/api-references/oauth/refresh-access-token)。                            | 2025-06-18 |
 | **资金管理**   | 新增支持加密货币出金的结算方式。                                                                                                                                                                                                  | 2025-06-10 |
 | **支付链接**   | (Checkout SDK v1.1.0) Checkout SDK 提供开箱即用的收单前端组件，支持 iframe 嵌入方式快速集成。                                                                                                                                              | 2025-06-09 |
+
+</div>

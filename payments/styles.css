@@ -302,6 +302,37 @@ table:not(.six-columns-fixed-first-row-cn):not(.six-columns-fixed-first-row) td:
   }
 }
 
+/* 发布历史表格：功能列和发布时间列固定宽度，变更说明列占满剩余空间 */
+.changelog-table table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.changelog-table th:nth-child(1),
+.changelog-table td:nth-child(1) {
+  width: 11rem;
+}
+
+.changelog-table th:nth-child(2),
+.changelog-table td:nth-child(2) {
+  width: auto;
+}
+
+.changelog-table th:nth-child(3),
+.changelog-table td:nth-child(3) {
+  width: 8.5rem;
+}
+
+@media (max-width: 768px) {
+  .changelog-table {
+    overflow-x: auto;
+  }
+
+  .changelog-table table {
+    min-width: 40rem;
+  }
+}
+
 /* 表格最后一列默认没有右内边距，文字会贴住右边框 */
 table th:last-child,
 table td:last-child {
