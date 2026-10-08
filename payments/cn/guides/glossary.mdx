@@ -113,7 +113,7 @@ Cobo 提供的合规筛查应用，您可对收到的资金进行合规筛查，
 ### 支付订单 (Pay-in Order)
 订单模式下的一笔支付任务，包含应付金额、有效期、收币地址等信息。状态包括 Pending、Completed、Expired、Underpaid 等。
 
-详见：[创建支付订单](/payments/cn/guides/create-orders)，[状态与事件](/payments/cn/guides/status-and-events)。
+详见：[创建支付订单](/payments/cn/guides/create-orders)，[状态与事件](/payments/cn/guides/events/overview)。
 
 ### 支付链接 (Payment Link)
 由 Cobo 生成的 URL，打开后跳转到 Cobo 托管的支付页面，付款方可在该页面选择币种与链并完成支付，无需您自建收银台。可嵌入 iFrame。
@@ -147,12 +147,12 @@ Cobo 提供的合规筛查应用，您可对收到的资金进行合规筛查，
 - **少付**：有效期内实付少于应付，订单终态为 Underpaid。
 - **晚付**：订单过期后的付款，不改变订单状态，资金按规则计入开发者账户等，并触发晚付事件。
 
-详见：[创建支付订单](/payments/cn/guides/create-orders)，[状态与事件](/payments/cn/guides/status-and-events)。
+详见：[创建支付订单](/payments/cn/guides/create-orders)，[状态与事件](/payments/cn/guides/events/overview)。
 
 ### 最终状态 (Final State)
 订单不可再发生变更的终态，如 Completed、Expired、Underpaid 等。
 
-详见：[状态与事件](/payments/cn/guides/status-and-events)。
+详见：[状态与事件](/payments/cn/guides/events/overview)。
 
 ### 退款 (Refund)
 将已收款项退还给付款方的操作。可来自商户账户或开发者账户，并可设置退款手续费（开发者费用）。
@@ -314,7 +314,7 @@ Cobo 提供的前端组件库，用于在您自己的前端页面中引入 Web3 
 ### Webhook
 事件推送机制。在您配置并注册 Webhook Endpoint 后，当订单状态变更、充值到账、出金完成等事件发生时，Cobo 会向您的服务器 URL 发送 HTTP 请求，便于实时更新业务状态。
 
-详见：[状态与事件](/payments/cn/guides/status-and-events)。
+详见：[状态与事件](/payments/cn/guides/events/overview)。
 
 ### Webhook Endpoint
 您提供的、用于接收 Webhook 请求的 URL。需在 Cobo Portal 注册并订阅需要的事件类型，建议实现签名校验与幂等处理。

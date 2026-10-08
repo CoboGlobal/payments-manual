@@ -93,13 +93,13 @@ You have completed all the steps mentioned in [Preparation](/payments/en/guides/
 
        If a top-up address already exists for the specified payer and chain, this operation returns that existing address instead of creating a new one, so you can call it repeatedly for the same payer and chain without creating duplicates.
     2. If you need to create top-up addresses for multiple payers in batches, you can call [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses).
-    2. **Configure top-up event listening**: Receive event notifications related to top-ups through webhooks. For details, refer to [Events and status](/payments/en/guides/status-and-events).
+    2. **Configure top-up event listening**: Receive event notifications related to top-ups through webhooks. For details, refer to [Events and status](/payments/en/guides/events/top-up).
   </Tab>
 </Tabs>
 
 ## Get top-up mode related events
 
-You can subscribe to the following webhook events to receive real-time update notifications for top-up addresses and top-up transactions. Refer to [Webhook reference](/payments/en/guides/status-and-events) to understand the trigger time and returned data structure of each event.
+You can subscribe to the following webhook events to receive real-time update notifications for top-up addresses and top-up transactions. Refer to [Webhook reference](/payments/en/guides/events/top-up) to understand the trigger time and returned data structure of each event.
 
 - `payment.transaction.created`
 - `payment.transaction.completed`

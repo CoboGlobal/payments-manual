@@ -183,7 +183,7 @@ Completing [Payments onboarding](/payments/en/guides/preparation) automatically 
     2. The payer opens the hosted payment page provided by Cobo.
     3. The payer selects the payment token and blockchain network and submits the order.
     4. Cobo creates the payment order and generates the `order_id`.
-    5. Cobo sends a [`payment.order.status.updated`](/payments/en/guides/status-and-events#paymentorderstatusupdated) webhook event with status `Pending` and the new `order_id` to the merchant.
+    5. Cobo sends a [`payment.order.status.updated`](/payments/en/guides/events/orders) webhook event with status `Pending` and the new `order_id` to the merchant.
 
     You can also embed the page into your existing website through an iFrame. For details, see [Create order link](/payments/en/guides/payment-link).
   </Tab>
@@ -191,7 +191,7 @@ Completing [Payments onboarding](/payments/en/guides/preparation) automatically 
 
 ## Query order status
 
-You can subscribe to the following webhook events to receive real-time update notifications of order status. Refer to [Webhook reference](/payments/en/guides/status-and-events) to understand the trigger time and returned data structure of each event.
+You can subscribe to the following webhook events to receive real-time update notifications of order status. Refer to [Webhook reference](/payments/en/guides/events/orders) to understand the trigger time and returned data structure of each event.
 
 - `payment.order.status.updated`
 - `payment.transaction.late`
@@ -349,7 +349,7 @@ sequenceDiagram
 
 #### Query refund order status
 
-You can subscribe to the `payment.refund.status.updated` event to receive real-time updates on refund order status. Refer to [Webhook reference](/payments/en/guides/status-and-events) to understand the detailed trigger conditions and returned data structure of each event.
+You can subscribe to the `payment.refund.status.updated` event to receive real-time updates on refund order status. Refer to [Webhook reference](/payments/en/guides/events/refunds) to understand the detailed trigger conditions and returned data structure of each event.
 
 You can also actively query refund order status through Payments App or Payments API.
 

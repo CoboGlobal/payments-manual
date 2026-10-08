@@ -1,0 +1,367 @@
+---
+title: "Payouts and withdrawals"
+lang: "en"
+---
+
+These events track a single payout or transfer request, including:
+
+- Crypto transfers
+- Off-Ramp integration
+- Fiat withdrawals from one of your virtual accounts to a bank account
+
+Read [Events overview](/payments/en/guides/events/overview) first for the envelope, deduplication, and the rules that apply to every event.
+
+## Events on this page
+
+| Event | What it notifies you of | Type |
+| --- | --- | --- |
+| [`payment.payout.updated`](#payment-payout-updated) | A payout's status changed: accepted, preparing funds, transferring, completed, partially completed, failed, or returned by the receiving bank. | **Standard** |
+| [`payment.bank_withdrawal.status.updated`](#payment-bank_withdrawal-status-updated) | A fiat withdrawal from one of your virtual accounts to a bank account changed status. | **Standard** |
+
+## `payment.payout.updated`
+
+The main payout event.
+
+### Trigger conditions
+
+**One event per change of this payout's `status`.**
+
+| Trigger condition | `status` | What to do |
+| --- | --- | --- |
+| The payout request is accepted | `Pending` | Record it and do not submit it again. |
+| Fund preparation starts (consolidation, cross-chain conversion, commission) | `Preparing` | Wait. |
+| The outgoing transactions start executing | `Transferring` | Wait. |
+| Everything was paid out | `Completed` (final) | Mark the payout as completed in your system. |
+| Part of it did not go through | `PartiallyCompleted` (final) | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
+| Everything failed | `Failed` (final) | Read `failed_reason.code` and handle it. |
+| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Contact Cobo to resolve it, and wait for further events.<br/>⚠️ **`RejectedByBank` is not final.** After you contact Cobo to resolve it, the payout may return to `Transferring` or go directly to `Completed`. |
+
+### Event content
+
+<div className="field-table">
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `data_type` | `string` | Always `PaymentPayoutUpdate`. |
+| `payout_id` | `string` | The payout ID. |
+| `request_id` | `string` | The request ID you supplied when creating the payout. |
+| `source_account` | `string` | Which account the funds come from: a merchant ID for a merchant account, or `developer`. |
+| `status` | `string` | The current status; see [Trigger conditions](#trigger-conditions) for what each means:<br/>• `Pending`<br/>• `Preparing`<br/>• `Transferring`<br/>• `Completed`<br/>• `PartiallyCompleted`<br/>• `Failed`<br/>• `RejectedByBank` |
+| `requested_target` | `object` | Where the funds are going. It never carries full account details — look those up by `bank_account_id`. |
+| `requested_target.target_type` | `string` | The target type:<br/>• `Address` — a crypto address.<br/>• `BankAccount` — a bank account (Off-Ramp). |
+| `requested_target.address` | `string` | The receiving address. Present only when `target_type` is `Address`. |
+| `requested_target.chain_id` | `string` | The chain ID. Present only when `target_type` is `Address`. |
+| `requested_target.bank_account_id` | `string` | The bank account ID. Present only when `target_type` is `BankAccount`. |
+| `requested_target.account_alias` | `string` | The bank account alias. Present only when `target_type` is `BankAccount`. |
+| `requested_target.bank_name` | `string` | The bank name. Present only when `target_type` is `BankAccount`. |
+| `requested_target.currency` | `string` | The account currency, for example `USD`. Present only when `target_type` is `BankAccount`. |
+| `initiator` | `string` | Who started the payout, usually an API key. |
+| `remark` | `string` | The note you wrote when creating the payout; `null` if none. |
+| `requested_amounts` | `array` | What you asked to pay out, grouped by token and fixed at creation. |
+| `requested_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `requested_amounts.token_id` | `string` | The token ID. |
+| `requested_amounts.chain_id` | `string` | The chain ID. |
+| `failed_amounts` | `array` | The part of `requested_amounts` that was not paid out. At a final status, the amount paid out successfully is the difference between the two. |
+| `failed_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `failed_amounts.token_id` | `string` | The token ID. |
+| `failed_amounts.chain_id` | `string` | The chain ID. |
+| `actual_payout_amounts` | `array` | What the recipient actually received. **It has values only when `status` is `Completed` or `PartiallyCompleted`**, and is `[]` otherwise. A crypto payout has one entry per token actually sent; an Off-Ramp payout has a single entry.<br/>• ⚠️ **This value does not necessarily equal `requested_amounts` minus `failed_amounts`**: after cross-chain conversion or Off-Ramp integration, the recipient can receive a different asset from the one you sent, and the fees for cross-chain conversion and Off-Ramp integration are deducted from the amount you requested, so the recipient receives less than `requested_amounts`. |
+| `actual_payout_amounts.amount_type` | `string` | The amount type. Read it before the other fields:<br/>• `Crypto` — crypto.<br/>• `Fiat` — fiat, for Off-Ramp to a bank account. |
+| `actual_payout_amounts.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `actual_payout_amounts.token_id` | `string` | The token ID. Present only when `amount_type` is `Crypto`. |
+| `actual_payout_amounts.chain_id` | `string` | The chain ID. Present only when `amount_type` is `Crypto`. |
+| `actual_payout_amounts.currency` | `string` | The fiat currency, for example `USD`. Present only when `amount_type` is `Fiat`. |
+| `commission_fee` | `object` | The commission Cobo charged; `null` when none was charged. |
+| `commission_fee.fee_amount` | `string` | The commission, **denominated in USD**. It is taken from Fee Station, whose balance is in USD. For a payout across multiple tokens, this is the combined commission for all of them. |
+| `transactions` | `array` | Every outgoing transaction for this payout. |
+| `transactions.transaction_id` | `string` | The ID of this outgoing transaction in Cobo. |
+| `transactions.amount` | `object` | The amount this transaction actually sent. After cross-chain conversion it can be in a different token from `requested_amounts`. |
+| `transactions.amount.amount` | `string` | The amount. See [Amounts](/payments/en/guides/events/overview#amounts) for the format. |
+| `transactions.amount.token_id` | `string` | The token ID. |
+| `transactions.amount.chain_id` | `string` | The chain ID. |
+| `transactions.tx_hash` | `string` | The on-chain transaction hash; `null` before broadcast. |
+| `transactions.result` | `string` | The transaction's result:<br/>• `Completed` — sent successfully.<br/>• `Failed` — did not go through. |
+| `transactions.failed_reason` | `object` | Set when `result` is `Failed`; `null` otherwise. |
+| `transactions.failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `transactions.failed_reason.message` | `string` | The failure reason. |
+| `failed_reason` | `object` | Set when `status` is `Failed`, `RejectedByBank`, or `PartiallyCompleted`; `null` otherwise. |
+| `failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
+| `failed_reason.message` | `string` | The failure reason. |
+| `created_timestamp` | `integer` | When the payout was created, in Unix timestamp (seconds). |
+| `updated_timestamp` | `integer` | When the payout last changed status, in Unix timestamp (seconds). |
+
+</div>
+
+### Failure reasons
+
+Use `failed_reason.code` to decide how to handle the failure.
+
+| `code` | What happened | What to do |
+| --- | --- | --- |
+| `payment.payout_fee_charge_failed` | The Fee Station balance is insufficient. | Add funds, then create the payout again. |
+| `payment.payout_fee_station_not_configured` | Fee Station is not configured. | Contact Cobo, then create the payout again once it is configured. |
+| `payment.payout_fee_charge_failed_unknown` | The fee could not be charged for another reason. | Contact Cobo and provide the `payout_id`. |
+| `payment.payout_sweep_failed` | Fund consolidation before the payout failed. | Create the payout again. |
+| `payment.payout_bridge_failed` | Every cross-chain transaction failed, so the assets could not be converted. | Confirm with Cobo that the token pair can be converted, then create the payout again. |
+| `payment.payout_transactions_failed` | Every outgoing transaction failed. | Check the `failed_reason` of each entry in `transactions`, resolve it, then create the payout again. |
+| `payment.payout_rejected_by_bank` | The receiving bank returned the transfer. Off-Ramp only. **This status is not final.** | Contact Cobo to resolve it, and wait for further events. |
+| `payment.payout_partially_failed` | Some of the payout could not be completed. `failed_amounts` is the amount that did not go through. | Check the `failed_reason` of the failed entries in `transactions`, resolve it, then send that amount with a new payout. |
+| `transaction.rejected_by_policy` | The transfer matched one of your own transaction policies. | Update that policy in Cobo Portal, then create the payout again. |
+| `transaction.rejected_by_approval` | The transfer was rejected in your organization's approval process — by an approver, or by your callback server. | Confirm the reason with them, then create the payout again. |
+| `transaction.rejected_by_signer` | The transfer was declined during signing by a co-signer. | Confirm the reason with the co-signer, then create the payout again. |
+| `transaction.rejected_by_screening_app` | Your compliance team rejected the transfer in the [Screening App](https://manuals.cobo.com/en/apps/screening/introduction). | Review the case there, then create the payout again. |
+| `transaction.rejected_by_compliance` | Cobo's compliance checks rejected the transfer. | Do not retry. Raise it with Cobo. |
+| `transaction.failed` | The reason could not be classified. | Contact Cobo and provide the `payout_id`. |
+
+### Sample events
+
+Each sample shows the `data` object only. The envelope around it is the same for every event — see [Event structure](/payments/en/guides/events/overview#event-structure).
+
+#### The payout is accepted
+
+Record it and do not submit the request again. `requested_target` is your own instruction echoed back — check it against what you sent.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Pending",
+  "requested_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amounts": [],
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "remark": "September vendor settlement",
+  "failed_reason": null,
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700000
+}
+```
+
+#### The payout completed
+
+Mark the payout as completed in your system. This means Cobo finished the transfer, **not** that the recipient's platform has credited it.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_001",
+  "request_id": "request_payout_001",
+  "source_account": "developer",
+  "status": "Completed",
+  "requested_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient001",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0001-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout001",
+      "result": "Completed",
+      "failed_reason": null
+    }
+  ],
+  "actual_payout_amounts": [
+    { "amount_type": "Crypto", "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "initiator": "api_key_abc123",
+  "commission_fee": { "fee_amount": "1" },
+  "remark": "September vendor settlement",
+  "failed_reason": null,
+  "created_timestamp": 1744700000,
+  "updated_timestamp": 1744700600
+}
+```
+
+#### The payout is partially completed
+
+Create a **new** payout for the amount in `failed_amounts`. Do not resend the part that succeeded.
+
+Here the payout requested two tokens, and one of them failed on its outgoing transaction, so both the object-level reason and the entry-level reason are present.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_002",
+  "request_id": "request_payout_002",
+  "source_account": "developer",
+  "status": "PartiallyCompleted",
+  "requested_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+    { "amount": "300", "token_id": "ETH_USDT", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "300", "token_id": "ETH_USDT", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient002",
+    "chain_id": "ETH"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout002a",
+      "result": "Completed",
+      "failed_reason": null
+    },
+    {
+      "transaction_id": "9a8b7c6d-0002-4e5f-8a9b-000000000002",
+      "amount": { "amount": "300", "token_id": "ETH_USDT", "chain_id": "ETH" },
+      "tx_hash": null,
+      "result": "Failed",
+      "failed_reason": {
+        "code": "transaction.rejected_by_policy",
+        "message": "This transaction was rejected by one of your transaction policies. Please update the applicable policy in Cobo Portal before resubmitting."
+      }
+    }
+  ],
+  "actual_payout_amounts": [
+    { "amount_type": "Crypto", "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "initiator": "api_key_abc123",
+  "commission_fee": { "fee_amount": "1" },
+  "remark": "September vendor settlement",
+  "failed_reason": {
+    "code": "payment.payout_partially_failed",
+    "message": "Part of this payout could not be completed. Check failed_amounts for the amount affected, then contact Cobo support."
+  },
+  "created_timestamp": 1744701000,
+  "updated_timestamp": 1744701600
+}
+```
+
+#### The payout failed
+
+⚠️ A payout item can also fail before any outgoing transaction exists. Here it failed during fund consolidation, so `failed_amounts` carries the amount but `transactions` is empty.
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_003",
+  "request_id": "request_payout_003",
+  "source_account": "developer",
+  "status": "Failed",
+  "requested_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "requested_target": {
+    "target_type": "Address",
+    "address": "0xrecipient003",
+    "chain_id": "ETH"
+  },
+  "transactions": [],
+  "actual_payout_amounts": [],
+  "initiator": "api_key_abc123",
+  "commission_fee": null,
+  "remark": null,
+  "failed_reason": {
+    "code": "payment.payout_sweep_failed",
+    "message": "Cannot prepare payout funds: sweep transaction failed."
+  },
+  "created_timestamp": 1744702000,
+  "updated_timestamp": 1744702200
+}
+```
+
+#### An Off-Ramp payout is rejected by the bank
+
+**This is not a final status.** The on-chain leg has already completed (the entry in `transactions` is `Completed`); it is the receiving bank that returned the fiat credit, so `failed_amounts` is empty. Contact Cobo to resolve it, and wait for further events on this payout: if a retry succeeds, you receive `Completed` (possibly preceded by another `Transferring`).
+
+```json
+{
+  "data_type": "PaymentPayoutUpdate",
+  "payout_id": "payout_004",
+  "request_id": "request_payout_004",
+  "source_account": "developer",
+  "status": "RejectedByBank",
+  "requested_amounts": [
+    { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" }
+  ],
+  "failed_amounts": [],
+  "requested_target": {
+    "target_type": "BankAccount",
+    "bank_account_id": "ba_20260901_0007",
+    "account_alias": "Vendor A operating account",
+    "bank_name": "Example Bank",
+    "currency": "USD"
+  },
+  "transactions": [
+    {
+      "transaction_id": "9a8b7c6d-0004-4e5f-8a9b-000000000001",
+      "amount": { "amount": "500", "token_id": "ETH_USDC", "chain_id": "ETH" },
+      "tx_hash": "0xpayout004",
+      "result": "Completed",
+      "failed_reason": null
+    }
+  ],
+  "actual_payout_amounts": [],
+  "initiator": "api_key_abc123",
+  "commission_fee": { "fee_amount": "1" },
+  "remark": null,
+  "failed_reason": {
+    "code": "payment.payout_rejected_by_bank",
+    "message": "The receiving bank rejected this payout. Check the recipient's bank account details with them before resending — resending unchanged will most likely be rejected again."
+  },
+  "created_timestamp": 1744703000,
+  "updated_timestamp": 1744703800
+}
+```
+
+## `payment.bank_withdrawal.status.updated`
+
+Fires when a bank withdrawal reaches `Completed` or `Failed`; no event is sent for `Pending` or `Processing`. A bank withdrawal moves fiat out of one of your virtual accounts into a target bank account, and is created with [Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal).
+
+| `status` | Meaning |
+| --- | --- |
+| `Pending` | The bank withdrawal was created and is awaiting processing. |
+| `Processing` | The bank withdrawal is being processed. |
+| `Completed` | The funds have left the virtual account. |
+| `Failed` | The withdrawal failed. Read `failed_reason` for the cause. |
+
+**Event content:** the `data` object carries `data_type` `PaymentBankWithdrawal`, plus:
+
+- `bank_withdrawal_id` (required) — The bank withdrawal ID generated by Cobo.
+- `request_id` (required) — The request ID you provided when creating the bank withdrawal.
+- `source_bank_account_id` (required) — The ID of the source bank account, which must be a virtual account (tagged `VA`).
+- `target_bank_account_id` (required) — The ID of the target bank account that receives the withdrawal.
+- `source_bank_account` (required) — The full details of the source bank account.
+- `target_bank_account` (required) — The full details of the target bank account.
+- `currency` (required) — The fiat currency of the bank withdrawal, for example `USD`.
+- `amount` (required) — The bank withdrawal amount, as a decimal string in the currency's display unit, for example `100.00`.
+- `bank_tx_fee` (optional) — The bank transaction fee charged for the bank withdrawal.
+- `status` (required) — The current status. One of: `Pending`, `Processing`, `Completed`, `Failed`.
+- `remark` (optional) — The remark for the bank withdrawal.
+- `failed_reason` (optional, string) — Free-text reason the bank withdrawal failed; there is no `code`. Populated only when `status` is `Failed`.
+- `timeline` (required) — The status timeline of the bank withdrawal. Each item carries a `status` and the `timestamp` at which the withdrawal entered it, in Unix timestamp (seconds).
+- `created_timestamp` (required) — The creation time, in Unix timestamp (seconds).
+
+<Note>
+  The bank withdrawal payload does not carry an `updated_timestamp`. To determine when the withdrawal entered its current status, read the last entry in `timeline`.
+</Note>
+
+For full details, see [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id).
+
+## Advanced events
+
+For the payout's on-chain transaction detail, subscribe to the advanced event `payment.payout.status.updated`. See [Advanced events](/payments/en/guides/events/advanced#payment-payout-status-updated).

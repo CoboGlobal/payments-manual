@@ -6,7 +6,20 @@ lang: "en"
 This document records all major updates and upcoming features for the Cobo Payments solution, helping you stay informed about product developments and upgrades.
 
 
+## October 2026
+
+<div className="changelog-table">
+
+| Feature | Description | Release Date |
+| ----- | ----- | ----- |
+| **Webhook** | (SDK v1.45.0) Added six standard webhook events that notify you of status updates and other key events for top-ups, orders, refunds, payouts, and bulk sends:<br />・[`payment.topup.updated`](/payments/en/guides/events/top-up): top-ups<br />・[`payment.order.updated`](/payments/en/guides/events/orders): orders<br />・[`payment.refund.updated`](/payments/en/guides/events/refunds): refunds<br />・[`payment.payout.updated`](/payments/en/guides/events/payouts): payouts<br />・[`payment.bulk_send.updated` and `payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send): bulk send batches and items<br />Each event includes the business status, the relevant amounts, and a failure reason in a uniform structure (`failed_reason.code` and `failed_reason.message`).<br />The existing `payment.transaction.*` and `*.status.updated` events are still sent and are now classified as advanced events; keep subscribing to them if you need on-chain transaction details. See [Events overview](/payments/en/guides/events/overview). | 2026-10-14 |
+
+</div>
+
+
 ## September 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
@@ -17,23 +30,31 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Supported Chains** | (SDK v1.43.0) [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) responses now include `confirming_threshold` and `deposit_threshold` for supported tokens. | 2026-09-02 |
 | **Destinations** | (SDK v1.43.0) Bank account payloads now include `bank_city` and `routing_value`, and `holder_type` now supports `Personal`. Affected operations:<br />・[Create destination](/payments/en/api-references/payment/create-destination), [Get destination information](/payments/en/api-references/payment/get-destination-information), [Create destination entry](/payments/en/api-references/payment/create-destination-entry), [List destination entries](/payments/en/api-references/payment/list-destination-entries), [Get destination entry information](/payments/en/api-references/payment/get-destination-entry-information), [Update destination entry](/payments/en/api-references/payment/update-destination-entry), and [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id). | 2026-09-02 |
 
+</div>
+
 
 ## August 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
 | **Funds Management** | (SDK v1.42.0) Added virtual-account bank withdrawal capabilities:<br />・[Get bank account balance](/payments/en/api-references/payment/get-payment-bank-account-balance): retrieve the balance of a VA-tagged destination bank account.<br />・[Create bank withdrawal](/payments/en/api-references/payment/create-bank-withdrawal): create a bank withdrawal from a VA-mapped source bank account to a target bank account.<br />・[List bank withdrawals](/payments/en/api-references/payment/list-bank-withdrawals) and [Get bank withdrawal information](/payments/en/api-references/payment/get-bank-withdrawal-by-id): query bank withdrawals by pagination, `request_id`, and status, and retrieve details including source/target bank accounts, bank transaction fee, and status timeline. | 2026-08-19 |
 | **Destinations** | (SDK v1.42.0) Destination metadata enhancements:<br />・[List destination entries](/payments/en/api-references/payment/list-destination-entries): added optional `bank_account_tag` filtering, currently supporting `VA`.<br />・Destination bank account responses now include nullable `tag`, currently `VA`.<br />・Destination and DestinationDetail responses now include `source`, with `Client` and `System` enum values. | 2026-08-19 |
-| **Webhook** | (SDK v1.42.0) Added PaymentBankWithdrawal webhook data and the `payment.bank_withdrawal.status.updated` event type. See [Status and events](/payments/en/guides/status-and-events). | 2026-08-19 |
+| **Webhook** | (SDK v1.42.0) Added PaymentBankWithdrawal webhook data and the `payment.bank_withdrawal.status.updated` event type. See [Status and events](/payments/en/guides/events/overview). | 2026-08-19 |
 | **Merchant Management (Breaking Change)** | (SDK v1.42.0) [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc): company attachment `file_id` now expects the uploaded file UUID (`uuid` format) instead of an uploaded AWS file-link string. Use the file ID returned by [Upload file](/payments/en/api-references/payment/upload-file). | 2026-08-19 |
-| **Webhook** | (SDK v1.41.0) Added the `payment.bulk_send.item.status.updated` webhook event for bulk send item status updates. The event payload includes the `PaymentBulkSendItem` data type, event data schema, discriminator mapping, and event type enum value. See [Status and events](/payments/en/guides/status-and-events). | 2026-08-05 |
+| **Webhook** | (SDK v1.41.0) Added the `payment.bulk_send.item.status.updated` webhook event for bulk send item status updates. The event payload includes the `PaymentBulkSendItem` data type, event data schema, discriminator mapping, and event type enum value. See [Status and events](/payments/en/guides/events/overview). | 2026-08-05 |
 | **Reports** | (SDK v1.41.0) [Generate reports](/payments/en/api-references/payment/generate-reports) and [List all reports](/payments/en/api-references/payment/list-all-reports): `ReportExportFormat` now includes `PDF`. PDF export is supported only for balance snapshot reports. | 2026-08-05 |
 | **Pay-in** | (SDK v1.41.0) Pay-in order semantics were clarified:<br />・[Create pay-in order](/payments/en/api-references/payment/create-pay-in-order): Payments onboarding must be complete, `merchant_id` must belong to the organization, `psp_order_code` is organization-unique, `merchant_order_code` is an optional downstream merchant reference, and `fee_amount` is an order-level developer charge deducted from the collected payment.<br />・[List all pay-in orders](/payments/en/api-references/payment/list-all-pay-in-orders) and [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information): clarified `order_id` creation timing, `merchant_order_code` presence, organization-unique `psp_order_code`, and `fee_amount` settlement allocation. | 2026-08-05 |
 | **Merchant Management** | (SDK v1.41.0) [Create merchant](/payments/en/api-references/payment/create-merchant), [List all merchants](/payments/en/api-references/payment/list-all-merchants), and [Update merchant](/payments/en/api-references/payment/update-merchant): clarified `developer_fee_rate` behavior. It applies only to Top-up-mode deposits, supports values from 0 through 1 with up to four decimal places, treats absent or cleared values as zero, is not retroactive, rounds shares down to token precision, and does not combine with order-level `fee_amount`. | 2026-08-05 |
 | **Funds Management** | (SDK v1.41.0) Payout and Bulk Send semantics were clarified:<br />・[Create payout](/payments/en/api-references/payment/create-payout): crypto addresses must be approved destination entries on the matching chain; cross-chain payout behavior applies when payout and recipient token IDs are the same asset on different chains; off-ramp currency must match the selected bank account and currently supports USD only; payout amount accepts up to two nonzero fractional digits without rounding.<br />・[Create bulk send](/payments/en/api-references/payment/create-bulk-send), [List all bulk sends](/payments/en/api-references/payment/list-bulk-sends), and [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information): `execution_mode` is required as `Strict` or `Partial`; `Strict` blocks all items on any validation failure or partial fund sweep, while `Partial` isolates item-level validation failures. | 2026-08-05 |
 
+</div>
+
 
 ## July 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
@@ -45,17 +66,25 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Pay-in** | (SDK v1.40.0) Payment transaction details now include `failed_reason` and `sub_status`. Affected responses include [List payers](/payments/en/api-references/payment/list-payers) and [List payer transactions](/payments/en/api-references/payment/list-payer-transactions), as well as transaction data embedded in related order, refund, settlement, and payout payloads. | 2026-07-22 |
 | **Funds Management** | (SDK v1.39.0) Bulk Send: `PaymentBulkSendItemValidationStatus` schema added `NotExecuted` enum value. Returned as `validation_status` in [List bulk send items](/payments/en/api-references/payment/list-bulk-send-items), indicating that item validation was not executed (for example, when other items fail validation in `Strict` mode and the entire batch is rejected at the validation stage). | 2026-07-01 |
 
+</div>
+
 
 ## June 2026
 
+<div className="changelog-table">
+
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
-| **Webhook** | (SDK v1.38.0) Added a new webhook event `payment.account.balance.updated` (`PaymentAccountBalanceUpdate`), triggered when the available balance of a Payments account changes for a specific token. The payload includes the account information (`source_account`, `source_id`, `source_type`), `token_id`, the change `amount`, `balance_before` / `balance_after`, `flow_direction`, and `update_time`. See [Status and events](/payments/en/guides/status-and-events).<br />Added the `merchant_id` field to the `payment.address.updated` webhook payload. | 2026-06-25 |
+| **Webhook** | (SDK v1.38.0) Added a new webhook event `payment.account.balance.updated` (`PaymentAccountBalanceUpdate`), triggered when the available balance of a Payments account changes for a specific token. The payload includes the account information (`source_account`, `source_id`, `source_type`), `token_id`, the change `amount`, `balance_before` / `balance_after`, `flow_direction`, and `update_time`. See [Status and events](/payments/en/guides/events/overview).<br />Added the `merchant_id` field to the `payment.address.updated` webhook payload. | 2026-06-25 |
 | **Funds Management** | (SDK v1.39.0) Allocation status tracking:<br />・[List all batch allocations](/payments/en/api-references/payment/list-all-batch-allocations) and [Create batch allocation](/payments/en/api-references/payment/create-batch-allocation): response now includes `status` field (`Pending`, `Processing`, `Completed`, `PartiallyCompleted`, `Failed`).<br />・[Get batch allocation information](/payments/en/api-references/payment/get-batch-allocation-information): response now includes `status` field.<br />・[List all allocation items](/payments/en/api-references/payment/list-all-allocation-items): response items now include `status` field (`Pending`, `Transferring`, `Completed`, `Failed`). | 2026-06-24 |
 | **Funds Management** | (SDK v1.37.0) Added [List balance changes](/payments/en/api-references/payment/list-balance-changes) operation for retrieving balance changes of a specified source account.<br /><br />Bulk Send enhancements:<br />・[List bulk send items](/payments/en/api-references/payment/list-bulk-send-items): response now includes `tx_hash` field, returning the on-chain transaction hash for each bulk send item.<br />・[List all bulk sends](/payments/en/api-references/payment/list-bulk-sends), [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information), and the `payment.bulk_send.status.updated` webhook notification data now include `commission_fee` field, returning the commission fee charged for the bulk send. | 2026-06-09 |
 
+</div>
+
 
 ## May 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
@@ -63,16 +92,24 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Funds Management (Breaking Change)** | (SDK v1.35.0) The following deprecated bank account API operations have been permanently removed. Use the [Destination](/payments/en/api-references/payment/create-destination) related operations instead:<br />  - List bank accounts (`GET /payments/bank_accounts`)<br />  - Update bank account (`PUT /payments/bank_accounts/{bank_account_id}`) | 2026-05-12 |
 | **Pay-in** | (SDK v1.35.0) Top-up payer enhancements:<br />・[List payers](/payments/en/api-references/payment/list-payers) response now includes the `custom_payer_id` field — the merchant-side unique identifier for the payer.<br />・Added [List payer transactions](/payments/en/api-references/payment/list-payer-transactions) operation for paginated retrieval of on-chain transactions for a specific payer, filterable by `custom_payer_id`, `merchant_id`, `token_id`, and `transaction_hash`. The `transactions` inline field in [List payers](/payments/en/api-references/payment/list-payers) is now deprecated and will be removed in a future version. Starting from this release, the field returns at most the 200 most recent transactions and no longer returns all records. | 2026-05-12 |
 
+</div>
+
 
 ## April 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
 | **Funds Management** | (SDK v1.34.0) OffRamp payout routing via virtual account (VA) is now supported:<br />・[Estimate fees](/payments/en/api-references/payment/estimate-fees): added `transfer_via_va` field to the request body. Set to `true` to estimate fees for routing the payout via a virtual account; `false` for direct bank transfer.<br />・`RecipientInfo` schema: added `transfer_via_va` field in payout responses, indicating whether the payout was routed through a virtual account. | 2026-04-07 |
 | **Refunds** | (SDK v1.34.0) [Create refund link](/payments/en/api-references/payment/create-refund-link): added optional `order_id` field. You can now specify the order to refund using either `order_id` or `transaction_id`; previously only `transaction_id` was accepted. | 2026-04-07 |
 
+</div>
+
 
 ## March 2026
+
+<div className="changelog-table">
 
 | Feature | Description | Release Date |
 | ----- | ----- | ----- |
@@ -82,8 +119,12 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Destinations** | (SDK v1.32.0) Payout Destination management enhancements:<br />・**Create destination** — Request: added `bank_accounts[].country` and `bank_accounts[].city`; `bank_accounts[].intermediary_bank_info.bank_address` is now optional<br />・**Get destination detail** — Response: added `bank_accounts[].country` and `bank_accounts[].city`<br />・**Create destination entry** — Request: added `bank_accounts[].country` and `bank_accounts[].city`; `bank_accounts[].intermediary_bank_info.bank_address` is now optional<br />・**List destination entries** — Response: added `bank_accounts[].country` and `bank_accounts[].city`<br />・**Get destination entry information** — Response: added `bank_account.country` and `bank_account.city`<br />・**Update destination entry** — Response: added `bank_account.country` and `bank_account.city`; Request: `bank_account.intermediary_bank_info.bank_address` is now optional | 2026-03-12 |
 | **Reports** | (SDK v1.32.0) The `Generate reports` endpoint now supports a new `report_types` enum value: `BulkSend`. | 2026-03-12 |
 
+</div>
+
 
 ## February 2026
+
+<div className="changelog-table">
 
 | Feature | Change Description | Release Date |
 | :---- | :---- | :---- |
@@ -93,7 +134,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Supported Chains** | (SDK v1.31.0) Added support for querying supported tokens: [List supported tokens](/payments/en/api-references/payment/list-supported-tokens). | 2026-02-05 |
 | **Pay-in** | New amount parameter validation rules when creating pay-in orders. When using `pricing_currency`, `pricing_amount`, and `payable_currency`, the request must match one of the following two combinations:<br /><br />**Option 1: Create order by pricing amount**<br />　- Required: `pricing_currency`, `pricing_amount`, `payable_currency`<br />　- Must not set: `payable_amount`<br /><br />**Option 2: Create order by payable amount**<br />　- Required: `payable_currency`, `payable_amount`<br />　- Must not set: `pricing_currency`, `pricing_amount`<br /><br />Note: `payable_currency` is required in all cases. Requests that use both options or do not match either combination will be rejected.<br /><br />Related API: [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) | 2026-02-05 |
 
+</div>
+
 ## January 2026
+
+<div className="changelog-table">
 
 | Feature                            | Change Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Release Date |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -106,7 +151,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Funds Management**               | (SDK v1.30.0) To improve parameter naming consistency and result readability, field names in the following Allocation operations have been updated. Please adjust your request parameters and response parsing logic accordingly:<br /><br />  - The `allocation_requests` field in the [Create batch allocation](/payments/en/api-references/payment/create-batch-allocation) operation has been updated to `allocation_params`.<br />  - The `allocation_records` field in [Get batch allocation information](/payments/en/api-references/payment/get-batch-allocation-information) has been renamed to `allocation_items`.<br />  - The **List all allocation records** operation has been renamed to [List all allocation items](/payments/en/api-references/payment/list-all-allocation-items), and the `allocation_record_id` field in the response has been renamed to `allocation_item_id`.<br /><br />Please complete the field name updates as soon as possible to ensure compatibility of allocation-related features in future versions.                                                                                                                                                                                                                                                                                                                                                              | 2026-01-22   |
 | **Destinations**                   | (SDK v1.30.0) The following operations have been deprecated. Please use the [Destination](/payments/en/api-references/payment/create-destination) related operations instead:<br />  - `List all bank accounts`<br />  - [Create crypto address](/payments/en/api-references/payment/create-crypto-address)<br />  - [Delete crypto address](/payments/en/api-references/payment/delete-crypto-address)<br />  - [List crypto addresses](/payments/en/api-references/payment/list-crypto-addresses)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 2026-01-22   |
 
+</div>
+
 ## December 2025
+
+<div className="changelog-table">
 
 | Feature | Change Description | Release Date |
 |---------|-------------------|--------------|
@@ -118,7 +167,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Pay-in** | (SDK v1.28.0) Simplified fields for [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) and [Create order link](/payments/en/api-references/payment/create-order-link): support for custom payable amounts, removed `exchange_rate` field, and optimized field naming for better readability and usability. Amount field precision is now unified to 2 decimal places for easier reconciliation and fund management.<br/><br/>[Create pay-in order](/payments/en/api-references/payment/create-pay-in-order):<br/>&nbsp;&nbsp;- Added fields: `pricing_currency`, `pricing_amount`, `payable_currency`, `payable_amount`.<br/>&nbsp;&nbsp;- Deprecated fields: `currency`, `order_amount`, `token_id`, `custom_exchange_rate`.<br/><br/>[Create order link](/payments/en/api-references/payment/create-order-link):<br/>&nbsp;&nbsp;- Added fields: `pricing_currency`, `pricing_amount`, `payable_currencies`, `payable_amounts`.<br/>&nbsp;&nbsp;- Deprecated fields: `currency`, `order_amount`, `token_ids`, `custom_exchange_rates`. | 2025-12-18 |
 | **Payment Link** | (SDK v1.28.0) [Create order link](/payments/en/api-references/payment/create-order-link) added `return_url` field. You can now configure the merchant's original shopping page URL. Users can be redirected back to the shopping page upon successful payment or errors, improving the payment experience. | 2025-12-18 |
 
+</div>
 
+
+
+<div className="changelog-table">
 
 | Feature | Change Description | Release Date |
 |---------|-------------------|--------------|
@@ -127,7 +180,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Counterparties** | Added [Counterparties](/payments/en/guides/counterparties) feature for managing payer information. Currently available via Payments App, API coming soon. | 2025-12-03 |
 | **Destinations** | Added [Destinations](/payments/en/guides/destinations) feature for unified management of payout destination information. Currently available via Payments App, API coming soon. | 2025-12-03 |
 
+</div>
+
 ## November 2025
+
+<div className="changelog-table">
 
 | Feature              | Change Description                                                                                                                                                                                                         | Release Date |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -136,7 +193,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **SDK & API**        | (SDK v1.27.0) [Get Access Token](/v2/api-references/oauth/get-access-token) and [Refresh Access Token](/v2/api-references/oauth/refresh-access-token) operations have been deprecated.                                     | 2025-11-26   |
 | **Refunds**          | (SDK v1.26.0) Added [Create refund link](/payments/en/api-references/payment/create-refund-link) operation for creating refund links. `RefundStatus` schema now includes `AddressPending` and `AddressSubmitted` statuses. | 2025-11-12   |
 
+</div>
+
 ## October 2025
+
+<div className="changelog-table">
 
 | Feature                 | Change Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Release Date |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -149,14 +210,22 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Pay-in**              | (SDK v1.24.0) - [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order) added `custom_exchange_rate` field: supports custom exchange rates.<br />- `merchant_id` field is now optional in [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address), [Update top-up address](/payments/en/api-references/payment/update-top-up-address), [List payers](/payments/en/api-references/payment/list-payers) operations.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 2025-10-15   |
 | **Funds Management**    | To simplify the settlement process and improve user experience, Payments API has been optimized by removing withdrawable balance, forced sweep, and related concepts:<br /><br />**Deprecated operations:**<br />- Withdrawable balance query: [Get withdrawable balances](/payments/en/api-references/payment/get-withdrawable-balances)<br />- Payment wallet balance query: [List payment wallet balances](/payments/en/api-references/payment/list-payment-wallet-balances)<br />- Forced sweep operations: `Create forced sweep`, `List forced sweeps`<br /><br />**Deprecated fields:**<br />- `available_balance` field in [List merchant balances](/payments/en/api-references/payment/list-merchant-balances) and [Get developer balance](/payments/en/api-references/payment/get-developer-balance)<br />- `use_dedicated_address` field in [Create pay-in order](/payments/en/api-references/payment/create-pay-in-order)<br /><br /><Warning>                     The above operations and fields are retained only for backward compatibility and should not be used in new implementations.       </Warning> | 2025-10-01   |
 
+</div>
+
 ## September 2025
+
+<div className="changelog-table">
 
 | Feature              | Change Description                                                                                    | Release Date |
 | -------------------- | ----------------------------------------------------------------------------------------------------- | ------------ |
 | **Supported Chains** | Added support for Solana chain.                                                                       | 2025-09-26   |
-| **Pay-in**           | Order mode now supports [payment.transaction.completed](/payments/en/guides/status-and-events) event. | 2025-09-05   |
+| **Pay-in**           | Order mode now supports [payment.transaction.completed](/payments/en/guides/events/overview) event. | 2025-09-05   |
+
+</div>
 
 ## August 2025
+
+<div className="changelog-table">
 
 | Feature              | Change Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Release Date |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -165,7 +234,11 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Refunds**          | (SDK v1.21.0) Added refund operations: [Update refund order](/payments/en/api-references/payment/update-refund-order), [Cancel refund order](/payments/en/api-references/payment/cancel-refund-order).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 2025-08-13   |
 | **Payment Link**     | - Added support for third-party wallet payments, supporting mainstream wallets on EVM and Tron chains.<br />- Added support for specifying order amount in cryptocurrency via `cryptoAmount` parameter.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 2025-08-11   |
 
+</div>
+
 ## July 2025
+
+<div className="changelog-table">
 
 | Feature              | Change Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Release Date |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -174,9 +247,13 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Payment Link**     | Added support for customizing "Powered by xxx" text at checkout page bottom via `developerName` parameter.                                                                                                                                                                                                                                                                                                                                                                                                                                      | 2025-07-30   |
 | **Funds Management** | [Create settlement request](/payments/en/api-references/payment/create-settlement-request) new feature: when `order_ids` parameter is empty, automatically settles all unsettled orders for the merchant.                                                                                                                                                                                                                                                                                                                                       | 2025-07-24   |
 | **Pay-in**           | Added support for top-up mode. You can now on the web interface: create and manage top-up addresses, monitor top-up transaction status, export top-up records.                                                                                                                                                                                                                                                                                                                                                                                  | 2025-07-10   |
-| **Pay-in**           | (SDK v1.18.0) Added top-up mode operations: [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address), [List payers](/payments/en/api-references/payment/list-payers). See [Get Top-up Addresses](/payments/en/guides/get-topup-addresses) for integration steps. Added multiple [webhook events](/payments/en/guides/status-and-events) related to top-up mode.                                                                                                                                                | 2025-07-02   |
+| **Pay-in**           | (SDK v1.18.0) Added top-up mode operations: [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address), [List payers](/payments/en/api-references/payment/list-payers). See [Get Top-up Addresses](/payments/en/guides/get-topup-addresses) for integration steps. Added multiple [webhook events](/payments/en/guides/events/overview) related to top-up mode.                                                                                                                                                | 2025-07-02   |
+
+</div>
 
 ## June 2025
+
+<div className="changelog-table">
 
 | Feature                 | Change Description                                                                                                                                                                                                                                                                      | Release Date |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -187,3 +264,5 @@ This document records all major updates and upcoming features for the Cobo Payme
 | **Payment Link**        | (SDK v1.17.0) Added OAuth authentication operations for Checkout SDK: [Get Access Token](/v2/api-references/oauth/get-access-token), [Refresh Access Token](/v2/api-references/oauth/refresh-access-token).                                                                             | 2025-06-18   |
 | **Funds Management**    | Added support for crypto payout settlement method.                                                                                                                                                                                                                                      | 2025-06-10   |
 | **Payment Link**        | (Checkout SDK v1.1.0) Checkout SDK provides out-of-the-box payment frontend components with iframe embedding support for quick integration.                                                                                                                                             | 2025-06-09   |
+
+</div>

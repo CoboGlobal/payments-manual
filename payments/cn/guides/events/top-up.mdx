@@ -1,0 +1,235 @@
+---
+title: "充值"
+lang: "zh-hans"
+---
+
+本页覆盖充值模式：每个付款方有自己的充值地址，每笔充值单独跟踪。请先阅读[事件概述](/payments/cn/guides/events/overview)了解外层结构、去重方式以及所有事件通用的规则。
+
+## 本页的事件
+
+| 事件 | 通知什么 | 类型 |
+| --- | --- | --- |
+| [`payment.topup.updated`](#payment-topup-updated) | 充值状态发生变更：已检测到、合规筛查中、需要处理、完成或失败。 | **标准事件** |
+| [`payment.address.updated`](#payment-address-updated) | 您通过更新充值地址接口替换了某个付款方的充值地址。 | **标准事件** |
+
+## `payment.topup.updated`
+
+充值模式的主事件。
+
+### 事件触发条件
+
+**这笔充值的 `status` 每变化一次发一条事件。**
+
+| 触发条件 | `status` | 可否入账 | 您该做什么 |
+| --- | --- | --- | --- |
+| 充值地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理充值。 |
+| 该笔充值进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
+| 合规筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
+| 合规筛查通过，且链上至少有一个确认 | `Completed`（终态） | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
+| 该笔充值被拒绝或失败 | `Failed`（终态） | ❌ | 读取 `failed_reason.code` 决定下一步。 |
+
+**金额不超过粉尘阈值的充值不发事件**，各 token 的阈值见 [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address) 或 [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses) 接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
+
+<Warning>
+  **中间状态可能不出现。** 例如，合规筛查通常很快完成，因此一笔充值可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过合规筛查。
+</Warning>
+
+### 事件内容
+
+<div className="field-table">
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data_type` | `string` | 固定为 `PaymentTopUpUpdate`。 |
+| `transaction_id` | `string` | 这笔充值在 Cobo 系统中的 ID。 |
+| `merchant_id` | `string` | 这笔充值记在哪个商户名下。 |
+| `payer_id` | `string` | Cobo 分配的付款方 ID。 |
+| `custom_payer_id` | `string` | 您登记充值地址时提供的付款方 ID，未提供时为 `null`。 |
+| `status` | `string` | 当前状态，含义见[事件触发条件](#事件触发条件)：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
+| `amount` | `object` | 这笔充值的金额，全程不变，失败时也保留。 |
+| `amount.amount` | `string` | 金额，格式见[金额](/payments/cn/guides/events/overview#金额)。 |
+| `amount.token_id` | `string` | 币种 ID。 |
+| `amount.chain_id` | `string` | 链 ID。 |
+| `tx_hash` | `string` | 链上交易哈希。 |
+| `topup_address` | `string` | 收到这笔资金的充值地址。 |
+| `source_address` | `string` | 链上发送方，原路退回时作为转出目标。 |
+| `screening_mode` | `string` | 这笔充值由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
+| `message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
+| `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
+| `failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |
+| `failed_reason.message` | `string` | 失败原因。 |
+| `created_timestamp` | `integer` | 这笔充值的创建时间，Unix 时间戳（秒）。 |
+| `updated_timestamp` | `integer` | 这笔充值最近一次状态更新时间，Unix 时间戳（秒）。 |
+
+</div>
+
+### 失败原因
+
+| `code` | 发生了什么 | 怎么处理 |
+| --- | --- | --- |
+| `transaction.rejected_by_screening_app` | 您自己的合规团队在 [Screening App](https://manuals.cobo.com/cn/apps/screening/introduction) 中拒绝了这笔充值。 | 到该应用查看原因。 |
+| `transaction.rejected_by_compliance` | Cobo 的合规检查拒绝了这笔充值。 | 与 Cobo 确认。 |
+| `transaction.failed` | 其他原因导致的失败。 | 提交问题并提供 `transaction_id`。 |
+
+### 示例事件
+
+以下示例只展示 `data` 对象。外层结构所有事件都一样，参见[事件结构](/payments/cn/guides/events/overview#事件结构)。
+
+#### 检测到一笔充值
+
+把这笔充值标记为处理中，先不要入账。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Detected",
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
+  "failed_reason": null,
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689000
+}
+```
+
+#### 合规筛查进行中
+
+继续等待。`screening_mode` 说明由哪套体系在审，但不代表需要您做什么。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "PendingScreening",
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "screening_mode": "IntegratedVendor",
+  "message": null,
+  "failed_reason": null,
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689060
+}
+```
+
+#### 合规筛查需要您处理
+
+把这笔充值放进人工处理流程，按 `message` 决定做哪件事。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "ActionRequired",
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "screening_mode": "CoboKyt",
+  "message": "Additional information is required before these funds can be made available. Please check the email sent to your account contact.",
+  "failed_reason": null,
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689100
+}
+```
+
+#### 资金可用
+
+**只有这个状态可以入账。** 以 `transaction_id` 作为幂等键。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Completed",
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
+  "failed_reason": null,
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689300
+}
+```
+
+#### 充值失败
+
+停止任何自动入账，读取 `failed_reason.code`。本例是 Cobo 的合规检查拒绝，因此不要重发，先与 Cobo 解决。
+
+```json
+{
+  "data_type": "PaymentTopUpUpdate",
+  "transaction_id": "aff0e1cb-15b2-4e1f-9b9d-a9133715986f",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "status": "Failed",
+  "amount": { "amount": "100", "token_id": "ETH_USDC", "chain_id": "ETH" },
+  "tx_hash": "0xabc123",
+  "topup_address": "0xtopup_addr_M1001_user_abc",
+  "source_address": "0xsender001",
+  "screening_mode": null,
+  "message": null,
+  "failed_reason": {
+    "code": "transaction.rejected_by_compliance",
+    "message": "This transaction was rejected by Cobo's compliance checks. Please do not resubmit it; contact Cobo support to resolve the issue first."
+  },
+  "created_timestamp": 1744689000,
+  "updated_timestamp": 1744689400
+}
+```
+
+## `payment.address.updated`
+
+您通过 [Update top-up address](/payments/en/api-references/payment/update-top-up-address) 接口替换某个付款方的充值地址后触发。收到后，请在您的系统中把该付款方的充值地址更新为 `updated_address`。
+
+### 地址事件内容
+
+<div className="field-table">
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `data_type` | `string` | 固定为 `PaymentAddressUpdate`。 |
+| `merchant_id` | `string` | 该付款方属于哪个商户。 |
+| `payer_id` | `string` | 地址发生变更的付款方，Cobo 分配的 ID。 |
+| `custom_payer_id` | `string` | 同一付款方在您系统里的 ID，未提供时为 `null`。 |
+| `chain` | `string` | 该地址所属的链。只有这条链上的地址发生变更。 |
+| `previous_address` | `string` | 替换前的地址。 |
+| `updated_address` | `string` | 从现在起应展示给付款方的地址。 |
+
+</div>
+
+```json
+{
+  "data_type": "PaymentAddressUpdate",
+  "merchant_id": "M1001",
+  "payer_id": "P20250619T0310056d7aa",
+  "custom_payer_id": "user_abc_10001",
+  "chain": "ETH",
+  "previous_address": "0xtopup_addr_M1001_user_abc",
+  "updated_address": "0xtopup_addr_M1001_user_abc_new"
+}
+```
+
+## 高级事件
+
+需要确认数、链上交易手续费明细等链上交易细节时，可订阅高级事件 `payment.transaction.created`、`payment.transaction.completed` 和 `payment.transaction.failed`，参见[高级事件](/payments/cn/guides/events/advanced)。
