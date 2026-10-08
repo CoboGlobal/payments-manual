@@ -167,7 +167,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 }
 ```
 
-| `type` | `data.data_type` | 业务单据 ID |
+| `type` | `data.data_type` | 业务对象 ID |
 | --- | --- | --- |
 | `payment.topup.updated` | `PaymentTopUpUpdate` | `transaction_id` |
 | `payment.order.updated` | `PaymentOrderUpdate` | `order_id` |
@@ -175,8 +175,6 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 | `payment.payout.updated` | `PaymentPayoutUpdate` | `payout_id` |
 | `payment.bulk_send.updated` | `PaymentBulkSendUpdate` | `bulk_send_id` |
 | `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
-
-充值没有单独的 `topup_id`。它的对象 ID 就是 `transaction_id`，因为一笔充值本身就是一笔入账交易。
 
 ## 所有事件通用的规则
 
@@ -192,7 +190,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 "failed_reason": { "code": "transaction.rejected_by_policy", "message": "..." }
 ```
 
-`code` 是受控枚举，请根据它决定如何处理。`message` 面向运营人员，措辞可能调整，因此可以展示但绝不能用于匹配。
+`code` 是受控枚举，请根据它决定如何处理。`message` 面向运营人员，措辞可能调整，因此可以展示，但不要用于匹配。
 
 每个业务页面会列出该对象上可能出现的 code，并按需要采取的处理方式分组：[充值](/payments/cn/guides/events/top-up#失败原因)、[订单](/payments/cn/guides/events/orders#失败原因)、[退款](/payments/cn/guides/events/refunds#失败原因)、[资金转出及提现](/payments/cn/guides/events/payouts#失败原因)、[批量下发](/payments/cn/guides/events/bulk-send#批次的失败原因)。
 
