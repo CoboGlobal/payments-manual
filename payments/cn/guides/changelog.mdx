@@ -3,6 +3,13 @@ title: "发布历史"
 lang: "zh-hans"
 ---
 
+## 2026 年 10 月
+
+| 功能 | 变更说明 | 发布时间 |
+| ----- | ----- | ----- |
+| **Webhook** | (SDK v1.45.0) 新增 6 个标准 Webhook 事件，覆盖各支付业务对象的状态更新和关键节点通知：<br />・[`payment.topup.updated`](/payments/cn/guides/events/top-up)：充值<br />・[`payment.order.updated`](/payments/cn/guides/events/orders)：订单<br />・[`payment.refund.updated`](/payments/cn/guides/events/refunds)：退款<br />・[`payment.payout.updated`](/payments/cn/guides/events/payouts)：资金转出<br />・[`payment.bulk_send.updated` 和 `payment.bulk_send.item.updated`](/payments/cn/guides/events/bulk-send)：批量下发的批次和条目<br />事件包含业务状态、相关金额和结构统一的失败原因（`failed_reason.code` 和 `failed_reason.message`）。<br />原有的 `payment.transaction.*` 和 `*.status.updated` 事件仍会发送，现归为高级事件；如需链上交易细节，可继续订阅。详见[事件概述](/payments/cn/guides/events/overview)。 | 2026-10-14 |
+
+
 ## 2026 年 09 月
 
 | 功能 | 变更说明 | 发布时间 |

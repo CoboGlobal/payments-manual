@@ -6,6 +6,13 @@ lang: "en"
 This document records all major updates and upcoming features for the Cobo Payments solution, helping you stay informed about product developments and upgrades.
 
 
+## October 2026
+
+| Feature | Description | Release Date |
+| ----- | ----- | ----- |
+| **Webhook** | (SDK v1.45.0) Added six standard webhook events that notify you of status updates and other key events for each payment business object:<br />・[`payment.topup.updated`](/payments/en/guides/events/top-up): top-ups<br />・[`payment.order.updated`](/payments/en/guides/events/orders): orders<br />・[`payment.refund.updated`](/payments/en/guides/events/refunds): refunds<br />・[`payment.payout.updated`](/payments/en/guides/events/payouts): payouts<br />・[`payment.bulk_send.updated` and `payment.bulk_send.item.updated`](/payments/en/guides/events/bulk-send): bulk send batches and items<br />Each event includes the business status, the relevant amounts, and a failure reason in a uniform structure (`failed_reason.code` and `failed_reason.message`).<br />The existing `payment.transaction.*` and `*.status.updated` events are still sent and are now classified as advanced events; keep subscribing to them if you need on-chain transaction details. See [Events overview](/payments/en/guides/events/overview). | 2026-10-14 |
+
+
 ## September 2026
 
 | Feature | Description | Release Date |
