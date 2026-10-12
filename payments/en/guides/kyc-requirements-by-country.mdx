@@ -5,7 +5,7 @@ lang: "en"
 
 A paying entity must pass KYC review before it can create a POBO payout. The field names in [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc) are the same in every supported country and region; only three things change with the entity's location: which attachment types (`file_type`) are required, which primary identity documents are accepted, and how Hong Kong addresses are validated.
 
-This guide lists those three differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
+This guide lists those three differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`), and the United States (`USA`).
 
 ## Before you begin
 
@@ -64,6 +64,7 @@ The `file_type` values below are what the operation accepts. Passing validation 
 | Singapore (`SGP`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | `company_name_en` must include the `Pte Ltd` suffix. |
 | United Kingdom (`GBR`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
 | Mexico (`MEX`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
+| United States (`USA`) | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | The request fields stay the same as `HKG`; omit `BR` and `NNC1`. |
 
 For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For a mainland China identity card, the two sides are `PRC_ID_Emblem` and `PRC_ID_Portrait`.
 
@@ -90,7 +91,7 @@ For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 | --- | --- | --- | --- | --- |
 | Hong Kong SAR (`HKG`) | `HK_PID` or `FIC`; do not use `PP` for Hong Kong residents. | Chinese | Must use a supported Hong Kong district value in Chinese or English. | `ID_Hand`, `POA` |
 | Philippines (`PHL`) | `FIC`; `PP` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
-| Taiwan, China (`TWN`), Malaysia (`MYS`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`) | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
+| Taiwan, China (`TWN`), Malaysia (`MYS`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`), United States (`USA`) | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
 
 ## Hong Kong address requirements
 
