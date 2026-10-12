@@ -69,11 +69,6 @@ The `file_type` values below are what the operation accepts. Passing validation 
 
 US company KYC supports `B2B` and `B2C`. UBO attachments use `PP` in both cases. `B2C` uses the `B2B` company attachments and also requires `PLATFORM_SCREENSHOT`.
 
-| `merchant_type` | Company attachments | UBO attachment | Test ID |
-| --- | --- | --- | --- |
-| `B2B` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `SSC` | `PP` | `1216550310592360942` |
-| `B2C` | `CI`, `AOA`, `ANNUAL_RETURN`, `BAP`, `PLATFORM_SCREENSHOT`, `SSC` | `PP` | `1216541054662943091` |
-
 For non-mainland China personnel, include `name`, `name_en`, `id_number`, `date_of_birth`, `issue_date`, `expiration_date`, `residential_address`, and `attachments`. For a mainland China identity card, the two sides are `PRC_ID_Emblem` and `PRC_ID_Portrait`.
 
 ## Individual KYC requirements
@@ -100,14 +95,7 @@ For individual KYC, set `merchant_type` to `B2C` and provide `individual_info`.
 | Hong Kong SAR (`HKG`) | `HK_PID` or `FIC`; do not use `PP` for Hong Kong residents. | Chinese | Must use a supported Hong Kong district value in Chinese or English. | `ID_Hand`, `POA` |
 | Philippines (`PHL`) | `FIC`; `PP` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
 | Taiwan, China (`TWN`), Malaysia (`MYS`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`) | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
-| United States (`USA`) | `PP` or `FIC`. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
-
-For US individual KYC, set `merchant_type` to `B2C` and provide one of the following attachment sets.
-
-| Attachments | Test ID |
-| --- | --- |
-| `PP`, `ID_Hand`, `POA` | `UT2108384453560917337` |
-| `FIC`, `ID_Hand`, `POA` | `UT2108384453560917341` |
+| United States (`USA`) | `PP`; `FIC` is also accepted. Do not use `HK_PID`. | English | Use the local English city name. | `ID_Hand`, `POA` |
 
 ## Hong Kong address requirements
 

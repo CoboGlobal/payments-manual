@@ -69,11 +69,6 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 
 美国公司 KYC 支持 `B2B` 和 `B2C`。两种类型的 UBO 附件都使用 `PP`。`B2C` 在 `B2B` 公司附件之外，额外需要 `PLATFORM_SCREENSHOT`。
 
-| `merchant_type` | 公司附件 | UBO 附件 | 测试 ID |
-| --- | --- | --- | --- |
-| `B2B` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`SSC` | `PP` | `1216550310592360942` |
-| `B2C` | `CI`、`AOA`、`ANNUAL_RETURN`、`BAP`、`PLATFORM_SCREENSHOT`、`SSC` | `PP` | `1216541054662943091` |
-
 对于非中国大陆人员，提供 `name`、`name_en`、`id_number`、`date_of_birth`、`issue_date`、`expiration_date`、`residential_address` 和 `attachments`。如使用中国大陆身份证，正反两面分别用 `PRC_ID_Emblem` 和 `PRC_ID_Portrait`。
 
 ## 个人 KYC 要求
@@ -100,14 +95,7 @@ KYC 请求在所有支持国家和地区使用一致的 JSON key。国家和地�
 | 中国香港（`HKG`） | `HK_PID` 或 `FIC`；香港居民请勿使用 `PP`。 | 中文 | 必须取自香港行政区列表，中英文均可。 | `ID_Hand`、`POA` |
 | 菲律宾（`PHL`） | `FIC`；也接受 `PP`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
 | 中国台湾（`TWN`）、马来西亚（`MYS`）、印度尼西亚（`IDN`）、越南（`VNM`）、泰国（`THA`）、新加坡（`SGP`）、英国（`GBR`）、墨西哥（`MEX`） | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
-| 美国（`USA`） | `PP` 或 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
-
-美国个人 KYC 将 `merchant_type` 设置为 `B2C`，并提供以下其中一套附件。
-
-| 附件 | 测试 ID |
-| --- | --- |
-| `PP`、`ID_Hand`、`POA` | `UT2108384453560917337` |
-| `FIC`、`ID_Hand`、`POA` | `UT2108384453560917341` |
+| 美国（`USA`） | `PP`；也接受 `FIC`。请勿使用 `HK_PID`。 | 英文 | 使用当地英文城市名。 | `ID_Hand`、`POA` |
 
 ## 香港地址要求
 
