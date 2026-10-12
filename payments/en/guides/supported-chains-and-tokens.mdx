@@ -54,7 +54,7 @@ The following stablecoin and chain combinations are available for payment collec
 
 ## Chain identifiers
 
-Each supported chain is identified by a `chain_id`, which is a string identifier (for example, `ETH` or `TRON`), not a numeric ID. The `token_id` used throughout the Payments API combines the chain identifier with the token symbol in the format `{chain_id}_{token_symbol}` (for example, `ETH_USDC` or `TRON_USDT`).
+Each supported chain is identified by a `chain_id`, which is a string identifier (for example, `ETH` or `TRON`), not a numeric ID.
 
 The token symbol part is not always the plain ticker — it can carry a suffix or an alternative spelling, as in `ARBITRUM_USDCOIN`, `MATIC_USDC2`, `MORPH_USDC1`, and `MORPH_USDT0`. Always use the exact `token_id` values listed in the supported tokens table above rather than constructing them by hand.
 
@@ -63,17 +63,17 @@ The following table maps each `chain_id` to its full chain name and network. The
 | chain_id | Chain | Network |
 |----------|-------|---------|
 | `ETH` | Ethereum | Mainnet |
-| `ARBITRUM` | Arbitrum | Mainnet |
-| `BASE` | Base | Mainnet |
+| `ARBITRUM_ETH` | Arbitrum | Mainnet |
+| `BASE_ETH` | Base | Mainnet |
 | `MATIC` | Polygon | Mainnet |
-| `BSC` | BNB Smart Chain | Mainnet |
+| `BSC_BNB` | BNB Smart Chain | Mainnet |
 | `SOL` | Solana | Mainnet |
 | `AVAXC` | Avalanche C-Chain | Mainnet |
-| `MORPH` | Morph | Mainnet |
+| `MORPH_ETH` | Morph | Mainnet |
 | `APT` | Aptos | Mainnet |
 | `TRON` | TRON | Mainnet |
 | `TON` | TON | Mainnet |
-| `XLAYER` | X Layer | Mainnet |
+| `XLAYER_OKB` | X Layer | Mainnet |
 
 To retrieve the live set of supported chains and tokens programmatically, use the List supported chains and [List supported tokens](/payments/en/api-references/payment/list-supported-tokens) operations.
 
