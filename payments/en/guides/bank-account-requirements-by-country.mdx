@@ -3,9 +3,9 @@ title: "Bank account requirements by country"
 lang: "en"
 ---
 
-A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; every recipient account is paid over SWIFT, and what differs is what each country requires of fields such as `iban_code`, `routing_value`, and `bank_country`.
+A recipient bank account must be registered as a destination and pass review before it can receive a fiat payout. The field names in [Create destination](/payments/en/api-references/payment/create-destination) are the same in every supported country and region; every recipient account is paid over SWIFT, and what differs is what each country requires of fields such as `iban_code`, `routing_value`, `bank_city`, and `bank_country`.
 
-This guide lists those differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`).
+This guide lists those differences for Hong Kong SAR (`HKG`), Taiwan, China (`TWN`), Malaysia (`MYS`), Philippines (`PHL`), Indonesia (`IDN`), Vietnam (`VNM`), Thailand (`THA`), Singapore (`SGP`), United Kingdom (`GBR`), Mexico (`MEX`), and the United States (`USA`).
 
 ## Before you begin
 
@@ -60,13 +60,14 @@ POBO recipient bank accounts support SWIFT only. `payment_method` is always `Swi
 | `bank_province` | Required. Bank province or state. |
 | `contract_file_id` | Required. File ID of the uploaded bank-account document. |
 | `iban_code` | Do not provide for the `HKG` baseline. Required for `GBR`. |
-| `routing_value` | Do not provide for the `HKG` baseline. |
+| `routing_value` | Do not provide for the `HKG` baseline. Required for `USA`. |
+| `bank_city` | Do not provide for the `HKG` baseline. Required for `USA`. The city of the bank. |
 
 ## Country-specific requirements
 
 | Country | Field differences from `HKG` | Format or enum requirement | `bank_country` |
 | --- | --- | --- | --- |
-| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code` or `routing_value`. | No additional format requirements. | `HKG` |
+| Hong Kong SAR (`HKG`) | Baseline. Do not provide `iban_code`, `routing_value`, or `bank_city`. | No additional format requirements. | `HKG` |
 | Taiwan, China (`TWN`) | No field differences. | Same as `HKG`. | `TWN` |
 | Malaysia (`MYS`) | No field differences. | Same as `HKG`. | `MYS` |
 | Philippines (`PHL`) | No field differences. | Same as `HKG`. | `PHL` |
@@ -76,6 +77,18 @@ POBO recipient bank accounts support SWIFT only. `payment_method` is always `Swi
 | Singapore (`SGP`) | No field differences. | Same as `HKG`. | `SGP` |
 | Mexico (`MEX`) | No field differences. | Same as `HKG`. | `MEX` |
 | United Kingdom (`GBR`) | Provide `iban_code`. | `account_number` must contain 8 digits. `iban_code` must start with `GB`. | `GBR` |
+| United States (`USA`) | Provide `routing_value` and `bank_city` for both individual and company bank accounts. | `payment_method` is `Swift`. | `USA` |
+
+### United States (`USA`)
+
+US recipient bank accounts are paid over SWIFT. Set `payment_method` to `Swift`.
+
+In addition to the standard bank-account fields, both individual and company bank accounts require `routing_value` and `bank_city`.
+
+| Merchant type | `holder_type` | Additional fields | ID |
+| --- | --- | --- | --- |
+| Individual | `Personal` | `routing_value`, `bank_city` | `1223801128458465547`, `1223801107138818115` |
+| Company | `Company` | `routing_value`, `bank_city` | `1223832146921992673`, `1223832125547819287` |
 
 ## Next steps
 
