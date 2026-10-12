@@ -28,7 +28,7 @@ lang: "zh-hans"
 
 ![资金转出状态变化](/payments/cn/images/payments/events/payouts-status.svg)
 
-上图为主要的状态变化路径，绿色框为终态。`Pending` 和 `Preparing` 也可能直接变为 `Failed`；`RejectedByBank` 也可能直接变为 `Completed`。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+上图为主要的状态变化路径，绿色框为终态。`Pending` 和 `Preparing` 也可能直接变为 `Failed`。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
 
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ lang: "zh-hans"
 | 全部转出成功 | `Completed`（终态） | 在您的系统中将该笔转出标记为已完成。 |
 | 有一部分没有成功 | `PartiallyCompleted`（终态） | 按 `failed_amounts` 的金额另建一笔转出补发，不要重复支付已成功的部分。 |
 | 全部失败 | `Failed`（终态） | 读取 `failed_reason.code` 并处理。 |
-| 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 联系 Cobo 处理，并等待后续事件。<br/>⚠️ **`RejectedByBank` 不是终态。** 联系 Cobo 处理后，这笔转出可能回到 `Transferring`，也可能直接 `Completed`。 |
+| 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 联系 Cobo 处理，并等待后续事件。<br/>⚠️ **`RejectedByBank` 不是终态。** 联系 Cobo 处理后，这笔转出会回到 `Transferring`，并可能最终 `Completed`。 |
 
 ### 事件内容
 
@@ -290,7 +290,7 @@ lang: "zh-hans"
 
 #### Off-Ramp 转出被银行拒绝
 
-**这不是终态。** 链上那一段已经完成（`transactions` 里的条目是 `Completed`），是收款银行退回了法币入账，所以 `failed_amounts` 为空。联系 Cobo 处理，并等待该笔转出的后续事件：重试成功时，您会收到 `Completed`（之前可能先收到一条 `Transferring`）。
+**这不是终态。** 链上那一段已经完成（`transactions` 里的条目是 `Completed`），是收款银行退回了法币入账，所以 `failed_amounts` 为空。联系 Cobo 处理，并等待该笔转出的后续事件：重试成功时，您会先收到一条 `Transferring`，再收到 `Completed`。
 
 ```json
 {

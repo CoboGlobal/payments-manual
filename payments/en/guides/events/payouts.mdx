@@ -28,7 +28,7 @@ The main payout event.
 
 ![Payout status flow](/payments/en/images/payments/events/payouts-status.svg)
 
-The diagram shows the main status paths; final statuses are shown in green. `Pending` and `Preparing` can also go directly to `Failed`, and `RejectedByBank` can go directly to `Completed`. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+The diagram shows the main status paths; final statuses are shown in green. `Pending` and `Preparing` can also go directly to `Failed`. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
 
 | Trigger condition | `status` | What to do |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ The diagram shows the main status paths; final statuses are shown in green. `Pen
 | Everything was paid out | `Completed` (final) | Mark the payout as completed in your system. |
 | Part of it did not go through | `PartiallyCompleted` (final) | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
 | Everything failed | `Failed` (final) | Read `failed_reason.code` and handle it. |
-| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Contact Cobo to resolve it, and wait for further events.<br/>⚠️ **`RejectedByBank` is not final.** After you contact Cobo to resolve it, the payout may return to `Transferring` or go directly to `Completed`. |
+| The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Contact Cobo to resolve it, and wait for further events.<br/>⚠️ **`RejectedByBank` is not final.** After you contact Cobo to resolve it, the payout returns to `Transferring` and may reach `Completed`. |
 
 ### Event content
 
@@ -290,7 +290,7 @@ Here the payout requested two tokens, and one of them failed on its outgoing tra
 
 #### An Off-Ramp payout is rejected by the bank
 
-**This is not a final status.** The on-chain leg has already completed (the entry in `transactions` is `Completed`); it is the receiving bank that returned the fiat credit, so `failed_amounts` is empty. Contact Cobo to resolve it, and wait for further events on this payout: if a retry succeeds, you receive `Completed` (possibly preceded by another `Transferring`).
+**This is not a final status.** The on-chain leg has already completed (the entry in `transactions` is `Completed`); it is the receiving bank that returned the fiat credit, so `failed_amounts` is empty. Contact Cobo to resolve it, and wait for further events on this payout: if a retry succeeds, you receive a second `Transferring` and then `Completed`.
 
 ```json
 {
