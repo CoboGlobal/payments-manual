@@ -27,7 +27,7 @@ lang: "zh-hans"
 | 触发条件 | `status` | 可否入账 | 您该做什么 |
 | --- | --- | --- | --- |
 | 充值地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理充值。 |
-| 该笔充值进入合规筛查 | `PendingScreening` | ❌ | 等待。 |
+| 该笔充值进入合规筛查（`ActionRequired` 处理完成后回到合规筛查时，不会再次发送此事件） | `PendingScreening` | ❌ | 等待。 |
 | 合规筛查需要您处理（补交材料，或完成人工合规复核） | `ActionRequired` | ❌ | 按 `message` 处理。 |
 | 合规筛查通过，且链上至少有一个确认 | `Completed`（终态） | ✅ | 按 `amount` 入账，以 `transaction_id` 作为幂等键。 |
 | 该笔充值被拒绝或失败 | `Failed`（终态） | ❌ | 读取 `failed_reason.code` 决定下一步。 |

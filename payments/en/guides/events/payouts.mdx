@@ -37,7 +37,7 @@ The diagram shows the main status paths; final statuses are shown in green. `Pen
 | The outgoing transactions start executing | `Transferring` | Wait. |
 | Everything was paid out | `Completed` (final) | Mark the payout as completed in your system. |
 | Part of it did not go through | `PartiallyCompleted` (final) | Send the amount in `failed_amounts` with a new payout. Do not resend the part that succeeded. |
-| Everything failed | `Failed` (final) | Read `failed_reason.code` and handle it. |
+| Everything failed, including a failure during fund preparation (consolidation, cross-chain conversion, commission) | `Failed` (final) | Read `failed_reason.code` and handle it. |
 | The receiving bank returns the Off-Ramp transfer | `RejectedByBank` | Contact Cobo to resolve it, and wait for further events.<br/>⚠️ **`RejectedByBank` is not final.** After you contact Cobo to resolve it, the payout returns to `Transferring` and may reach `Completed`. |
 
 ### Event content

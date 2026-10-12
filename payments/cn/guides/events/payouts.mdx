@@ -37,7 +37,7 @@ lang: "zh-hans"
 | 开始执行转出交易 | `Transferring` | 等待。 |
 | 全部转出成功 | `Completed`（终态） | 在您的系统中将该笔转出标记为已完成。 |
 | 有一部分没有成功 | `PartiallyCompleted`（终态） | 按 `failed_amounts` 的金额另建一笔转出补发，不要重复支付已成功的部分。 |
-| 全部失败 | `Failed`（终态） | 读取 `failed_reason.code` 并处理。 |
+| 全部失败，包括在准备资金阶段（归集、跨链兑换、扣佣金）失败 | `Failed`（终态） | 读取 `failed_reason.code` 并处理。 |
 | 收款银行退回这笔 Off-Ramp 转账 | `RejectedByBank` | 联系 Cobo 处理，并等待后续事件。<br/>⚠️ **`RejectedByBank` 不是终态。** 联系 Cobo 处理后，这笔转出会回到 `Transferring`，并可能最终 `Completed`。 |
 
 ### 事件内容

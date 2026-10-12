@@ -27,7 +27,7 @@ The diagram shows the main status paths; final statuses are shown in green. An i
 | Trigger condition | `status` | Creditable | What to do |
 | --- | --- | --- | --- |
 | The funds are detected on a deposit address | `Detected` | ❌ | Record the incoming deposit. |
-| The deposit enters compliance screening | `PendingScreening` | ❌ | Wait. |
+| The deposit enters compliance screening (no second event is sent when it returns here after `ActionRequired` is resolved) | `PendingScreening` | ❌ | Wait. |
 | Screening needs you to act — supply information, or complete a manual compliance review | `ActionRequired` | ❌ | Act on `message`. |
 | Screening passed and the transaction has at least one on-chain confirmation | `Completed` (final) | ✅ | Credit `amount`, using `transaction_id` as the idempotency key. |
 | The deposit was rejected or failed | `Failed` (final) | ❌ | Read `failed_reason.code` to decide what happens next. |

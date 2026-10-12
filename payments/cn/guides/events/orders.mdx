@@ -17,11 +17,17 @@ lang: "zh-hans"
 
 ### 事件触发条件
 
-**订单 `status` 每变化一次发一条事件。** `status` 不变但某笔入金的状态需要通知您时，也会发一条，原因由 `notice_type` 给出。
+**订单 `status` 每变化一次发一条事件。** 此外，某笔入金需要通知您时（例如需要您处理、入金失败或收到晚付金额），即使订单 `status` 不变也会发一条，原因由 `notice_type` 给出。完整的触发条件见下方表格。
+
+订单 `status` 的流转如下，绿色框为终态：
 
 ![订单状态变化](/payments/cn/images/payments/events/orders-status.svg)
 
-上图为主要的状态变化路径，绿色框为终态。中间状态可能因为很快进入下一个状态而不出现，事件也可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+订单中的每笔入金（`transactions` 中的条目）有自己的 `status`，流转如下：
+
+![订单入金状态变化](/payments/cn/images/payments/events/order-deposit-status.svg)
+
+中间状态可能因为很快进入下一个状态而不出现，事件也可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
 
 | 触发条件 | `status` | `notice_type` | 您该做什么 |
 | --- | --- | --- | --- |

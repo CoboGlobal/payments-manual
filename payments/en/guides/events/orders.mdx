@@ -17,11 +17,17 @@ The main event for Order Mode.
 
 ### Trigger conditions
 
-**One event per change of the order's `status`.** You also get one when `status` has not changed but a deposit needs your attention, and `notice_type` says why.
+**One event per change of the order's `status`.** An event is also sent without a status change when a deposit needs your attention (for example, it needs action, it failed, or it is a late payment); `notice_type` gives the reason. The table below lists every trigger.
+
+The order's `status` changes as follows; final statuses are shown in green:
 
 ![Order status flow](/payments/en/images/payments/events/orders-status.svg)
 
-The diagram shows the main status paths; final statuses are shown in green. An intermediate status may not appear if the order moves on to the next status quickly, and events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+Each deposit to the order (an entry in `transactions`) has its own `status`, which changes as follows:
+
+![Order deposit status flow](/payments/en/images/payments/events/order-deposit-status.svg)
+
+An intermediate status may not appear if it moves on to the next status quickly, and events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
 
 | Trigger condition | `status` | `notice_type` | What to do |
 | --- | --- | --- | --- |
