@@ -19,6 +19,10 @@ lang: "zh-hans"
 
 **订单 `status` 每变化一次发一条事件。** `status` 不变但某笔入金的状态需要通知您时，也会发一条，原因由 `notice_type` 给出。
 
+![订单状态变化](/payments/cn/images/payments/events/orders-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。中间状态可能因为很快进入下一个状态而不出现，事件也可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+
 | 触发条件 | `status` | `notice_type` | 您该做什么 |
 | --- | --- | --- | --- |
 | 订单创建成功 | `Pending` | `null` | 建立订单记录，向付款方展示应付金额。 |

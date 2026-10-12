@@ -26,6 +26,10 @@ lang: "zh-hans"
 
 **该笔资金转出的 `status` 每变化一次发一条事件。**
 
+![资金转出状态变化](/payments/cn/images/payments/events/payouts-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。`Pending` 和 `Preparing` 也可能直接变为 `Failed`；`RejectedByBank` 也可能直接变为 `Completed`。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
 | 转出请求被受理 | `Pending` | 记录本次转出，不要重复提交。 |

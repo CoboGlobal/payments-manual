@@ -20,6 +20,10 @@ lang: "zh-hans"
 
 **这笔充值的 `status` 每变化一次发一条事件。**
 
+![充值状态变化](/payments/cn/images/payments/events/top-up-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。中间状态（例如 `PendingScreening`）可能因为很快进入下一个状态而不出现，事件也可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+
 | 触发条件 | `status` | 可否入账 | 您该做什么 |
 | --- | --- | --- | --- |
 | 充值地址上检测到这笔资金 | `Detected` | ❌ | 记录这笔待处理充值。 |
@@ -29,10 +33,6 @@ lang: "zh-hans"
 | 该笔充值被拒绝或失败 | `Failed`（终态） | ❌ | 读取 `failed_reason.code` 决定下一步。 |
 
 **金额不超过粉尘阈值的充值不发事件**，各 token 的阈值见 [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address) 或 [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses) 接口返回的 `min_amount`（未单独配置的默认为 `0.05`，金额需严格大于该值）。
-
-<Warning>
-  **中间状态可能不出现。** 例如，合规筛查通常很快完成，因此一笔充值可能从 `Detected` 直接跳到 `Completed`，中间的 `PendingScreening` 没有对应事件——这不代表它没经过合规筛查。
-</Warning>
 
 ### 事件内容
 

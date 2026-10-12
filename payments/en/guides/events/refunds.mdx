@@ -19,6 +19,10 @@ The main refund event.
 
 **One event per change of this refund order's `status`.**
 
+![Refund status flow](/payments/en/images/payments/events/refunds-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+
 | Trigger condition | `status` | What to do |
 | --- | --- | --- |
 | The refund order is ready to execute — created through a refund link, or by your own call to the create-refund API | `Pending` | Record the refund and wait. |

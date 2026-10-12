@@ -20,6 +20,10 @@ The batch-level event.
 
 **One event per change of the batch's `status`.** Per-item progress is not here; it is in the item event.
 
+![Bulk send batch status flow](/payments/en/images/payments/events/bulk-batch-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. `Validating` can also go directly to `Failed`. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+
 | Trigger condition | `status` | What to do |
 | --- | --- | --- |
 | The batch is created | `Pending` | Record the batch and wait.<br/>⚠️ If your organization has an approval workflow, the batch waits for approval in this status first. Approval sends no event; if a batch stays in `Pending` for a long time, check the approval progress in Cobo Portal. |
@@ -218,6 +222,10 @@ The item-level event.
 ### Item trigger conditions
 
 **One event per change of the item's `status`.**
+
+![Bulk send item status flow](/payments/en/images/payments/events/bulk-item-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
 
 | Trigger condition | `status` | What to do |
 | --- | --- | --- |

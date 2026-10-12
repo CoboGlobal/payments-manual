@@ -147,7 +147,7 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 
 所有 Webhook 消息共用同一个外层结构。`event_id` 是事件的唯一标识，同一条事件重投时不变，可用于去重。
 
-外层的 `created_timestamp` 是**这条事件的创建时间，单位毫秒**，重投时不变。事件的创建顺序不一定与业务状态变化的顺序一致，所以**不要用它判断事件先后**。`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**。
+外层的 `created_timestamp` 是**这条事件的创建时间，单位毫秒**，重投时不变，不能用于判断事件先后（参见[事件顺序](#事件顺序)）。`data` 里的 `created_timestamp` 与 `updated_timestamp` 是**业务对象自己的创建与最近更新时间，单位秒**。
 
 外层的 `status`（`Success`、`Retrying`、`Failed`）以及重试时才出现的 `next_retry_timestamp`、`retries_left` 描述的是这条消息的投递情况，与业务无关，处理时可以忽略。
 
@@ -177,6 +177,12 @@ Cobo Payments 通过 Webhook 事件通知您的系统。本页列出 Cobo Paymen
 | `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
 
 ## 所有事件通用的规则
+
+### 事件顺序
+
+Cobo 不保证事件按发生的顺序送达。例如，一笔资金转出依次经过 `Pending`、`Preparing`、`Transferring`、`Completed`，但如果其中某条事件投递失败后重试，您可能先收到 `Completed`，再收到 `Transferring`。
+
+请确保您的处理逻辑不依赖事件的到达顺序。需要确认某个对象的最新状态时，可调用对应的查询接口，例如 [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information)、[Get refund order information](/payments/en/api-references/payment/get-refund-order-information)、[Get payout information](/payments/en/api-references/payment/get-payout-information) 或 [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information)。
 
 ### 空值
 

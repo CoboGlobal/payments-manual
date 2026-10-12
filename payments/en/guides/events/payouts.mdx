@@ -26,6 +26,10 @@ The main payout event.
 
 **One event per change of this payout's `status`.**
 
+![Payout status flow](/payments/en/images/payments/events/payouts-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. `Pending` and `Preparing` can also go directly to `Failed`, and `RejectedByBank` can go directly to `Completed`. Events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+
 | Trigger condition | `status` | What to do |
 | --- | --- | --- |
 | The payout request is accepted | `Pending` | Record it and do not submit it again. |

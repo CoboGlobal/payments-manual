@@ -19,6 +19,10 @@ The main event for Order Mode.
 
 **One event per change of the order's `status`.** You also get one when `status` has not changed but a deposit needs your attention, and `notice_type` says why.
 
+![Order status flow](/payments/en/images/payments/events/orders-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. An intermediate status may not appear if the order moves on to the next status quickly, and events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+
 | Trigger condition | `status` | `notice_type` | What to do |
 | --- | --- | --- | --- |
 | The order is created | `Pending` | `null` | Record the order and show the payer what to pay. |

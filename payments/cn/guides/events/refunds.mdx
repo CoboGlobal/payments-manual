@@ -19,6 +19,10 @@ lang: "zh-hans"
 
 **这笔退款单的 `status` 每变化一次发一条事件。**
 
+![退款状态变化](/payments/cn/images/payments/events/refunds-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
 | 退款单进入待执行——通过退款链接创建，或您直接调用创建退款接口 | `Pending` | 记录该退款单并等待。 |

@@ -20,6 +20,10 @@ The main event for Top-up Mode.
 
 **One event per change of this deposit's `status`.**
 
+![Top-up status flow](/payments/en/images/payments/events/top-up-status.svg)
+
+The diagram shows the main status paths; final statuses are shown in green. An intermediate status (such as `PendingScreening`) may not appear if the deposit moves on to the next status quickly, and events may arrive out of order; see [Event ordering](/payments/en/guides/events/overview#event-ordering).
+
 | Trigger condition | `status` | Creditable | What to do |
 | --- | --- | --- | --- |
 | The funds are detected on a deposit address | `Detected` | ❌ | Record the incoming deposit. |
@@ -29,10 +33,6 @@ The main event for Top-up Mode.
 | The deposit was rejected or failed | `Failed` (final) | ❌ | Read `failed_reason.code` to decide what happens next. |
 
 **A deposit at or below the dust threshold sends no event.** Each token's threshold is the `min_amount` returned by [Create/Get top-up address](/payments/en/api-references/payment/createget-top-up-address) or [Batch create top-up addresses](/payments/en/api-references/payment/batch-create-top-up-addresses); tokens without their own setting default to `0.05`, and an amount must exceed it.
-
-<Warning>
-  **Intermediate states can be missing.** For example, compliance screening often finishes very quickly, so a deposit can go straight from `Detected` to `Completed` with no event for `PendingScreening` — that does not mean it skipped screening.
-</Warning>
 
 ### Event content
 

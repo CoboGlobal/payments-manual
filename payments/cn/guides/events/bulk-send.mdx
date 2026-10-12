@@ -20,6 +20,10 @@ lang: "zh-hans"
 
 **批次 `status` 每变化一次发一条事件。** 逐条进度不在这里，在条目事件里。
 
+![批量下发批次状态变化](/payments/cn/images/payments/events/bulk-batch-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。`Validating` 也可能直接变为 `Failed`。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
+
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |
 | 批次创建成功 | `Pending` | 建立批次记录并等待。<br/>⚠️ 如果您的组织启用了审批流，批次会先在此状态等待审批。审批过程不发事件，如果批次长时间停留在 `Pending`，请在 Cobo Portal 查看审批进度。 |
@@ -218,6 +222,10 @@ lang: "zh-hans"
 ### 条目的事件触发条件
 
 **条目 `status` 每变化一次发一条事件。**
+
+![批量下发条目状态变化](/payments/cn/images/payments/events/bulk-item-status.svg)
+
+上图为主要的状态变化路径，绿色框为终态。事件可能不按顺序送达，参见[事件顺序](/payments/cn/guides/events/overview#事件顺序)。
 
 | 触发条件 | `status` | 您该做什么 |
 | --- | --- | --- |

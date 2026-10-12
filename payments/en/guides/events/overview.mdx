@@ -147,7 +147,7 @@ Events come in two kinds:
 
 Every webhook message shares the same envelope. `event_id` uniquely identifies an event and stays the same when the event is redelivered, so use it to deduplicate.
 
-The envelope's `created_timestamp` is **when this event was created, in milliseconds**; it does not change on retries. Events are not necessarily created in the order the business state changed, so **do not use it to order them**. The `created_timestamp` and `updated_timestamp` inside `data` are **the object's own creation and last-update times, in seconds**.
+The envelope's `created_timestamp` is **when this event was created, in milliseconds**; it does not change on retries and cannot be used to order events (see [Event ordering](#event-ordering)). The `created_timestamp` and `updated_timestamp` inside `data` are **the object's own creation and last-update times, in seconds**.
 
 The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_timestamp` and `retries_left` fields that appear during retries describe delivery of this message, not your business, and can be ignored when processing.
 
@@ -177,6 +177,12 @@ The envelope's `status` (`Success`, `Retrying`, `Failed`) and the `next_retry_ti
 | `payment.bulk_send.item.updated` | `PaymentBulkSendItemUpdate` | `bulk_send_item_id` |
 
 ## Rules that apply to every event
+
+### Event ordering
+
+Cobo does not guarantee that events are delivered in the order they occur. For example, a payout moves through `Pending`, `Preparing`, `Transferring`, and `Completed`, but if one of those events fails to deliver and is retried, you may receive `Completed` before `Transferring`.
+
+Make sure your handling does not depend on the order in which events arrive. To confirm an object's latest state, call the matching query endpoint, such as [Get pay-in order information](/payments/en/api-references/payment/get-pay-in-order-information), [Get refund order information](/payments/en/api-references/payment/get-refund-order-information), [Get payout information](/payments/en/api-references/payment/get-payout-information), or [Get bulk send information](/payments/en/api-references/payment/get-bulk-send-information).
 
 ### Empty values
 
