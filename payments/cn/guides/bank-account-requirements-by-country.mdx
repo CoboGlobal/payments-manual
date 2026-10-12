@@ -79,17 +79,6 @@ POBO 收款银行账户仅支持 SWIFT 汇款，`payment_method` 固定为 `Swif
 | 英国（`GBR`） | 提供 `iban_code`。 | `account_number` 必须为 8 位数字。`iban_code` 必须以 `GB` 开头。 | `GBR` |
 | 美国（`USA`） | 个人商户和企业商户的银行卡都需要提供 `routing_value` 和 `bank_city`。 | `payment_method` 为 `Swift`。 | `USA` |
 
-### 美国（`USA`）
-
-美国收款银行卡走 SWIFT 汇款。`payment_method` 固定为 `Swift`。
-
-除银行账户的常规字段之外，个人商户和企业商户的银行卡都需要额外提供 `routing_value` 和 `bank_city`。
-
-| 商户类型 | `holder_type` | 额外字段 | ID |
-| --- | --- | --- | --- |
-| 个人商户 | `Personal` | `routing_value`、`bank_city` | `1223801128458465547`、`1223801107138818115` |
-| 企业商户 | `Company` | `routing_value`、`bank_city` | `1223832146921992673`、`1223832125547819287` |
-
 ## 下一步
 
 银行账户转出目的地通过审核后，创建 Off-ramp 出金。如需查看完整 POBO 流程，请参考 [POBO（全球付款）](/payments/cn/guides/pobo)。

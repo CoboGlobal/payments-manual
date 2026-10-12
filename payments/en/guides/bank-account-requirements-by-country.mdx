@@ -79,17 +79,6 @@ POBO recipient bank accounts support SWIFT only. `payment_method` is always `Swi
 | United Kingdom (`GBR`) | Provide `iban_code`. | `account_number` must contain 8 digits. `iban_code` must start with `GB`. | `GBR` |
 | United States (`USA`) | Provide `routing_value` and `bank_city` for both individual and company bank accounts. | `payment_method` is `Swift`. | `USA` |
 
-### United States (`USA`)
-
-US recipient bank accounts are paid over SWIFT. Set `payment_method` to `Swift`.
-
-In addition to the standard bank-account fields, both individual and company bank accounts require `routing_value` and `bank_city`.
-
-| Merchant type | `holder_type` | Additional fields | ID |
-| --- | --- | --- | --- |
-| Individual | `Personal` | `routing_value`, `bank_city` | `1223801128458465547`, `1223801107138818115` |
-| Company | `Company` | `routing_value`, `bank_city` | `1223832146921992673`, `1223832125547819287` |
-
 ## Next steps
 
 After the bank-account destination passes review, create the Off-ramp payout. For the end-to-end POBO sequence, see [Payouts on behalf of (POBO)](/payments/en/guides/pobo).
