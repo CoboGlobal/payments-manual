@@ -53,7 +53,7 @@ lang: "zh-hans"
 | `tx_hash` | `string` | 链上交易哈希。 |
 | `topup_address` | `string` | 收到这笔资金的充值地址。 |
 | `source_address` | `string` | 链上发送方，原路退回时作为转出目标。 |
-| `screening_mode` | `string` | 这笔充值由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
+| `screening_mode` | `string` | 合规筛查方式，用于在 `status` 为 `ActionRequired` 时判断在哪里处理。<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
 | `message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `failed_reason` | `object` | `status` 为 `Failed` 时有值，其余情况为 `null`。 |
 | `failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |

@@ -80,7 +80,7 @@ lang: "zh-hans"
 | `transactions.source_address` | `string` | 付款方的链上地址，无法识别时为 `null`。 |
 | `transactions.status` | `string` | 该笔入金的状态，取值与[充值](/payments/cn/guides/events/top-up#事件触发条件)相同：<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
 | `transactions.is_late` | `boolean` | `true` 表示该笔入金在订单进入终态后才完成入账，不计入 `credited_amount`。 |
-| `transactions.screening_mode` | `string` | 这笔入金由哪套合规筛查体系处理，用于对账和排查：<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
+| `transactions.screening_mode` | `string` | 合规筛查方式，用于在 `status` 为 `ActionRequired` 时判断在哪里处理。<br/>• `CoboKyt`：Cobo KYT。<br/>• `IntegratedVendor`：Screening App 中 Cobo 集成的第三方供应商。 |
 | `transactions.message` | `string` | `status` 为 `ActionRequired` 时说明需要做什么，其余情况为 `null`。<br/>• `Additional information is required…`：查收 Cobo 发给您账户联系人的邮件，按要求补充材料。<br/>• `A manual compliance review by your team is required…`：在 Screening App 中完成人工合规复核。 |
 | `transactions.failed_reason` | `object` | 该笔入金的 `status` 为 `Failed` 时有值，其余情况为 `null`。 |
 | `transactions.failed_reason.code` | `string` | 失败原因代码。取值见[失败原因](#失败原因)。 |

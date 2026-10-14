@@ -53,7 +53,7 @@ The diagram shows the main status paths; final statuses are shown in green. An i
 | `tx_hash` | `string` | The on-chain transaction hash. |
 | `topup_address` | `string` | The deposit address that received the funds. |
 | `source_address` | `string` | The on-chain sender, and the target if you return the funds. |
-| `screening_mode` | `string` | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
+| `screening_mode` | `string` | The screening method, used to tell where to handle the deposit when `status` is `ActionRequired`.<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
 | `message` | `string` | What to do when `status` is `ActionRequired`; `null` otherwise.<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `failed_reason` | `object` | Set when `status` is `Failed`; `null` otherwise. |
 | `failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |

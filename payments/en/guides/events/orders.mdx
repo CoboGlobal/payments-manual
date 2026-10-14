@@ -80,7 +80,7 @@ An intermediate status may not appear if it moves on to the next status quickly,
 | `transactions.source_address` | `string` | The payer's on-chain address; `null` when it cannot be identified. |
 | `transactions.status` | `string` | The deposit's status, with the same values as a [top-up](/payments/en/guides/events/top-up#trigger-conditions):<br/>• `Detected`<br/>• `PendingScreening`<br/>• `ActionRequired`<br/>• `Completed`<br/>• `Failed` |
 | `transactions.is_late` | `boolean` | `true` means the deposit completed after the order reached a final status, so it does not count towards `credited_amount`. |
-| `transactions.screening_mode` | `string` | Which screening system is handling the deposit, for reconciliation and investigation:<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
+| `transactions.screening_mode` | `string` | The screening method, used to tell where to handle the deposit when `status` is `ActionRequired`.<br/>• `CoboKyt` — Cobo KYT.<br/>• `IntegratedVendor` — a third-party provider integrated by Cobo in the Screening App. |
 | `transactions.message` | `string` | What to do when `status` is `ActionRequired`; `null` otherwise.<br/>• `Additional information is required…` — check the email Cobo sent to your account contact and supply what it asks for.<br/>• `A manual compliance review by your team is required…` — complete a manual compliance review in the Screening App. |
 | `transactions.failed_reason` | `object` | Set when the deposit's `status` is `Failed`; `null` otherwise. |
 | `transactions.failed_reason.code` | `string` | The failure code. See [Failure reasons](#failure-reasons) for the values. |
