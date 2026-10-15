@@ -107,7 +107,7 @@ sequenceDiagram
 
 </div>
 
-当付款方在托管页面选择支付代币和区块链网络并提交订单后，Cobo 会创建该支付订单并生成 `order_id`。Cobo 会立即向您的后端发送一次 [`payment.order.status.updated`](/payments/cn/guides/status-and-events#paymentorderstatusupdated) Webhook 事件，状态为 `Pending`，并携带新生成的 `order_id`——这与后续随订单支付进度发送的 `payment.order.status.updated` 事件是不同的通知。完整的事件负载和触发条件请参考[事件与状态](/payments/cn/guides/status-and-events#paymentorderstatusupdated)。
+当付款方在托管页面选择支付代币和区块链网络并提交订单后，Cobo 会创建该支付订单并生成 `order_id`。Cobo 会立即向您的后端发送一次 [`payment.order.status.updated`](/payments/cn/guides/events/orders) Webhook 事件，状态为 `Pending`，并携带新生成的 `order_id`——这与后续随订单支付进度发送的 `payment.order.status.updated` 事件是不同的通知。完整的事件负载和触发条件请参考[事件与状态](/payments/cn/guides/events/orders)。
 
 ### 应付金额计算
 

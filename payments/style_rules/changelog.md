@@ -218,7 +218,7 @@ Refer to the **Reference Materials** skill for:
 | 功能类别 | 变更说明 | 发布时间 |
 |------|----------|----------|
 | **资金管理** | (SDK v1.30.0) 全新资金转出 API 操作，转出流程更加高效... <br/>&nbsp;&nbsp;- [Create payout](/payments/en/api-references/payment/create-payout)<br/>&nbsp;&nbsp;- [List all payouts](/payments/en/api-references/payment/list-all-payouts) | 2026-01-23 |
-| **Webhook 事件** | (SDK v1.30.0) 新增多个 Off-Ramp 对接相关的 [Webhook 事件](/payments/cn/guides/status-and-events) | 2026-01-23 |
+| **Webhook 事件** | (SDK v1.30.0) 新增多个 Off-Ramp 对接相关的 [Webhook 事件](/payments/cn/guides/events/overview) | 2026-01-23 |
 | **资金管理** | (SDK v1.30.0) 新增 Bulk Send API 操作，支持加密货币批量转账... | 2026-01-23 |
 ```
 

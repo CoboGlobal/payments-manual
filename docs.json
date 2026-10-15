@@ -88,7 +88,20 @@
                 "group": "Reference",
                 "pages": [
                   "payments/en/guides/supported-chains-and-tokens",
-                  "payments/en/guides/status-and-events",
+                  {
+                    "group": "Webhook event types",
+                    "pages": [
+                      "payments/en/guides/events/overview",
+                      "payments/en/guides/events/top-up",
+                      "payments/en/guides/events/orders",
+                      "payments/en/guides/events/unexpected-deposits",
+                      "payments/en/guides/events/refunds",
+                      "payments/en/guides/events/payouts",
+                      "payments/en/guides/events/bulk-send",
+                      "payments/en/guides/events/balances",
+                      "payments/en/guides/events/advanced"
+                    ]
+                  },
                   "payments/en/guides/roles-and-permissions",
                   "payments/en/guides/error-codes",
                   "payments/en/guides/changelog"
@@ -389,7 +402,20 @@
                 "group": "索引信息",
                 "pages": [
                   "payments/cn/guides/supported-chains-and-tokens",
-                  "payments/cn/guides/status-and-events",
+                  {
+                    "group": "Webhook 事件类型",
+                    "pages": [
+                      "payments/cn/guides/events/overview",
+                      "payments/cn/guides/events/top-up",
+                      "payments/cn/guides/events/orders",
+                      "payments/cn/guides/events/unexpected-deposits",
+                      "payments/cn/guides/events/refunds",
+                      "payments/cn/guides/events/payouts",
+                      "payments/cn/guides/events/bulk-send",
+                      "payments/cn/guides/events/balances",
+                      "payments/cn/guides/events/advanced"
+                    ]
+                  },
                   "payments/cn/guides/roles-and-permissions",
                   "payments/cn/guides/error-codes",
                   "payments/cn/guides/changelog"
@@ -532,6 +558,22 @@
     {
       "source": "/payments/cn/guides/payments-ai-assistant",
       "destination": "/payments/cn/guides/overview"
+    },
+    {
+      "source": "/payments/en/guides/status-and-events",
+      "destination": "/payments/en/guides/events/overview"
+    },
+    {
+      "source": "/payments/cn/guides/status-and-events",
+      "destination": "/payments/cn/guides/events/overview"
+    },
+    {
+      "source": "/payments/en/guides/events/settlement-network",
+      "destination": "/payments/en/guides/events/balances"
+    },
+    {
+      "source": "/payments/cn/guides/events/settlement-network",
+      "destination": "/payments/cn/guides/events/balances"
     }
   ]
 }
