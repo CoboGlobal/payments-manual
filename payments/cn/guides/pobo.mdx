@@ -54,6 +54,8 @@ api_instance = PaymentApi(api_client)
 
 这一步把后续两步需要的文件一次性全部上传，并拿到每个文件的 `file_id`：提交 KYC 信息时引用公司与个人证明文件，创建银行账户转出目的地时引用银行账户文件。
 
+如需查看各国家和地区的 KYC 附件和身份证明文件要求，请参考[各国家和地区 KYC 要求](/payments/cn/guides/kyc-requirements-by-country)。
+
 逐个读取本地文件，将内容编码为 Base64，通过 `upload_payment_file_v2` 上传，并保存响应返回的 `file_id`。
 
 请求和响应 Schema 请参考 [Upload file v2](/payments/en/api-references/payment/upload-file-v2)。
@@ -86,7 +88,7 @@ KYC（Know Your Customer）核验的是发起出金的主体：确认它真实�
 
 调用 `submit_merchant_kyc` 提交 KYC 信息。以下示例提交：
 
-- B2B 主体信息
+- 公司主体信息
 - 公司附件
 - 法人信息
 - 最终受益人信息
@@ -232,6 +234,8 @@ def submit_merchant_kyc():
 ## 创建银行账户转出目的地
 
 调用 `create_destination` 创建出金/下发的目标银行账户（Destination）。
+
+如需查看各国家和地区的 SWIFT 银行账户要求，请参考[各国家和地区银行账户要求](/payments/cn/guides/bank-account-requirements-by-country)。
 
 关键配置项：
 
