@@ -7,6 +7,16 @@ lang: "en"
 
 If you are a platform institution such as a payment service provider (PSP) that needs to provide services for multiple downstream merchants, you can use the merchant management function to independently manage revenue and expenses for each merchant, and achieve automated revenue sharing with merchants by setting developer fee rates.
 
+<Note>
+**Whether to create a merchant in Cobo Payments for each of your downstream merchants depends on your business needs.** If you want Cobo to handle fund attribution and revenue sharing for you, create a separate merchant for each downstream merchant. You can then:
+
+- View per-merchant balances and ledger entries
+- Set a different developer fee rate per merchant
+- Configure separate payout destinations per merchant
+
+If you prefer to handle fund attribution and revenue sharing between your downstream merchants yourself, you can keep them all under a single merchant in Cobo Payments and do the accounting on your side.
+</Note>
+
 When a payer completes a Top-up deposit, the system automatically allocates funds to the corresponding merchant account and developer account based on the merchant's configured developer fee rate. The following diagram shows the process of automatic fund allocation to corresponding accounts in Top-up mode. Order mode uses a separate, order-level charge instead — see [Payment collection in order mode](/payments/en/guides/create-orders) and [Accounts and fund allocation](/payments/en/guides/amounts-and-balances).
 
 
