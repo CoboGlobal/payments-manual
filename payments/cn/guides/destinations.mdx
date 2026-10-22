@@ -24,6 +24,36 @@ lang: "zh-hans"
 
 如需在 POBO（全球付款）流程中创建银行账户转出目的地，请参考[POBO](/payments/cn/guides/pobo)。
 
+### 通过 API 录入银行账户：普通法币出金与 POBO 的区别
+
+调用 [Create destination](/payments/en/api-references/payment/create-destination) 时，`bank_accounts` 中是否传 `payment_method`，决定了这条银行账户走哪条校验路径。
+
+- **普通法币出金：不要传 `payment_method`。** 只需满足接口的基础必填字段，无需提交商户 KYC。
+- **POBO（三方下发）：传 `payment_method`（`Swift` 或 `Local`）。** 传了该字段即进入三方下发模式，必须先调用 [Submit merchant KYC](/payments/en/api-references/payment/submit-merchant-kyc)，否则请求会失败并提示 `payment_method` 需要先完成商户 KYC；同时 `holder_type`、`bank_account_name`、`country`、`bank_country`、`bank_province`、`contract_file_id` 等字段变为必填。完整的条件必填矩阵见 [Create destination](/payments/en/api-references/payment/create-destination) 的 `bank_accounts` 字段说明。
+
+`holder_type`、`bank_account_name`、`contract_file_id`、`bank_branch_code` 等字段仅在传了 `payment_method` 时才会被校验；普通法币出金场景下传了不会报错，但也不生效。
+
+普通法币出金的完整请求示例：
+
+```json
+{
+  "destination_name": "Acme Payout",
+  "destination_type": "Organization",
+  "bank_accounts": [
+    {
+      "account_alias": "Main Payout Account",
+      "account_number": "4111111111111111",
+      "swift_code": "BOFAUS33",
+      "currency": "USD",
+      "beneficiary_name": "Acme Limited",
+      "beneficiary_address": "123 Main St, Anytown, USA",
+      "bank_name": "ABC Bank",
+      "bank_address": "456 Bank Ave, Cityville, USA"
+    }
+  ]
+}
+```
+
 如需查看各国家和地区的 SWIFT 银行账户字段要求，请参考[各国家和地区银行账户要求](/payments/cn/guides/bank-account-requirements-by-country)。
 
 

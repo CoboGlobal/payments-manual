@@ -18702,7 +18702,7 @@ components:
         bank_branch_code:
           type: string
           description: |
-            The branch code. Required when `payment_method` is `Local` (HK only).
+            The branch code. Required when `payment_method` is `Local`.
           example: '123'
         bank_country:
           $ref: '#/components/schemas/PaymentCountry'
@@ -18880,9 +18880,26 @@ components:
       description: |
         The bank account details for creating a destination bank account.
 
-        For USD company bank accounts, optional prefixed fields may be required depending on `payment_method`:
-        - When `payment_method` is `Swift`, `beneficiary_province` and `beneficiary_post_code` are required.
-        - When `payment_method` is `Local` (HK only), `bank_branch_code` is required.
+        Whether this bank account is used for a regular fiat payout or for a third-party payout (POBO) is decided by a single field: `payment_method`.
+
+        **Regular fiat payout — omit `payment_method`.** Only the fields listed under `required` apply. Merchant KYC is not needed, and none of the rules below are enforced.
+
+        **Third-party payout (POBO) — set `payment_method` to `Swift` or `Local`.** Sending this field puts the request into third-party payout mode, which has two consequences:
+
+        - You must have completed [Submit merchant KYC](https://www.cobo.com/developers/v2/api-references/payment/submit-merchant-kyc) first. Otherwise the request fails, reporting that merchant KYC is required for `payment_method`.
+        - These fields become required on top of the `required` list. When any is missing, the error names the missing fields.
+
+          | Condition | Additional required fields |
+          | --- | --- |
+          | Always | `holder_type`, `bank_account_name`, `country`, `bank_country`, `bank_province`, `contract_file_id` |
+          | `payment_method` is `Swift` | `city`, `beneficiary_post_code`, `beneficiary_province` |
+          | `payment_method` is `Local` | `bank_branch_code` |
+          | `country` or `bank_country` is `GBR` or `CYP` | `iban_code` |
+          | `country` or `bank_country` is `USA` | `routing_value` |
+
+          When `country` is `HKG`, `city` must be a valid Hong Kong district; the same applies to `bank_city` when `bank_country` is `HKG`.
+
+        Fields such as `holder_type`, `bank_account_name`, `contract_file_id`, and `bank_branch_code` are only validated when `payment_method` is present. For a regular fiat payout they are accepted but have no effect.
       required:
         - account_alias
         - account_number
@@ -18964,7 +18981,7 @@ components:
         bank_branch_code:
           type: string
           description: |
-            The branch code. Required when `payment_method` is `Local` (HK only).
+            The branch code. Required when `payment_method` is `Local`.
           example: '123'
         bank_country:
           $ref: '#/components/schemas/PaymentCountry'
@@ -19038,9 +19055,26 @@ components:
       description: |
         The bank account details for updating a destination bank account.
 
-        For USD company bank accounts, optional prefixed fields may be required depending on `payment_method`:
-        - When `payment_method` is `Swift`, `beneficiary_province` and `beneficiary_post_code` are required.
-        - When `payment_method` is `Local` (HK only), `bank_branch_code` is required.
+        Whether this bank account is used for a regular fiat payout or for a third-party payout (POBO) is decided by a single field: `payment_method`.
+
+        **Regular fiat payout — omit `payment_method`.** Only the fields listed under `required` apply. Merchant KYC is not needed, and none of the rules below are enforced.
+
+        **Third-party payout (POBO) — set `payment_method` to `Swift` or `Local`.** Sending this field puts the request into third-party payout mode, which has two consequences:
+
+        - You must have completed [Submit merchant KYC](https://www.cobo.com/developers/v2/api-references/payment/submit-merchant-kyc) first. Otherwise the request fails, reporting that merchant KYC is required for `payment_method`.
+        - These fields become required on top of the `required` list. When any is missing, the error names the missing fields.
+
+          | Condition | Additional required fields |
+          | --- | --- |
+          | Always | `holder_type`, `bank_account_name`, `country`, `bank_country`, `bank_province`, `contract_file_id` |
+          | `payment_method` is `Swift` | `city`, `beneficiary_post_code`, `beneficiary_province` |
+          | `payment_method` is `Local` | `bank_branch_code` |
+          | `country` or `bank_country` is `GBR` or `CYP` | `iban_code` |
+          | `country` or `bank_country` is `USA` | `routing_value` |
+
+          When `country` is `HKG`, `city` must be a valid Hong Kong district; the same applies to `bank_city` when `bank_country` is `HKG`.
+
+        Fields such as `holder_type`, `bank_account_name`, `contract_file_id`, and `bank_branch_code` are only validated when `payment_method` is present. For a regular fiat payout they are accepted but have no effect.
       required:
         - account_alias
         - account_number
@@ -19122,7 +19156,7 @@ components:
         bank_branch_code:
           type: string
           description: |
-            The branch code. Required when `payment_method` is `Local` (HK only).
+            The branch code. Required when `payment_method` is `Local`.
           example: '123'
         bank_country:
           $ref: '#/components/schemas/PaymentCountry'
@@ -19479,7 +19513,7 @@ components:
         bank_branch_code:
           type: string
           description: |
-            The branch code. Required when `payment_method` is `Local` (HK only).
+            The branch code. Required when `payment_method` is `Local`.
           example: '123'
         bank_country:
           $ref: '#/components/schemas/PaymentCountry'
