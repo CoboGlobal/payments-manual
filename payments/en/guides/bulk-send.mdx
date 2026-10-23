@@ -123,6 +123,16 @@ Since the contract addresses are fixed for each token, it is recommended to veri
 | BNB Smart Chain | BSC_USDC | `0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d` | `0x3d963e23a9229d2acd25e9ffc358be1a35460ecc` |
 | TRON | TRON_USDT | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | `TEmDa9FY9YBCg1HPL41RUnJorXRRV3rX7A` |
 
+### **1.4 Risk control prerequisites**
+
+When a Bulk Send item executes through the smart contract batch-payout path described above, Cobo evaluates the item against your organization's Contract Call Transaction Policy. If your organization has not configured a Contract Call Transaction Policy, the item is rejected by default.
+
+Before using Bulk Send in production, configure a Contract Call Transaction Policy. For general guidance on configuring policies, see [Introduction to Transaction Policies](https://manuals.cobo.com/en/portal/risk-controls/tx-policies-overview).
+
+When an item is rejected because no Contract Call Transaction Policy is configured, the rejection surfaces as a failure reason string; see **Failure classification** in [Best practices](#4-best-practices) below.
+
+Whether a given chain's Bulk Send items execute through the smart contract batch-payout path and are therefore evaluated against the Contract Call Transaction Policy instead of a token transfer policy depends on your organization's configuration. See [Introduction to Transaction Policies](https://manuals.cobo.com/en/portal/risk-controls/tx-policies-overview) for configuration details. Do not assume a fixed chain-to-policy-type mapping.
+
 ---
 
 ## **2. Webhook-driven automation workflow (failure notification → query items → batch resend)**

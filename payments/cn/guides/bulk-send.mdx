@@ -123,6 +123,16 @@ Approve 完成后，后续转账将调用批量转账合约的 `sendToken` 函�
 | BNB Smart Chain | BSC_USDC | `0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d` | `0x3d963e23a9229d2acd25e9ffc358be1a35460ecc` |
 | TRON | TRON_USDT | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | `TEmDa9FY9YBCg1HPL41RUnJorXRRV3rX7A` |
 
+### **1.4 风控前提条件**
+
+当 Bulk Send 条目通过上述智能合约批量转账路径执行时，Cobo 会依据您所在团队配置的 Contract Call Transaction Policy 对该条目进行风控评估。如果团队尚未配置 Contract Call Transaction Policy，该条目将默认被拒绝。
+
+在生产环境使用 Bulk Send 前，请配置 Contract Call Transaction Policy。有关风控规则配置的更多说明，请参阅 [交易风控规则介绍](https://manuals.cobo.com/cn/portal/risk-controls/tx-policies-overview)。
+
+若条目因未配置 Contract Call Transaction Policy 而被拒绝，会在失败原因字符串中体现；参见下方 [最佳实践](#4-最佳实践) 中的**失败分类处理**。
+
+某条链上的 Bulk Send 条目是否会通过智能合约批量转账路径执行，从而适用 Contract Call Transaction Policy 而非转账风控规则，取决于您所在团队的具体配置。配置详情请参阅 [交易风控规则介绍](https://manuals.cobo.com/cn/portal/risk-controls/tx-policies-overview)。请勿假定固定的链与策略类型对应关系。
+
 ---
 
 ## **2. Webhook 驱动自动化工作流（失败通知 + 查询条目 + 批量补发）**
