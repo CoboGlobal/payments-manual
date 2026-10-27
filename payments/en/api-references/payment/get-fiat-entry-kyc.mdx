@@ -1,0 +1,103 @@
+---
+openapi: get /payments/fiat_entry_kyc/{fiat_entry_kyc_id}
+---
+
+<RequestExample>
+```python Python
+import cobo_waas2
+from cobo_waas2.models.fiat_entry_kyc_detail import FiatEntryKycDetail
+from pprint import pprint
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="<YOUR_PRIVATE_KEY>",
+    host="https://api.dev.cobo.com/v2",
+)
+
+with cobo_waas2.ApiClient(configuration) as api_client:
+    api_instance = cobo_waas2.PaymentApi(api_client)
+    fiat_entry_kyc_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+
+    try:
+        api_response: FiatEntryKycDetail = api_instance.get_fiat_entry_kyc(
+            fiat_entry_kyc_id
+        )
+        pprint(api_response)
+    except cobo_waas2.ApiException as e:
+        print("Exception when calling PaymentApi->get_fiat_entry_kyc: %s\n" % e)
+```
+
+```java Java
+import com.cobo.waas2.ApiClient;
+import com.cobo.waas2.ApiException;
+import com.cobo.waas2.Configuration;
+import com.cobo.waas2.Env;
+import com.cobo.waas2.api.PaymentApi;
+import com.cobo.waas2.model.FiatEntryKycDetail;
+import java.util.UUID;
+
+public class Example {
+  public static void main(String[] args) {
+    ApiClient defaultClient = Configuration.getDefaultApiClient();
+    defaultClient.setEnv(Env.DEV);
+    defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
+    PaymentApi apiInstance = new PaymentApi();
+    UUID fiatEntryKycId = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
+
+    try {
+      FiatEntryKycDetail result = apiInstance.getFiatEntryKyc(fiatEntryKycId);
+      System.out.println(result);
+    } catch (ApiException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+```go Go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+
+    coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+    "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2/crypto"
+)
+
+func main() {
+    fiatEntryKycId := "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    configuration := coboWaas2.NewConfiguration()
+    apiClient := coboWaas2.NewAPIClient(configuration)
+    ctx := context.Background()
+    ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+    ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+        Secret: "<YOUR_PRIVATE_KEY>",
+    })
+
+    resp, r, err := apiClient.PaymentAPI.GetFiatEntryKyc(ctx, fiatEntryKycId).Execute()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error when calling PaymentAPI.GetFiatEntryKyc: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+    }
+    // response from GetFiatEntryKyc: FiatEntryKycDetail
+    fmt.Fprintf(os.Stdout, "Response from PaymentAPI.GetFiatEntryKyc: %v\n", resp)
+}
+```
+
+```javascript JavaScript
+const CoboWaas2 = require("@cobo/cobo-waas2");
+
+const apiClient = CoboWaas2.ApiClient.instance;
+apiClient.setEnv(CoboWaas2.Env.DEV);
+apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
+
+const apiInstance = new CoboWaas2.PaymentApi();
+const fiat_entry_kyc_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+
+apiInstance.getFiatEntryKyc(fiat_entry_kyc_id).then(
+  (data) => console.log("Response from PaymentApi.getFiatEntryKyc:", data),
+  (error) => console.error(error),
+);
+```
+</RequestExample>
