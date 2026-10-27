@@ -267,7 +267,11 @@
                   "payments/en/api-references/payment/upload-file",
                   "payments/en/api-references/payment/upload-file-v2",
                   "payments/en/api-references/payment/submit-merchant-kyc",
-                  "payments/en/api-references/payment/get-merchant-kyc"
+                  "payments/en/api-references/payment/get-merchant-kyc",
+                  "payments/en/api-references/payment/create-fiat-entry-kyc",
+                  "payments/en/api-references/payment/list-fiat-entry-kyc",
+                  "payments/en/api-references/payment/get-fiat-entry-kyc",
+                  "payments/en/api-references/payment/update-fiat-entry-kyc"
                 ]
               },
               {

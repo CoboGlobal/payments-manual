@@ -1,0 +1,126 @@
+---
+openapi: get /payments/fiat_entry_kyc
+---
+
+<RequestExample>
+```python Python
+import cobo_waas2
+from cobo_waas2.models.list_fiat_entry_kyc200_response import ListFiatEntryKyc200Response
+from pprint import pprint
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="<YOUR_PRIVATE_KEY>",
+    host="https://api.dev.cobo.com/v2",
+)
+
+with cobo_waas2.ApiClient(configuration) as api_client:
+    api_instance = cobo_waas2.PaymentApi(api_client)
+    limit = 10
+    before = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1"
+    after = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk"
+    statuses = "PendingReview,Completed"
+
+    try:
+        api_response: ListFiatEntryKyc200Response = api_instance.list_fiat_entry_kyc(
+            limit=limit,
+            before=before,
+            after=after,
+            statuses=statuses,
+        )
+        pprint(api_response)
+    except cobo_waas2.ApiException as e:
+        print("Exception when calling PaymentApi->list_fiat_entry_kyc: %s\n" % e)
+```
+
+```java Java
+import com.cobo.waas2.ApiClient;
+import com.cobo.waas2.ApiException;
+import com.cobo.waas2.Configuration;
+import com.cobo.waas2.Env;
+import com.cobo.waas2.api.PaymentApi;
+import com.cobo.waas2.model.ListFiatEntryKyc200Response;
+
+public class Example {
+  public static void main(String[] args) {
+    ApiClient defaultClient = Configuration.getDefaultApiClient();
+    defaultClient.setEnv(Env.DEV);
+    defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
+    PaymentApi apiInstance = new PaymentApi();
+    Integer limit = 10;
+    String before = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1";
+    String after = "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk";
+    String statuses = "PendingReview,Completed";
+
+    try {
+      ListFiatEntryKyc200Response result =
+          apiInstance.listFiatEntryKyc(limit, before, after, statuses);
+      System.out.println(result);
+    } catch (ApiException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+```go Go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+
+    coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+    "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2/crypto"
+)
+
+func main() {
+    limit := int32(10)
+    before := "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1"
+    after := "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk"
+    statuses := "PendingReview,Completed"
+
+    configuration := coboWaas2.NewConfiguration()
+    apiClient := coboWaas2.NewAPIClient(configuration)
+    ctx := context.Background()
+    ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+    ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+        Secret: "<YOUR_PRIVATE_KEY>",
+    })
+
+    resp, r, err := apiClient.PaymentAPI.ListFiatEntryKyc(ctx).
+        Limit(limit).
+        Before(before).
+        After(after).
+        Statuses(statuses).
+        Execute()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error when calling PaymentAPI.ListFiatEntryKyc: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+    }
+    // response from ListFiatEntryKyc: ListFiatEntryKyc200Response
+    fmt.Fprintf(os.Stdout, "Response from PaymentAPI.ListFiatEntryKyc: %v\n", resp)
+}
+```
+
+```javascript JavaScript
+const CoboWaas2 = require("@cobo/cobo-waas2");
+
+const apiClient = CoboWaas2.ApiClient.instance;
+apiClient.setEnv(CoboWaas2.Env.DEV);
+apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
+
+const apiInstance = new CoboWaas2.PaymentApi();
+const opts = {
+  limit: 10,
+  before: "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGmk1",
+  after: "RqeEoTkgKG5rpzqYzg2Hd3szmPoj2cE7w5jWwShz3C1vyGSAk",
+  statuses: "PendingReview,Completed",
+};
+
+apiInstance.listFiatEntryKyc(opts).then(
+  (data) => console.log("Response from PaymentApi.listFiatEntryKyc:", data),
+  (error) => console.error(error),
+);
+```
+</RequestExample>

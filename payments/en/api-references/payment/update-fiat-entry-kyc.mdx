@@ -1,0 +1,125 @@
+---
+openapi: put /payments/fiat_entry_kyc/{fiat_entry_kyc_id}
+---
+
+<RequestExample>
+```python Python
+import cobo_waas2
+from cobo_waas2.models.fiat_entry_kyc import FiatEntryKyc
+from cobo_waas2.models.update_fiat_entry_kyc import UpdateFiatEntryKyc
+from pprint import pprint
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="<YOUR_PRIVATE_KEY>",
+    host="https://api.dev.cobo.com/v2",
+)
+
+with cobo_waas2.ApiClient(configuration) as api_client:
+    api_instance = cobo_waas2.PaymentApi(api_client)
+    fiat_entry_kyc_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    update_fiat_entry_kyc = UpdateFiatEntryKyc(
+        industry=["Intangible Goods & Service", "Websites, IT & Software"]
+    )
+
+    try:
+        api_response: FiatEntryKyc = api_instance.update_fiat_entry_kyc(
+            fiat_entry_kyc_id,
+            update_fiat_entry_kyc=update_fiat_entry_kyc,
+        )
+        pprint(api_response)
+    except cobo_waas2.ApiException as e:
+        print("Exception when calling PaymentApi->update_fiat_entry_kyc: %s\n" % e)
+```
+
+```java Java
+import com.cobo.waas2.ApiClient;
+import com.cobo.waas2.ApiException;
+import com.cobo.waas2.Configuration;
+import com.cobo.waas2.Env;
+import com.cobo.waas2.api.PaymentApi;
+import com.cobo.waas2.model.FiatEntryKyc;
+import com.cobo.waas2.model.UpdateFiatEntryKyc;
+import java.util.Arrays;
+import java.util.UUID;
+
+public class Example {
+  public static void main(String[] args) {
+    ApiClient defaultClient = Configuration.getDefaultApiClient();
+    defaultClient.setEnv(Env.DEV);
+    defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
+    PaymentApi apiInstance = new PaymentApi();
+    UUID fiatEntryKycId = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
+    UpdateFiatEntryKyc updateFiatEntryKyc =
+        new UpdateFiatEntryKyc().industry(
+            Arrays.asList("Intangible Goods & Service", "Websites, IT & Software"));
+
+    try {
+      FiatEntryKyc result = apiInstance.updateFiatEntryKyc(fiatEntryKycId, updateFiatEntryKyc);
+      System.out.println(result);
+    } catch (ApiException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+```go Go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+
+    coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+    "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2/crypto"
+)
+
+func main() {
+    fiatEntryKycId := "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    updateFiatEntryKyc := *coboWaas2.NewUpdateFiatEntryKyc()
+    updateFiatEntryKyc.SetIndustry(
+        []string{"Intangible Goods & Service", "Websites, IT & Software"},
+    )
+
+    configuration := coboWaas2.NewConfiguration()
+    apiClient := coboWaas2.NewAPIClient(configuration)
+    ctx := context.Background()
+    ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+    ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+        Secret: "<YOUR_PRIVATE_KEY>",
+    })
+
+    resp, r, err := apiClient.PaymentAPI.UpdateFiatEntryKyc(ctx, fiatEntryKycId).
+        UpdateFiatEntryKyc(updateFiatEntryKyc).
+        Execute()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error when calling PaymentAPI.UpdateFiatEntryKyc: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+    }
+    // response from UpdateFiatEntryKyc: FiatEntryKyc
+    fmt.Fprintf(os.Stdout, "Response from PaymentAPI.UpdateFiatEntryKyc: %v\n", resp)
+}
+```
+
+```javascript JavaScript
+const CoboWaas2 = require("@cobo/cobo-waas2");
+
+const apiClient = CoboWaas2.ApiClient.instance;
+apiClient.setEnv(CoboWaas2.Env.DEV);
+apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
+
+const apiInstance = new CoboWaas2.PaymentApi();
+const fiat_entry_kyc_id = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+const opts = {
+  UpdateFiatEntryKyc: CoboWaas2.UpdateFiatEntryKyc.constructFromObject({
+    industry: ["Intangible Goods & Service", "Websites, IT & Software"],
+  }),
+};
+
+apiInstance.updateFiatEntryKyc(fiat_entry_kyc_id, opts).then(
+  (data) => console.log("Response from PaymentApi.updateFiatEntryKyc:", data),
+  (error) => console.error(error),
+);
+```
+</RequestExample>

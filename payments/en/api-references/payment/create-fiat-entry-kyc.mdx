@@ -1,0 +1,215 @@
+---
+openapi: post /payments/fiat_entry_kyc
+---
+
+<RequestExample>
+```python Python
+import cobo_waas2
+from cobo_waas2.models.create_fiat_entry_kyc import CreateFiatEntryKyc
+from cobo_waas2.models.fiat_entry_kyc import FiatEntryKyc
+from cobo_waas2.models.fiat_entry_kyc_merchant_type import FiatEntryKycMerchantType
+from cobo_waas2.models.fiat_entry_kyc_person_attachment_file_type import (
+    FiatEntryKycPersonAttachmentFileType,
+)
+from pprint import pprint
+
+configuration = cobo_waas2.Configuration(
+    api_private_key="<YOUR_PRIVATE_KEY>",
+    host="https://api.dev.cobo.com/v2",
+)
+
+with cobo_waas2.ApiClient(configuration) as api_client:
+    api_instance = cobo_waas2.PaymentApi(api_client)
+    residential_address = cobo_waas2.FiatEntryKycAddress(
+        country="HK",
+        state="Hong Kong",
+        city="Hong Kong",
+        postcode="999077",
+        line1="1 Example Street",
+    )
+    individual_info = cobo_waas2.FiatEntryKycPersonInfo(
+        name="Alex Example",
+        name_en="Alex Example",
+        id_number="A1234567",
+        date_of_birth="19900101",
+        issue_date="20180101",
+        expiration_date="20280101",
+        attachments=[
+            cobo_waas2.FiatEntryKycPersonAttachment(
+                file_id="https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id-card.jpg",
+                file_type=FiatEntryKycPersonAttachmentFileType("PRC_ID_Emblem"),
+            )
+        ],
+        residential_address=residential_address,
+    )
+    create_fiat_entry_kyc = CreateFiatEntryKyc(
+        merchant_type=FiatEntryKycMerchantType("B2C"),
+        country="HKG",
+        industry=["Intangible Goods & Service"],
+        individual_info=individual_info,
+    )
+
+    try:
+        api_response: FiatEntryKyc = api_instance.create_fiat_entry_kyc(
+            create_fiat_entry_kyc=create_fiat_entry_kyc
+        )
+        pprint(api_response)
+    except cobo_waas2.ApiException as e:
+        print("Exception when calling PaymentApi->create_fiat_entry_kyc: %s\n" % e)
+```
+
+```java Java
+import com.cobo.waas2.ApiClient;
+import com.cobo.waas2.ApiException;
+import com.cobo.waas2.Configuration;
+import com.cobo.waas2.Env;
+import com.cobo.waas2.api.PaymentApi;
+import com.cobo.waas2.model.*;
+import java.util.Arrays;
+
+public class Example {
+  public static void main(String[] args) {
+    ApiClient defaultClient = Configuration.getDefaultApiClient();
+    defaultClient.setEnv(Env.DEV);
+    defaultClient.setPrivKey("<YOUR_PRIVATE_KEY>");
+    PaymentApi apiInstance = new PaymentApi();
+
+    FiatEntryKycAddress residentialAddress =
+        new FiatEntryKycAddress()
+            .country("HK")
+            .state("Hong Kong")
+            .city("Hong Kong")
+            .postcode("999077")
+            .line1("1 Example Street");
+    FiatEntryKycPersonInfo individualInfo =
+        new FiatEntryKycPersonInfo()
+            .name("Alex Example")
+            .nameEn("Alex Example")
+            .idNumber("A1234567")
+            .dateOfBirth("19900101")
+            .issueDate("20180101")
+            .expirationDate("20280101")
+            .attachments(
+                Arrays.asList(
+                    new FiatEntryKycPersonAttachment()
+                        .fileId("https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id-card.jpg")
+                        .fileType(FiatEntryKycPersonAttachmentFileType.PRC_ID_EMBLEM)))
+            .residentialAddress(residentialAddress);
+    CreateFiatEntryKyc createFiatEntryKyc =
+        new CreateFiatEntryKyc()
+            .merchantType(FiatEntryKycMerchantType.B2C)
+            .country("HKG")
+            .industry(Arrays.asList("Intangible Goods & Service"))
+            .individualInfo(individualInfo);
+
+    try {
+      FiatEntryKyc result = apiInstance.createFiatEntryKyc(createFiatEntryKyc);
+      System.out.println(result);
+    } catch (ApiException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+```go Go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+
+    coboWaas2 "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2"
+    "github.com/CoboGlobal/cobo-waas2-go-sdk/cobo_waas2/crypto"
+)
+
+func main() {
+    residentialAddress := *coboWaas2.NewFiatEntryKycAddress(
+        "HK", "Hong Kong", "Hong Kong", "999077", "1 Example Street",
+    )
+    individualInfo := *coboWaas2.NewFiatEntryKycPersonInfo(
+        "Alex Example",
+        "Alex Example",
+        "A1234567",
+        "19900101",
+        "20180101",
+        "20280101",
+        []coboWaas2.FiatEntryKycPersonAttachment{
+            *coboWaas2.NewFiatEntryKycPersonAttachment(
+                "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id-card.jpg",
+                coboWaas2.FiatEntryKycPersonAttachmentFileType("PRC_ID_Emblem"),
+            ),
+        },
+        residentialAddress,
+    )
+    createFiatEntryKyc := *coboWaas2.NewCreateFiatEntryKyc(
+        coboWaas2.FiatEntryKycMerchantType("B2C"),
+        "HKG",
+        []string{"Intangible Goods & Service"},
+    )
+    createFiatEntryKyc.SetIndividualInfo(individualInfo)
+
+    configuration := coboWaas2.NewConfiguration()
+    apiClient := coboWaas2.NewAPIClient(configuration)
+    ctx := context.Background()
+    ctx = context.WithValue(ctx, coboWaas2.ContextEnv, coboWaas2.DevEnv)
+    ctx = context.WithValue(ctx, coboWaas2.ContextPortalSigner, crypto.Ed25519Signer{
+        Secret: "<YOUR_PRIVATE_KEY>",
+    })
+
+    resp, r, err := apiClient.PaymentAPI.CreateFiatEntryKyc(ctx).
+        CreateFiatEntryKyc(createFiatEntryKyc).
+        Execute()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error when calling PaymentAPI.CreateFiatEntryKyc: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Full HTTP response: %v\n", r)
+    }
+    // response from CreateFiatEntryKyc: FiatEntryKyc
+    fmt.Fprintf(os.Stdout, "Response from PaymentAPI.CreateFiatEntryKyc: %v\n", resp)
+}
+```
+
+```javascript JavaScript
+const CoboWaas2 = require("@cobo/cobo-waas2");
+
+const apiClient = CoboWaas2.ApiClient.instance;
+apiClient.setEnv(CoboWaas2.Env.DEV);
+apiClient.setPrivateKey("<YOUR_PRIVATE_KEY>");
+
+const apiInstance = new CoboWaas2.PaymentApi();
+const opts = {
+  CreateFiatEntryKyc: CoboWaas2.CreateFiatEntryKyc.constructFromObject({
+    merchant_type: "B2C",
+    country: "HKG",
+    industry: ["Intangible Goods & Service"],
+    individual_info: {
+      name: "Alex Example",
+      name_en: "Alex Example",
+      id_number: "A1234567",
+      date_of_birth: "19900101",
+      issue_date: "20180101",
+      expiration_date: "20280101",
+      attachments: [
+        {
+          file_id: "https://example-bucket.s3.us-east-1.amazonaws.com/uploads/id-card.jpg",
+          file_type: "PRC_ID_Emblem",
+        },
+      ],
+      residential_address: {
+        country: "HK",
+        state: "Hong Kong",
+        city: "Hong Kong",
+        postcode: "999077",
+        line1: "1 Example Street",
+      },
+    },
+  }),
+};
+
+apiInstance.createFiatEntryKyc(opts).then(
+  (data) => console.log("Response from PaymentApi.createFiatEntryKyc:", data),
+  (error) => console.error(error),
+);
+```
+</RequestExample>
