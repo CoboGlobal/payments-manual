@@ -1,0 +1,69 @@
+---
+title: "Payments AI Assistant"
+sidebarTitle: "Payments AI Assistant"
+lang: "en"
+description: "Look up payment records, ask about the product and API, and complete part of your setup in plain language."
+---
+
+The Payments AI Assistant is a conversational assistant embedded in Cobo Portal, shown in the interface as **Cobo AI Assistant**. Ask in plain language and it looks up data, answers questions, or completes part of your setup for you.
+
+## Look up payment data
+
+Payouts, refunds, bulk sends, orders, top-ups, bank withdrawals, balances, merchants, and supported tokens. Locate a specific record by order ID, `request_id`, or on-chain transaction hash. Results come back as cards and tables.
+
+Try asking:
+
+- How much balance do I have right now?
+- List balances for all merchants
+- What's the status of order `O20250304-M1001-1001`?
+- Why hasn't the payout with `request_id` `xxx` arrived yet?
+- Which payouts failed in the past week?
+
+<Note>
+Record lookup is **read-only**. To create, modify, or cancel an order, payout, or refund, use the Payments App.
+</Note>
+
+## Ask about the product and API
+
+The assistant answers from Cobo's official documentation. When it cannot confirm something, it says so instead of guessing.
+
+Try asking:
+
+- What's the difference between top-up mode and order mode?
+- What does `error_code` 2027 mean and how do I fix it?
+- Which webhook events does Payments send?
+- How do I set up a destination?
+
+## Invite organization members
+
+The assistant validates the email address, helps you pick the role, submits the invitation, and can confirm whether it went through. Submitting requires MFA.
+
+Try asking:
+
+- Invite `teammate@example.com` to the organization as a Payment Member
+- Has the invitation I sent last week been accepted?
+
+## Set up Cobo Guard
+
+Cobo Guard is the mobile app that approves and signs payment operations. The assistant walks you through downloading it, shows the binding QR code, and checks the binding status. Scanning happens on your phone.
+
+Try asking:
+
+- Help me set up Cobo Guard
+- Is my Guard already bound?
+
+## Open the assistant
+
+Log in to [Cobo Portal](https://portal.cobo.com/login), open the Payments App, and click the **AI** button in the top-right corner. The assistant opens in a side panel.
+
+## Before you rely on it
+
+- **The assistant reads, it does not write.** Make all changes in the Payments App.
+- **Results follow your permissions.** The assistant only sees data in your current organization that your role can access. A record it cannot find is not necessarily missing.
+- **Never paste key material.** Do not provide API secrets, signature values, private keys, or full request headers.
+
+For data usage and security, see [Cobo AI introduction](https://manuals.cobo.com/en/ai/introduction). If the assistant cannot resolve your question, contact [Cobo support](mailto:help@cobo.com).
+
+<Warning>
+AI-generated content may be incomplete or inaccurate and **does not constitute business, financial, security, legal, tax, or compliance advice**. Verify source data before acting on anything critical, and remain responsible for the outcome. Capabilities may change between releases.
+</Warning>
